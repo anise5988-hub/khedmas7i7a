@@ -18,17 +18,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Inscription temporairement indisponible : le service de confirmation email n'est pas configuré." }, { status: 503 });
   }
 
-  {
-    const { data, error } = await supabaseAuth.auth.signUp({
+  const { data, error } = await supabaseAuth.auth.signUp({
       email: input.email,
       password: input.password,
       options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin}/auth/callback`, data: { firstName: input.firstName, lastName: input.lastName, role: input.role, phone: input.phone || "" } },
     });
-    if (error || !data.user) {
-      console.error("Supabase sign-up failed", { message: error?.message, status: error?.status, code: error?.code });
-      return NextResponse.json({ error: error?.message || "Inscription impossible." }, { status: 400 });
-    }
-    try {
+  if (error || !data.user) {
+    console.error("Supabase sign-up failed", { message: error?.message, status: error?.status, code: error?.code });
+    return NextResponse.json({ error: error?.message || "Inscription impossible." }, { status: 400 });
+  }
+  try {
       const user = await prisma.user.upsert({
         where: { id: data.user.id },
         update: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null },
@@ -49,12 +48,11 @@ export async function POST(request: Request) {
         const slug = `${input.firstName}-${input.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 0 } });
       }
-    } catch (profileError) {
-      console.error("Supabase user profile sync failed", profileError);
-      return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
-    }
-    return NextResponse.json({ success: true, user: data.user, requiresEmailConfirmation: !data.session, message: "Compte créé. Consultez votre email pour confirmer votre adresse." }, { status: 201 });
+  } catch (profileError) {
+    console.error("Supabase user profile sync failed", profileError);
+    return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
   }
+  return NextResponse.json({ success: true, user: data.user, requiresEmailConfirmation: !data.session, message: "Compte créé. Consultez votre email pour confirmer votre adresse." }, { status: 201 });
 
   const passwordHash = await hash(input.password, 12);
 
