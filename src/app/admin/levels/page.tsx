@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Niveaux" description="Configure les niveaux scolaires tunisiens." items={["Primaire","Base","Secondaire","Université"]}/>;}

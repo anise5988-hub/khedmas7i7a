@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Vérifications professeur" description="Examine les candidatures avant publication." items={["En attente","En cours d'examen","Approuvées","Rejetées"]}/>;}

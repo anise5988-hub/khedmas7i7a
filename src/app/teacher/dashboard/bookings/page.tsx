@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Professeur" title="Mes réservations" description="Accepte et suis les demandes de séances." items={["Demandes en attente","Séances confirmées","Séances terminées"]}/>;}

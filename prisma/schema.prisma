@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { STUDENT TEACHER ADMIN }
+enum VerificationStatus { PENDING UNDER_REVIEW APPROVED REJECTED SUSPENDED }
+enum BookingStatus { PENDING CONFIRMED CANCELLED COMPLETED }
+enum PaymentStatus { PENDING PROCESSING PAID FAILED CANCELLED REFUNDED }
+enum WithdrawalStatus { PENDING APPROVED PROCESSING PAID REJECTED }
+enum TransactionType { DEPOSIT BOOKING_PAYMENT REFUND TEACHER_EARNING WITHDRAWAL WITHDRAWAL_FEE }
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  firstName String
+  lastName  String
+  phone     String?
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   StudentProfile?
+  teacher   TeacherProfile?
+  wallet    Wallet?
+  bookingsAsStudent Booking[] @relation("studentBookings")
+  bookingsAsTeacher Booking[] @relation("teacherBookings")
+  reviews   Review[]
+  favorites Favorite[]
+}
+
+model StudentProfile {
+  id          String @id @default(cuid())
+  userId      String @unique
+  governorate String?
+  city        String?
+  levelSlug   String?
+  section     String?
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TeacherProfile {
+  id                 String @id @default(cuid())
+  userId             String @unique
+  slug               String @unique
+  title              String?
+  bio                String?
+  experienceYears    Int @default(0)
+  hourlyRateMillimes Int
+  governorate        String?
+  city               String?
+  online             Boolean @default(true)
+  inPerson           Boolean @default(false)
+  verificationStatus VerificationStatus @default(PENDING)
+  user               User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects           TeacherSubject[]
+  availabilities     Availability[]
+  bookings           Booking[] @relation("teacherBookings")
+  withdrawals        WithdrawalRequest[]
+}
+
+model TeacherSubject {
+  teacherId String
+  subject   String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  @@id([teacherId, subject])
+}
+
+model Availability {
+  id        String @id @default(cuid())
+  teacherId String
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  @@index([teacherId, dayOfWeek])
+}
+
+model Booking {
+  id              String @id @default(cuid())
+  studentId       String
+  teacherId       String
+  startsAt        DateTime
+  durationMinutes Int
+  amountMillimes  Int
+  status          BookingStatus @default(PENDING)
+  student         User @relation("studentBookings", fields: [studentId], references: [id])
+  teacher         TeacherProfile @relation("teacherBookings", fields: [teacherId], references: [id])
+  payment         Payment?
+  createdAt       DateTime @default(now())
+  @@index([teacherId, startsAt])
+  @@index([studentId, startsAt])
+}
+
+model Payment {
+  id             String @id @default(cuid())
+  bookingId      String @unique
+  amountMillimes Int
+  status         PaymentStatus @default(PENDING)
+  providerRef    String?
+  idempotencyKey String @unique
+  booking        Booking @relation(fields: [bookingId], references: [id])
+  createdAt      DateTime @default(now())
+}
+
+model Wallet {
+  id                String @id @default(cuid())
+  userId            String @unique
+  availableMillimes Int @default(0)
+  pendingMillimes   Int @default(0)
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions      WalletTransaction[]
+}
+
+model WalletTransaction {
+  id             String @id @default(cuid())
+  walletId       String
+  type           TransactionType
+  amountMillimes Int
+  reference      String? @unique
+  wallet         Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  @@index([walletId, createdAt])
+}
+
+model WithdrawalRequest {
+  id                   String @id @default(cuid())
+  teacherId            String
+  requestedMillimes    Int
+  feeMillimes          Int
+  payoutMillimes       Int
+  method               String
+  accountDetails       String
+  status               WithdrawalStatus @default(PENDING)
+  teacher              TeacherProfile @relation(fields: [teacherId], references: [id])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  @@index([status, createdAt])
+}
+
+model Review {
+  id         String @id @default(cuid())
+  studentId  String
+  teacherId  String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  student    User @relation(fields: [studentId], references: [id])
+  @@index([teacherId, createdAt])
+}
+
+model Favorite {
+  studentId String
+  teacherId String
+  student   User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@id([studentId, teacherId])
+}

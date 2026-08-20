@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Professeur" title="Mes disponibilités" description="Configure les créneaux visibles par tes élèves." items={["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]}/>;}

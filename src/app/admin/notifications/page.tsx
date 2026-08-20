@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Notifications" description="Prépare les notifications in-app et email." items={["Créer une notification","Historique","Canaux"]}/>;}

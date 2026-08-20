@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Professeur" title="Paramètres" description="Gère ton compte, tes notifications et tes informations de paiement." items={["Compte","Notifications","Méthodes de retrait"]}/>;}

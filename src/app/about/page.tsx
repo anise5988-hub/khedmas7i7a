@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function AboutPage() { return <WorkspacePage eyebrow="Notre mission" title="Rendre le bon apprentissage accessible en Tunisie." description="Profy rapproche les élèves, les familles et les professeurs autour d'une expérience de confiance." items={["Confiance", "Proximité", "Progrès"]} />; }

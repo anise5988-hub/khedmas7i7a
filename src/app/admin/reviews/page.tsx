@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Avis" description="Modère les avis après les séances." items={["Avis récents","Signalés","Modérés"]}/>;}

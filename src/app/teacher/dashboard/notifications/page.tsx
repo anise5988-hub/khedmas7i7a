@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Professeur" title="Notifications" description="Réservations, paiements et validation de profil." items={["Nouvelle réservation","Paiement reçu","Statut de vérification"]}/>;}

@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Réservations" description="Supervise les séances et leurs statuts." items={["En attente","Confirmées","Terminées","Annulées"]}/>;}

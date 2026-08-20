@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Professeur" title="Support professeur" description="Obtiens de l'aide pour tes cours et tes retraits." items={["Paiements et retraits","Profil et vérification","Problème technique"]}/>;}

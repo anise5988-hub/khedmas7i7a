@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Contenu" description="Gère les contenus publics de Profy." items={["Pages","FAQ","Avis mis en avant"]}/>;}

@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Élève" title="Mon calendrier" description="Visualise tes séances et tes créneaux réservés." items={["Cette semaine","Prochain cours","Disponibilités"]}/>;}

@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Support" description="Réponds aux tickets des utilisateurs." items={["Open","In progress","Waiting","Resolved"]}/>;}

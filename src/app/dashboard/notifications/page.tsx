@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function NotificationsPage() { return <WorkspacePage eyebrow="Notifications" title="Les moments importants ne se perdent pas." description="Réservations, paiements, messages et rappels de cours." items={["Cours confirmé", "Paiement wallet enregistré", "Nouveau message"]} />; }

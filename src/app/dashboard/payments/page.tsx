@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Élève" title="Mes paiements" description="Historique des paiements confirmés et remboursés." items={["Paiements confirmés","Paiements en attente","Remboursements"]}/>;}

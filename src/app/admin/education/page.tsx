@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Système éducatif" description="Configure cycles, niveaux, sections et matières." items={["Cycles","Niveaux","Sections","Matières"]}/>;}

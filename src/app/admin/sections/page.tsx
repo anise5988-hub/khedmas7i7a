@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Sections" description="Gère les sections scolaires." items={["Mathématiques","Sciences expérimentales","Économie et Gestion","Informatique","Lettres"]}/>;}

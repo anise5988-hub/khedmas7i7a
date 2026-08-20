@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="SEO" description="Configure metadata et pages SEO par matière et niveau." items={["Metadata","Pages matières","Pages niveaux","Sitemap"]}/>;}

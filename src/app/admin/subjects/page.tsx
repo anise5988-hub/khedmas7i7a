@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Matières" description="Configure le catalogue des matières." items={["Matières actives","Ajouter une matière","Associations niveaux"]}/>;}

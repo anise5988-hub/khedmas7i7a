@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function ContactPage() { return <WorkspacePage eyebrow="Parlons-nous" title="Une question ? On est là." description="Notre équipe peut t'aider pour ton compte, tes réservations, les paiements et les cours." items={["Support élève", "Support professeur", "Partenariats"]} />; }

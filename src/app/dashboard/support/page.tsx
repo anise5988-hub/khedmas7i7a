@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Élève" title="Mon support" description="Suis tes demandes auprès de l'équipe Profy." items={["Tickets ouverts","Tickets résolus","Nouveau ticket"]}/>;}

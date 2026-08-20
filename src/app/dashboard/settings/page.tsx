@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Élève" title="Paramètres" description="Gère ton profil, tes préférences et ta sécurité." items={["Profil personnel","Préférences de notifications","Sécurité du compte"]}/>;}

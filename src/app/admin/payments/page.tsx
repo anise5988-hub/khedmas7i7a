@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Paiements" description="Contrôle les paiements et leurs confirmations provider." items={["Pending","Paid","Failed","Refunded"]}/>;}

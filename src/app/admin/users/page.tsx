@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Utilisateurs" description="Gère les comptes et leurs rôles RBAC." items={["Tous les utilisateurs","Élèves","Professeurs","Administrateurs"]}/>;}

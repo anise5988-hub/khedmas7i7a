@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function MessagesPage() { return <WorkspacePage eyebrow="Messagerie" title="Garde le fil de tes apprentissages." description="Retrouve tes conversations avec les professeurs et les messages importants." items={["Amine Nasri · Mathématiques", "Sarra Mejri · Français", "Nouvelle conversation"]} />; }

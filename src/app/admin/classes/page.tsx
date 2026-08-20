@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Cours" description="Suit les sessions de cours et les replays autorisés." items={["Sessions en ligne","Sessions présentiel","Replays"]}/>;}

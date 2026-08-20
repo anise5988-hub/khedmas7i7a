@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Logs" description="Journalise les actions sensibles et les changements de statut." items={["Admin logs","Webhooks","Erreurs"]}/>;}

@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Professeur" title="Mon profil" description="Présente ton expertise et garde tes informations à jour." items={["Informations personnelles","Bio et expérience","Diplômes et matières"]}/>;}

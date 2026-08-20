@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Professeur" title="Messages" description="Échange avec tes élèves dans un espace sécurisé." items={["Conversations","Messages non lus","Nouveau message"]}/>;}

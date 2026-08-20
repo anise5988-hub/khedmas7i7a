@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Transactions" description="Journal financier complet avec références et idempotency." items={["Dépôts","Paiements cours","Remboursements","Frais de retrait"]}/>;}

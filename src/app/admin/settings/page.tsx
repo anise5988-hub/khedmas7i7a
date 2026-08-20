@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Paramètres" description="Configure commissions, paiements, replay et sécurité." items={["Frais retrait · 10%","Payment providers","Replay et consentement","RBAC"]}/>;}

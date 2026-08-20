@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Élève" title="Mes cours" description="Toutes tes séances réservées et leur statut." items={["Cours à venir","Cours terminés","Réserver une séance"]}/>;}

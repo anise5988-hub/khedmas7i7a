@@ -1,0 +1,1 @@
+import { WorkspacePage } from "@/components/workspace-page"; export default function Page(){return <WorkspacePage eyebrow="Admin" title="Wallets" description="Supervise les soldes et les crédits confirmés." items={["Soldes élèves","Soldes professeurs","Crédits en attente"]}/>;}
