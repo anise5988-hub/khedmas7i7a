@@ -139,8 +139,14 @@ export default function TeacherCoursesPage() {
     setError("");
   };
 
+  const closeModal = () => {
+    if (saving) return;
+    setShowCreateModal(false);
+    setError("");
+  };
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 pb-8">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-6 sm:p-8 border border-slate-200 shadow-sm">
         <div>
@@ -160,11 +166,18 @@ export default function TeacherCoursesPage() {
             setError("");
             setShowCreateModal(true);
           }}
-          className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#0b7866]"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#0b7866] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0d8d78]/20 sm:w-auto"
         >
-          + Créer un nouveau cours →
+          <span aria-hidden="true" className="mr-2 text-base leading-none">+</span> Créer un nouveau cours
         </button>
       </div>
+
+      {error && !showCreateModal && (
+        <div role="alert" className="flex items-start justify-between gap-4 rounded-2xl border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700">
+          <span>{error}</span>
+          <button type="button" onClick={() => setError("")} aria-label="Fermer le message d'erreur">✕</button>
+        </div>
+      )}
 
       {/* Course List */}
       <div className="space-y-4">
@@ -235,7 +248,7 @@ export default function TeacherCoursesPage() {
 
                   <button
                     onClick={() => handleDeleteCourse(c.id)}
-                    className="text-rose-600 hover:underline"
+                    className="min-h-10 rounded-xl px-2 text-rose-600 transition hover:bg-rose-50 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-100"
                   >
                     Supprimer
                   </button>
@@ -248,14 +261,14 @@ export default function TeacherCoursesPage() {
 
       {/* Multi-Step Course Creation Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-5 text-slate-800">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 p-0 backdrop-blur-xs sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="create-course-title" onMouseDown={(event) => { if (event.target === event.currentTarget) closeModal(); }}>
+          <div className="max-h-[95vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#0d8d78]">Étape {step} sur 3</span>
-                <h3 className="text-base font-bold text-[#11233f]">Créer un cours e-learning</h3>
+                <h3 id="create-course-title" className="text-base font-bold text-[#11233f]">Créer un cours e-learning</h3>
               </div>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button type="button" onClick={closeModal} disabled={saving} aria-label="Fermer la fenêtre" className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0d8d78]/20 disabled:opacity-50">✕</button>
             </div>
 
             <form onSubmit={handleCreateCourse} className="space-y-4 text-xs">
