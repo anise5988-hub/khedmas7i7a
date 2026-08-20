@@ -95,20 +95,29 @@ export function NotificationCenter({ dark = false }: { dark?: boolean }) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`relative rounded-xl p-2.5 transition duration-200 ${
+        className={`group relative flex items-center justify-center rounded-2xl p-2.5 transition-all duration-300 shadow-sm ${
           dark
-            ? "bg-white/10 text-slate-200 hover:text-white hover:bg-white/20"
-            : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+            ? "bg-white/10 text-slate-200 hover:bg-white/20 hover:text-white border border-white/10"
+            : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80 hover:border-slate-300"
         }`}
         aria-label="Notifications"
+        title="Centre de notifications"
       >
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className="h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
           <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
 
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-extrabold text-white ring-2 ring-white animate-pulse">
+          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white ring-2 ring-white shadow-md animate-bounce">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
