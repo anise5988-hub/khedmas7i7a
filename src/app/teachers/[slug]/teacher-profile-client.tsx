@@ -292,6 +292,13 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </p>
               </div>
 
+              <a
+                href={`/dashboard/messages?teacherId=${teacher.id}`}
+                className="flex items-center justify-center gap-2 w-full rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3.5 text-center font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+              >
+                💬 Discuter pour une offre sur-mesure
+              </a>
+
               {bookingResult && (
                 <div
                   className={`rounded-2xl p-4 text-xs font-semibold ${

@@ -104,7 +104,7 @@ export async function POST(request: Request) {
           city: body.city || null,
           online: body.online !== false,
           inPerson: Boolean(body.inPerson),
-          verificationStatus: "PENDING",
+          verificationStatus: "UNDER_REVIEW",
         },
       }),
       prisma.teacherSubject.deleteMany({ where: { teacherId: teacher.id } }),
@@ -130,8 +130,8 @@ export async function POST(request: Request) {
     ]);
 
     return NextResponse.json({
-      status: "PENDING",
-      message: "Candidature enregistrée avec succès. Elle est actuellement en cours d'examen par l'administration.",
+      status: "UNDER_REVIEW",
+      message: "Candidature enregistrée avec succès. Votre profil est actuellement en cours d'examen par l'administration.",
     });
   } catch (error) {
     console.error("Teacher profile submission failed", error);

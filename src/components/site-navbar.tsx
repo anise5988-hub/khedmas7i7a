@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IconUser, IconLogout } from "./icons";
 import { NotificationCenter } from "./notification-center";
+import { supabase } from "@/lib/client/supabase";
 
 type UserSession = {
   id: string;
@@ -50,8 +51,14 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
   async function handleLogout() {
     localStorage.removeItem("profyspace_user");
     localStorage.removeItem("profyspace_user_id");
+    localStorage.removeItem("profyspace_oauth_role");
+    if (supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch {}
+    }
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/";
+    window.location.replace("/");
   }
 
   const dashboardUrl =

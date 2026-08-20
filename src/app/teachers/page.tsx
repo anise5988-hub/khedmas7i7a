@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
+/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -272,18 +272,25 @@ export default function TeachersPage() {
                       </div>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 gap-2">
                       <div>
                         <span className="text-xs text-slate-400">À partir de</span>
-                        <p className="text-lg font-bold text-[#0d8d78]">{t.rate} DT <span className="text-xs font-normal text-slate-500">/ heure</span></p>
+                        <p className="text-lg font-bold text-[#0d8d78]">{t.rate} DT <span className="text-xs font-normal text-slate-500">/ h</span></p>
                       </div>
-
-                      <a
-                        href={`/teachers/${t.slug}`}
-                        className="rounded-xl bg-[#11233f] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0d8d78]"
-                      >
-                        Voir profil & Réserver →
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/dashboard/messages?teacherId=${t.id}`}
+                          className="rounded-xl border border-[#0d8d78] bg-[#e5f7f2] px-3 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+                        >
+                          💬 Discuter
+                        </a>
+                        <a
+                          href={`/teachers/${t.slug}`}
+                          className="rounded-xl bg-[#11233f] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#0d8d78]"
+                        >
+                          Réserver →
+                        </a>
+                      </div>
                     </div>
                   </div>
                 ))}

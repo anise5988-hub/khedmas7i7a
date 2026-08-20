@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages */
+/* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -70,7 +70,8 @@ export default function TeacherDashboardPage() {
   }
 
   const teacher = data;
-  const isPending = !teacher || teacher.verificationStatus === "PENDING" || teacher.verificationStatus === "UNDER_REVIEW";
+  const isNewPending = teacher?.verificationStatus === "PENDING";
+  const isUnderReview = teacher?.verificationStatus === "UNDER_REVIEW";
   const isRejected = teacher?.verificationStatus === "REJECTED";
   const isApproved = teacher?.verificationStatus === "APPROVED";
 
@@ -118,33 +119,49 @@ export default function TeacherDashboardPage() {
           </div>
         </div>
 
-        {/* Verification Status Banner */}
-        {isPending && (
-          <div className="mt-8 rounded-3xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-6 sm:p-8 text-amber-950 shadow-sm">
+        {/* Verification Status Banners */}
+        {isNewPending && (
+          <div className="mt-8 rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-50 to-emerald-50 p-6 sm:p-8 text-blue-950 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-200 text-2xl">
-                  ⏳
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+                  📝
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-bold">Candidature en cours d'examen</h2>
-                    <span className="rounded-full bg-amber-200 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-900">
-                      En attente Admin
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-amber-800 max-w-2xl leading-relaxed">
-                    Votre dossier a été bien reçu. Notre équipe administrative vérifie actuellement vos informations.
-                    Dès approbation, vos créneaux et votre fiche professeur apparaîtront en ligne sur ProfySpace.tn.
+                  <h2 className="text-xl font-bold text-[#11233f]">Compléter mon profil et envoyer une demande</h2>
+                  <p className="mt-1 text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+                    Afin de rendre votre profil visible auprès des élèves, veuillez remplir vos informations (matières, diplômes, tarifs) et soumettre votre demande de vérification.
                   </p>
                 </div>
               </div>
               <a
                 href="/teacher/onboarding"
-                className="shrink-0 rounded-xl bg-amber-900 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-amber-950"
+                className="shrink-0 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm"
               >
-                Compléter mon profil →
+                Compléter mon profil & Envoyer →
               </a>
+            </div>
+          </div>
+        )}
+
+        {isUnderReview && (
+          <div className="mt-8 rounded-3xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-6 sm:p-8 text-amber-950 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-200 text-2xl">
+                ⏳
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold">Votre profil est en cours d'examen</h2>
+                  <span className="rounded-full bg-amber-200 px-2.5 py-0.5 text-[11px] font-extrabold uppercase text-amber-900">
+                    Examen Admin
+                  </span>
+                </div>
+                <p className="mt-1 text-xs sm:text-sm text-amber-800 max-w-2xl leading-relaxed">
+                  Votre dossier a été soumis avec succès à l'administration. Notre équipe vérifie actuellement vos informations.
+                  Vous recevrez une notification dès approbation.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -172,14 +189,14 @@ export default function TeacherDashboardPage() {
         )}
 
         {isApproved && (
-          <div className="mt-8 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 sm:p-8 text-emerald-950 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-200 text-2xl">
-                ✅
-              </div>
+          <div className="mt-8 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6 text-emerald-950 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white font-bold text-xs">
+                ✓
+              </span>
               <div>
-                <h2 className="text-xl font-bold">Votre profil est certifié et visible</h2>
-                <p className="text-sm text-emerald-800">Les élèves peuvent consulter votre fiche et réserver vos cours.</p>
+                <h2 className="text-sm font-extrabold text-emerald-900">Profil Enseignant Vérifié & Visible</h2>
+                <p className="text-xs text-emerald-700">Votre fiche est certifiée. Les élèves peuvent consulter vos offres et réserver vos séances.</p>
               </div>
             </div>
             {teacher?.slug && (
@@ -187,7 +204,7 @@ export default function TeacherDashboardPage() {
                 href={`/teachers/${teacher.slug}`}
                 target="_blank"
                 rel="noreferrer"
-                className="shrink-0 rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                className="shrink-0 rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
               >
                 Voir ma fiche publique ↗
               </a>
@@ -237,10 +254,10 @@ export default function TeacherDashboardPage() {
             <div className="mt-2 flex items-center gap-1.5 font-bold text-lg text-[#11233f]">
               <span
                 className={`h-2.5 w-2.5 rounded-full ${
-                  isApproved ? "bg-emerald-500" : isPending ? "bg-amber-500" : "bg-rose-500"
+                  isApproved ? "bg-emerald-500" : isUnderReview ? "bg-amber-500" : "bg-blue-500"
                 }`}
               />
-              <span>{isApproved ? "Validé & Visible" : isPending ? "En cours d'examen" : "Non validé"}</span>
+              <span>{isApproved ? "✓ Vérifié" : isUnderReview ? "En cours d'examen" : "Profil à compléter"}</span>
             </div>
             <p className="mt-1 text-xs text-slate-400">Visibilité marketplace</p>
           </div>
@@ -301,7 +318,7 @@ export default function TeacherDashboardPage() {
               </div>
               <p className="font-bold text-slate-700">Aucune séance à venir pour le moment.</p>
               <p className="mt-1 text-xs text-slate-400">
-                {isPending
+                {!isApproved
                   ? "Vos créneaux seront réservables une fois votre candidature approuvée par l'admin."
                   : "Partagez votre profil pour recevoir des réservations."}
               </p>
