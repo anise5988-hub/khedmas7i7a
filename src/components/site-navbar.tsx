@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IconUser, IconLogout } from "./icons";
+import { NotificationCenter } from "./notification-center";
 
 type UserSession = {
   id: string;
@@ -92,6 +93,7 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
         <div className="flex items-center gap-2 sm:gap-3">
           {!loading && user ? (
             <div className="hidden md:flex items-center gap-2 sm:gap-3">
+              <NotificationCenter dark={dark} />
               <Link
                 href={dashboardUrl}
                 className={`flex items-center gap-2 rounded-2xl px-3.5 py-2 text-xs sm:text-sm font-bold shadow-sm transition duration-200 ${
