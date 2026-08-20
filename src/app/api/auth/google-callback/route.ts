@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
+import { supabaseAuth } from "@/lib/server/supabase-auth";
+import { ensureUserProfile } from "@/lib/server/profile-sync";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -12,6 +14,20 @@ export async function POST(request: Request) {
   const firstName = String(body.firstName || "Utilisateur").trim();
   const lastName = String(body.lastName || "Google").trim();
   const requestedRole = body.role === "TEACHER" ? "TEACHER" : "STUDENT";
+
+  if (supabaseAuth && body.accessToken) {
+    const { data: authData, error: authError } = await supabaseAuth.auth.getUser(String(body.accessToken));
+    if (authError || !authData.user || authData.user.email?.toLowerCase() !== email) return NextResponse.json({ error: "Session Google invalide." }, { status: 401 });
+    try {
+      const syncedUser = await ensureUserProfile({ id: authData.user.id, email, firstName, lastName, role: requestedRole });
+      const response = NextResponse.json({ success: true, role: syncedUser.role, user: { id: syncedUser.id, firstName: syncedUser.firstName, lastName: syncedUser.lastName, email: syncedUser.email, role: syncedUser.role }, needsPasswordSetup: false });
+      response.cookies.set("profy_supabase_access_token", String(body.accessToken), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 });
+      return response;
+    } catch (error) {
+      console.error("Google profile synchronization failed", error);
+      return NextResponse.json({ error: "Connexion Google réussie, mais votre profil n'a pas pu être initialisé. Réessayez." }, { status: 503 });
+    }
+  }
 
   const cookieOptions = {
     path: "/",

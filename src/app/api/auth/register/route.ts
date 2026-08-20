@@ -17,8 +17,10 @@ export async function POST(request: Request) {
     });
     if (error || !data.user) return NextResponse.json({ error: error?.message || "Inscription impossible." }, { status: 400 });
     try {
-      await prisma.user.create({
-        data: {
+      const user = await prisma.user.upsert({
+        where: { id: data.user.id },
+        update: { email: parsed.data.email, firstName: parsed.data.firstName, lastName: parsed.data.lastName, phone: parsed.data.phone || null },
+        create: {
           id: data.user.id,
           email: parsed.data.email,
           firstName: parsed.data.firstName,
@@ -26,22 +28,18 @@ export async function POST(request: Request) {
           phone: parsed.data.phone || null,
           passwordHash: "supabase_auth",
           role: parsed.data.role,
-          wallet: { create: {} },
-          ...(parsed.data.role === "STUDENT"
-            ? { student: { create: {} } }
-            : {
-                teacher: {
-                  create: {
-                    slug: `${parsed.data.firstName}-${parsed.data.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
-                    hourlyRateMillimes: 0,
-                  },
-                },
-              }),
         },
       });
+      await prisma.wallet.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
+      if (parsed.data.role === "STUDENT") {
+        await prisma.studentProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
+      } else {
+        const slug = `${parsed.data.firstName}-${parsed.data.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 0 } });
+      }
     } catch (profileError) {
       console.error("Supabase user profile sync failed", profileError);
-      return NextResponse.json({ error: "Compte créé, mais votre profil n'a pas pu être initialisé. Réessayez." }, { status: 503 });
+      return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
     }
     return NextResponse.json({ success: true, user: data.user, requiresEmailConfirmation: !data.session, message: "Compte créé. Consultez votre email pour confirmer votre adresse." }, { status: 201 });
   }

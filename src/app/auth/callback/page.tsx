@@ -34,7 +34,7 @@ export default function AuthCallbackPage() {
 
       const roleFromStorage = typeof window !== "undefined" ? localStorage.getItem("profyspace_oauth_role") : null;
       const params = new URLSearchParams(window.location.search);
-      const roleParam = params.get("role") || roleFromStorage || "STUDENT";
+      const roleParam = meta.role || params.get("role") || roleFromStorage || "STUDENT";
 
       if (typeof window !== "undefined") {
         localStorage.removeItem("profyspace_oauth_role");
@@ -49,6 +49,7 @@ export default function AuthCallbackPage() {
             firstName,
             lastName,
             role: roleParam,
+            accessToken: session.access_token,
           }),
         });
 
@@ -123,8 +124,8 @@ export default function AuthCallbackPage() {
         {!error ? (
           <div className="space-y-4">
             <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent" />
-            <h1 className="text-xl font-bold text-[#11233f]">Connexion Google en cours...</h1>
-            <p className="text-xs text-slate-500">Veuillez patienter pendant que nous vous redirigeons.</p>
+            <h1 className="text-xl font-bold text-[#11233f]">Vérification de votre compte...</h1>
+            <p className="text-xs text-slate-500">Nous finalisons votre connexion et votre profil Profy.</p>
           </div>
         ) : (
           <div className="space-y-4">
