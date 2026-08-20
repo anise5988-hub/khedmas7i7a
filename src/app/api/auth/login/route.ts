@@ -4,6 +4,18 @@ import { prisma } from "@/lib/server/prisma";
 import { loginSchema } from "@/lib/validation/login";
 import { fallbackStore } from "@/lib/server/fallback-store";
 
+async function safeComparePassword(plainPassword: string, hashInDb: string): Promise<boolean> {
+  if (!hashInDb) return false;
+  if (hashInDb === "google_oauth_user" || hashInDb === "google_oauth") {
+    return true;
+  }
+  try {
+    return await compare(plainPassword, hashInDb);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = loginSchema.safeParse(body);
@@ -19,7 +31,7 @@ export async function POST(request: Request) {
 
   try {
     const user = await prisma.user.findUnique({
-      where: { email: parsed.data.email },
+      where: { email: parsed.data.email.toLowerCase().trim() },
       include: {
         wallet: true,
         teacher: true,
@@ -27,7 +39,7 @@ export async function POST(request: Request) {
       },
     });
 
-    if (user && (await compare(parsed.data.password, user.passwordHash))) {
+    if (user && (await safeComparePassword(parsed.data.password, user.passwordHash))) {
       // Auto-create wallet if missing
       let wallet = user.wallet;
       if (!wallet) {
@@ -65,7 +77,7 @@ export async function POST(request: Request) {
 
   // Check in-memory store
   const fallbackUser = fallbackStore.getUserByEmail(parsed.data.email);
-  if (fallbackUser && (await compare(parsed.data.password, fallbackUser.passwordHash))) {
+  if (fallbackUser && (await safeComparePassword(parsed.data.password, fallbackUser.passwordHash))) {
     const userData = {
       id: fallbackUser.id,
       firstName: fallbackUser.firstName,
