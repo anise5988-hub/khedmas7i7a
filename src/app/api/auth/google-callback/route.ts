@@ -19,7 +19,8 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabaseAuth.auth.getUser(String(body.accessToken));
     if (authError || !authData.user || authData.user.email?.toLowerCase() !== email) return NextResponse.json({ error: "Session Google invalide." }, { status: 401 });
     try {
-      const syncedUser = await ensureUserProfile({ id: authData.user.id, email, firstName, lastName, role: requestedRole });
+      const metadata = ((authData as unknown as { user_metadata?: unknown }).user_metadata || {}) as { firstName?: string; lastName?: string; phone?: string; role?: string };
+      const syncedUser = await ensureUserProfile({ id: authData.user.id, email, firstName: String(metadata.firstName || firstName), lastName: String(metadata.lastName || lastName), phone: String(metadata.phone || ""), role: metadata.role === "TEACHER" ? "TEACHER" : requestedRole });
       const response = NextResponse.json({ success: true, role: syncedUser.role, user: { id: syncedUser.id, firstName: syncedUser.firstName, lastName: syncedUser.lastName, email: syncedUser.email, role: syncedUser.role }, needsPasswordSetup: false });
       response.cookies.set("profy_supabase_access_token", String(body.accessToken), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 });
       return response;
