@@ -77,6 +77,7 @@ model User {
   bookingsAsStudent Booking[] @relation("studentBookings")
   reviews   Review[]
   favorites Favorite[]
+  notifications Notification[]
 }
 
 model StudentProfile {
@@ -225,4 +226,18 @@ model Favorite {
   student   User @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   @@id([studentId, teacherId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  dedupeKey String   @unique
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, read, createdAt])
 }

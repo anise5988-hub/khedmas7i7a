@@ -24,10 +24,16 @@ export default function RegisterPage() {
     const email = String(formData.get("email") || "").trim();
     const phone = String(formData.get("phone") || "").trim();
     const password = String(formData.get("password") || "");
+    const confirmPassword = String(formData.get("confirmPassword") || "");
 
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       setPending(false);
       setStatus({ type: "error", message: "Veuillez remplir tous les champs obligatoires." });
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPending(false);
+      setStatus({ type: "error", message: "Les mots de passe ne correspondent pas." });
       return;
     }
 
@@ -41,6 +47,7 @@ export default function RegisterPage() {
           email,
           phone,
           password,
+          confirmPassword,
           role,
         }),
       });
@@ -53,17 +60,18 @@ export default function RegisterPage() {
         return;
       }
 
+      if (result.requiresEmailConfirmation) {
+        setStatus({ type: "success", message: "Compte créé. Consultez votre boîte email et cliquez sur le lien de confirmation avant de vous connecter." });
+        return;
+      }
+
       if (result.user?.id) {
         localStorage.setItem("profyspace_user_id", result.user.id);
         localStorage.setItem("profyspace_user", JSON.stringify(result.user));
       }
 
       setStatus({ type: "success", message: "Compte créé avec succès ! Redirection vers la connexion..." });
-
-      // Immediate redirect to login with confirmation
-      setTimeout(() => {
-        window.location.replace("/login?registered=1");
-      }, 500);
+      setTimeout(() => window.location.replace("/login?registered=1"), 500);
     } catch {
       setPending(false);
       setStatus({ type: "error", message: "Erreur de connexion au serveur." });
@@ -202,6 +210,20 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 placeholder="••••••••"
                 className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Confirmer le mot de passe *</label>
+              <input
+                name="confirmPassword"
+                id="confirmPassword"
+                type="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="••"
+                className="w-full rounded-xl border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
               />
             </div>
 

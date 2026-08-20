@@ -2,20 +2,32 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "./fallback-store";
+import { supabaseAuth } from "@/lib/server/supabase-auth";
 
-export async function getCurrentUser(request?: Request) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getCurrentUser(..._args: [Request?]) {
   let userId: string | undefined;
 
-  try {
-    // 1. Check header if request is provided
-    if (request) {
-      const headerUserId = request.headers.get("x-user-id");
-      if (headerUserId && headerUserId.trim()) {
-        userId = headerUserId.trim();
+  if (supabaseAuth) {
+    try {
+      const cookieStore = await cookies();
+      const accessToken = cookieStore.get("profy_supabase_access_token")?.value;
+      if (accessToken) {
+        const { data } = await supabaseAuth.auth.getUser(accessToken);
+        userId = data.user?.id;
       }
+    } catch {
+      // Fall through to the legacy server cookie lookup.
     }
+  }
 
-    // 2. Check cookies
+  try {
+    // Authentication is established by a server-set cookie. Never trust a user ID
+    // supplied by browser JavaScript: it can be changed by the caller.
+    // Supabase bearer-token validation can be added here when SSR session cookies
+    // are enabled; the legacy client ID header is intentionally ignored.
+
+    // Check server cookies
     if (!userId) {
       try {
         const cookieStore = await cookies();

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { chatStore, CustomOffer } from "@/lib/server/chat-store";
-import { notificationsStore } from "@/lib/server/notifications-store";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser(request);
@@ -39,23 +39,28 @@ export async function POST(request: Request) {
       createdAt: new Date(),
     };
 
-    notificationsStore.addNotification({
+    await notifyUser({
       userId: conv.studentId,
-      title: "Nouvelle offre de cours reçue ! 📩",
-      message: `${user.firstName} ${user.lastName} vous a envoyé une offre de cours pour ${amountTnd} DT. Consultez votre conversation pour l'accepter.`,
-      type: "INFO",
+      type: "NEW_MESSAGE",
+      title: "Nouvelle offre de cours reçue",
+      message: `${user.firstName} ${user.lastName} vous a envoyé une offre de cours pour ${amountTnd} DT.`,
       link: `/dashboard/messages?conversationId=${conv.id}`,
+      emailSubject: "Vous avez reçu une nouvelle offre sur Profy",
+      dedupeKey: `offer:${offerObj.id}`,
     });
   } else if (body.text && body.text.trim()) {
     const recipientId = user.id === conv.studentId ? conv.teacherId : conv.studentId;
     const previewText = body.text.trim().length > 80 ? body.text.trim().substring(0, 80) + "..." : body.text.trim();
 
-    notificationsStore.addNotification({
+    await notifyUser({
       userId: recipientId,
-      title: `Nouveau message de ${user.firstName} ${user.lastName}`,
-      message: previewText,
-      type: "INFO",
+      type: "NEW_MESSAGE",
+      title: "Nouveau message",
+      message: `Vous avez un nouveau message de ${user.firstName} ${user.lastName}.`,
+      emailMessage: `Message de ${user.firstName} ${user.lastName} : ${previewText}`,
+      emailSubject: "Vous avez un nouveau message sur Profy",
       link: `/dashboard/messages?conversationId=${conv.id}`,
+      dedupeKey: `message:${body.conversationId}:${user.id}:${Date.now()}`,
     });
   }
 

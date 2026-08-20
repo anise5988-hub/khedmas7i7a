@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { loginSchema } from "@/lib/validation/login";
 import { fallbackStore } from "@/lib/server/fallback-store";
+import { supabaseAuth } from "@/lib/server/supabase-auth";
 
 async function safeComparePassword(plainPassword: string, hashInDb: string): Promise<boolean> {
   if (!hashInDb) return false;
@@ -21,6 +22,17 @@ export async function POST(request: Request) {
   const parsed = loginSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Email ou mot de passe invalide." }, { status: 400 });
+  }
+
+  if (supabaseAuth) {
+    const { data, error } = await supabaseAuth.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
+    if (error || !data.user) return NextResponse.json({ error: error?.message || "Email ou mot de passe incorrect." }, { status: 401 });
+    if (!data.user.email_confirmed_at) return NextResponse.json({ error: "Veuillez confirmer votre adresse email avant de vous connecter.", requiresEmailConfirmation: true }, { status: 403 });
+    const metadata = (data as unknown as { user_metadata?: { role?: string } }).user_metadata;
+    const role = String(metadata?.role || "STUDENT");
+    const response = NextResponse.json({ success: true, user: data.user, role });
+    response.cookies.set("profy_supabase_access_token", data.session?.access_token || "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 });
+    return response;
   }
 
   const cookieOptions = {

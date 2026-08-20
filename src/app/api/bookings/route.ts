@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { bookingRequestSchema } from "@/lib/validation/booking";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -159,15 +160,14 @@ export async function POST(request: Request) {
       return newBooking;
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        bookingId: booking.id,
-        status: booking.status,
-        message: "Séance réservée avec succès !",
-      },
-      { status: 201 },
-    );
+    const teacherUser = await prisma.teacherProfile.findUnique({ where: { id: teacher.id }, select: { userId: true } });
+    const bookingLink = `/dashboard/bookings?bookingId=${booking.id}`;
+    await Promise.all([
+      notifyUser({ userId: user.id, type: "NEW_BOOKING", title: "Demande de réservation envoyée", message: "Votre demande de séance a été envoyée au professeur.", emailSubject: "Votre demande de réservation Profy a été envoyée", link: bookingLink, dedupeKey: `booking:${booking.id}:student` }),
+      ...(teacherUser ? [notifyUser({ userId: teacherUser.userId, type: "NEW_BOOKING", title: "Nouvelle demande de réservation", message: `${user.firstName} ${user.lastName} souhaite réserver une séance.`, emailSubject: "Vous avez une nouvelle demande de séance sur Profy", link: bookingLink, dedupeKey: `booking:${booking.id}:teacher` })] : []),
+    ]);
+
+    return NextResponse.json({ success: true, bookingId: booking.id, status: booking.status, message: "Séance réservée avec succès !" }, { status: 201 });
   } catch (error) {
     console.error("Booking creation failed", error);
     return NextResponse.json({ error: "Impossible de créer la réservation." }, { status: 500 });
