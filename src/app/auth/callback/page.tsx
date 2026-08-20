@@ -7,25 +7,17 @@ export default function AuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function handleCallback() {
-      if (!supabase) {
-        setError("Supabase non configuré sur le client.");
-        return;
-      }
+    if (!supabase) {
+      setError("Supabase non configuré sur le client.");
+      return;
+    }
 
-      const params = new URLSearchParams(window.location.search);
-      const roleFromStorage = typeof window !== "undefined" ? localStorage.getItem("profyspace_oauth_role") : null;
-      const roleParam = params.get("role") || roleFromStorage || "STUDENT";
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("profyspace_oauth_role");
-      }
+    let isHandled = false;
 
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session?.user) {
-        setError(sessionError?.message || "Impossible de récupérer la session Google.");
-        return;
-      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async function processUserSession(session: any) {
+      if (isHandled || !session?.user) return;
+      isHandled = true;
 
       const user = session.user;
       const email = user.email;
@@ -39,6 +31,14 @@ export default function AuthCallbackPage() {
       const nameParts = fullName.trim().split(" ");
       const firstName = meta.given_name || nameParts[0] || "Utilisateur";
       const lastName = meta.family_name || nameParts.slice(1).join(" ") || "Google";
+
+      const roleFromStorage = typeof window !== "undefined" ? localStorage.getItem("profyspace_oauth_role") : null;
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get("role") || roleFromStorage || "STUDENT";
+
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("profyspace_oauth_role");
+      }
 
       try {
         const res = await fetch("/api/auth/google-callback", {
@@ -72,7 +72,45 @@ export default function AuthCallbackPage() {
       }
     }
 
-    handleCallback();
+    // 1. Try exchangeCodeForSession if PKCE code is in search params
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error: exchangeError }) => {
+        if (exchangeError) {
+          console.error("PKCE exchange error:", exchangeError);
+        } else if (data?.session) {
+          processUserSession(data.session);
+        }
+      });
+    }
+
+    // 2. Fallback to current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        processUserSession(session);
+      }
+    });
+
+    // 3. Listen to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
+        processUserSession(session);
+      }
+    });
+
+    // Timeout after 8 seconds if session wasn't retrieved
+    const timer = setTimeout(() => {
+      if (!isHandled) {
+        setError("Impossible de récupérer la session Google. Vérifiez votre connexion ou réessayez.");
+      }
+    }, 8000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
