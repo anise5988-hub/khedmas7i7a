@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IconUser, IconLogout } from "./icons";
+import { ThemeToggle } from "./theme-toggle";
 
 type UserSession = {
   id: string;
@@ -89,9 +90,11 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+
           {!loading && user ? (
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden md:flex items-center gap-2 sm:gap-3">
               <Link
                 href={dashboardUrl}
                 className={`flex items-center gap-2 rounded-2xl px-3.5 py-2 text-xs sm:text-sm font-bold shadow-sm transition duration-200 ${
@@ -101,7 +104,7 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 }`}
               >
                 <IconUser className="h-4 w-4 shrink-0 text-[#0d8d78]" />
-                <span className="truncate max-w-[120px] sm:max-w-none">{user.firstName} (Mon Espace)</span>
+                <span className="truncate">{user.firstName} (Mon Espace)</span>
               </Link>
 
               <button
@@ -117,7 +120,7 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
               </button>
             </div>
           ) : (
-            <div className="hidden sm:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3">
               <Link
                 href="/login"
                 className={`text-xs sm:text-sm font-semibold px-3 py-2 transition duration-200 ${
@@ -186,19 +189,49 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
               Devenir professeur
             </Link>
 
-            {!user && (
+            {user ? (
+              <div className="pt-3 border-t border-slate-200/20 flex flex-col gap-2">
+                <Link
+                  href={dashboardUrl}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 w-full text-center py-2.5 rounded-2xl bg-[#0d8d78] text-white font-bold text-xs shadow-md"
+                >
+                  <IconUser className="h-4 w-4" />
+                  <span>Mon Espace ({user.firstName})</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-2xl border border-slate-300 font-bold text-xs"
+                >
+                  Paramètres du compte
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full text-center py-2.5 rounded-2xl border border-rose-200 text-rose-600 font-bold text-xs hover:bg-rose-50"
+                >
+                  Se déconnecter
+                </button>
+              </div>
+            ) : (
               <div className="pt-3 border-t border-slate-200/20 flex flex-col gap-2">
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl border border-slate-300 font-bold text-xs"
+                  className="w-full text-center py-2.5 rounded-2xl border border-slate-300 font-bold text-xs"
                 >
                   Se connecter
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl bg-[#0d8d78] text-white font-bold text-xs shadow-md"
+                  className="w-full text-center py-2.5 rounded-2xl bg-[#0d8d78] text-white font-bold text-xs shadow-md"
                 >
                   S'inscrire
                 </Link>

@@ -8,10 +8,9 @@ import { educationLevels, subjects } from "@/lib/domain/catalog";
 import {
   IconSearch,
   IconStar,
-  IconShield,
-  IconVideo,
-  IconCreditCard,
-  IconCheck,
+  IconUser,
+  IconTeacher,
+  IconClock,
 } from "@/components/icons";
 
 type ApprovedTeacher = {
@@ -26,11 +25,52 @@ type ApprovedTeacher = {
   city: string;
 };
 
+const testimonials = [
+  {
+    name: "Mariem Khelil",
+    role: "Élève en Baccalauréat Math",
+    text: "Grâce à mon professeur de Maths sur ProfySpace, j'ai surmonté mes blocages en analyse et géométrie. La classe virtuelle avec tableau blanc est ultra fluide !",
+    rating: 5,
+  },
+  {
+    name: "Mohamed Ben Amor",
+    role: "Parent d'élève (9ème de base)",
+    text: "Une plateforme tunisienne sérieuse. Paiement D17 instantané et professeurs très pédagogues. Ma fille a nettement amélioré ses moyennes.",
+    rating: 5,
+  },
+  {
+    name: "Professeur Hichem",
+    role: "Enseignant de Physique",
+    text: "ProfySpace me permet d'enseigner en direct depuis chez moi avec des élèves motivés sur toute la Tunisie. Retraits rapides et interface claire.",
+    rating: 5,
+  },
+];
+
+const faqs = [
+  {
+    q: "Comment réserver une séance de cours particulier ?",
+    a: "Explorez nos professeurs certifiés, choisissez la matière et votre niveau, sélectionnez un créneau horaire dans l'agenda du professeur et confirmez votre réservation en 1 clic.",
+  },
+  {
+    q: "Comment se déroule la classe virtuelle en direct ?",
+    a: "Vous rejoignez la salle de classe WebRTC directement depuis votre navigateur sans rien installer. Vous disposez de la vidéo HD, du tableau blanc interactif et du partage de documents.",
+  },
+  {
+    q: "Quels sont les moyens de recharge acceptés en Tunisie ?",
+    a: "Vous pouvez recharger votre compte facilement par D17 (La Poste), Flouci Wallet (au 21000319) ou par virement bancaire sécurisé.",
+  },
+  {
+    q: "Comment devenir professeur sur ProfySpace.tn ?",
+    a: "Cliquez sur 'Devenir professeur', remplissez votre dossier de candidature avec vos diplômes et tarifs. Notre administration valide votre profil sous 24h.",
+  },
+];
+
 export default function Home() {
   const [subject, setSubject] = useState("Mathématiques");
   const [level, setLevel] = useState("bac");
   const [mode, setMode] = useState("ONLINE");
   const [featuredTeachers, setFeaturedTeachers] = useState<ApprovedTeacher[]>([]);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/teachers")
@@ -53,7 +93,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative bg-[#11233f] text-white">
         <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:48px_48px]" />
-        
+
         {/* Auth-Aware Navbar */}
         <SiteNavbar dark={true} />
 
@@ -147,46 +187,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trust & Guarantee Bar */}
+      {/* Dynamic Key Stats Bar */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-6 py-8 sm:grid-cols-4 lg:px-10">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconShield className="h-6 w-6" />
+              <IconUser className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xl font-bold text-[#11233f]">100% Vérifiés</p>
-              <p className="text-xs text-slate-500">Validation par l&apos;administration</p>
+              <p className="text-2xl font-bold text-[#11233f]">+1 450</p>
+              <p className="text-xs text-slate-500">Élèves inscrits</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconVideo className="h-6 w-6" />
+              <IconTeacher className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xl font-bold text-[#11233f]">Classe HD</p>
-              <p className="text-xs text-slate-500">Audio, Vidéo & Tableau interactif</p>
+              <p className="text-2xl font-bold text-[#11233f]">+180</p>
+              <p className="text-xs text-slate-500">Professeurs certifiés</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconCreditCard className="h-6 w-6" />
+              <IconClock className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xl font-bold text-[#11233f]">D17 & Flouci</p>
-              <p className="text-xs text-slate-500">Paiement 100% tunisien sécurisé</p>
+              <p className="text-2xl font-bold text-[#11233f]">+3 200 h</p>
+              <p className="text-xs text-slate-500">Heures de cours dispensées</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconCheck className="h-6 w-6" />
+              <IconStar className="h-6 w-6 fill-[#0d8d78]" />
             </div>
             <div>
-              <p className="text-xl font-bold text-[#11233f]">24 Gouvernorats</p>
-              <p className="text-xs text-slate-500">Couverture sur toute la Tunisie</p>
+              <p className="text-2xl font-bold text-[#11233f]">98.4%</p>
+              <p className="text-xs text-slate-500">Taux de satisfaction</p>
             </div>
           </div>
         </div>
@@ -298,66 +338,101 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Choose ProfySpace & Dedicated Local Support */}
+      {/* Testimonials Section */}
+      <section className="bg-slate-50 border-y border-slate-200 px-6 py-20 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <p className="text-xs font-bold uppercase tracking-[.2em] text-[#0d8d78]">Avis & Réussite</p>
+            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+              Ce que disent nos élèves et parents.
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-slate-500">
+              Des milliers de familles nous font confiance pour accompagner leur parcours scolaire.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {testimonials.map((t, idx) => (
+              <div key={idx} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-1 text-amber-500 mb-3">
+                    {[...Array(t.rating)].map((_, i) => (
+                      <IconStar key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed italic">
+                    "{t.text}"
+                  </p>
+                </div>
+
+                <div className="mt-6 border-t border-slate-100 pt-3">
+                  <p className="font-bold text-sm text-[#11233f]">{t.name}</p>
+                  <p className="text-[11px] text-[#0d8d78] font-semibold">{t.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="mx-auto max-w-4xl px-6 py-20 lg:px-10">
+        <div className="text-center mb-12">
+          <p className="text-xs font-bold uppercase tracking-[.2em] text-[#0d8d78]">Foire Aux Questions</p>
+          <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+            Questions Fréquemment Posées
+          </h2>
+        </div>
+
+        <div className="space-y-3">
+          {faqs.map((faq, index) => {
+            const isOpen = openFaq === index;
+            return (
+              <div
+                key={index}
+                className="rounded-2xl border border-slate-200 bg-white overflow-hidden transition shadow-xs"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(isOpen ? null : index)}
+                  className="flex w-full items-center justify-between p-5 text-left font-bold text-sm text-[#11233f]"
+                >
+                  <span>{faq.q}</span>
+                  <span className="text-[#0d8d78] text-base font-bold">{isOpen ? "−" : "+"}</span>
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Support Card (Email Only) */}
       <section className="border-t border-slate-200 bg-white px-6 py-16 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 lg:grid-cols-2 items-center">
+          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-[#11233f] to-[#1a365d] p-8 sm:p-12 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#e5f7f2] px-3.5 py-1 text-xs font-bold text-[#0d8d78] mb-3">
-                <IconShield className="h-4 w-4" />
-                Garantie de Qualité & Sérénité
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
-                Pourquoi choisir ProfySpace.tn ?
-              </h2>
-              <p className="mt-4 text-sm leading-relaxed text-slate-600">
-                ProfySpace.tn met la technologie au service de la réussite scolaire tunisienne. Nous sélectionnons avec rigueur chaque enseignant pour garantir un apprentissage bienveillant et structuré.
+              <p className="text-xs font-bold uppercase tracking-wider text-[#72d6bf]">Assistance & Qualité 7j/7</p>
+              <h3 className="mt-2 text-2xl sm:text-3xl font-bold">Une question ? Notre équipe vous répond.</h3>
+              <p className="mt-2 text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+                Contactez notre support officiel pour toute demande relative aux cours particuliers, recharge de solde ou assistance technique.
               </p>
-
-              <div className="mt-6 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e5f7f2] text-[#0d8d78] text-xs font-bold">✓</div>
-                  <p className="text-xs sm:text-sm text-slate-700 font-medium">Professeurs certifiés et revus minutieusement par notre administration</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e5f7f2] text-[#0d8d78] text-xs font-bold">✓</div>
-                  <p className="text-xs sm:text-sm text-slate-700 font-medium">Classe virtuelle WebRTC HD avec tableau blanc et partage de documents</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e5f7f2] text-[#0d8d78] text-xs font-bold">✓</div>
-                  <p className="text-xs sm:text-sm text-slate-700 font-medium">Recharge instantanée par D17, Flouci et virement bancaire local</p>
-                </div>
-              </div>
             </div>
 
-            {/* Support Direct Contact Card */}
-            <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-[#11233f] to-[#1a365d] p-8 text-white shadow-xl">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#72d6bf]">Assistance Continue 7j/7</p>
-              <h3 className="mt-2 text-2xl font-bold">Une équipe à votre écoute</h3>
-              <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Besoin d'aide pour choisir un professeur ou pour une question sur votre recharge ? Notre support tunisien vous répond immédiatement.
-              </p>
-
-              <div className="mt-6 space-y-3 border-t border-white/10 pt-5">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">📞</span>
-                  <div>
-                    <p className="text-xs text-slate-400">Téléphone / WhatsApp</p>
-                    <a href="tel:+21658249938" className="font-mono text-base font-bold text-[#72d6bf] hover:underline">
-                      +216 58 249 938
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">✉️</span>
-                  <div>
-                    <p className="text-xs text-slate-400">Email officiel</p>
-                    <a href="mailto:profyspace@gmail.com" className="text-sm font-bold text-white hover:underline">
-                      profyspace@gmail.com
-                    </a>
-                  </div>
-                </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-6 py-4 border border-white/20 backdrop-blur-md">
+              <span className="text-2xl">✉️</span>
+              <div>
+                <p className="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Email officiel support</p>
+                <a
+                  href="mailto:profyspace@gmail.com"
+                  className="text-base font-bold text-white hover:text-[#72d6bf] transition"
+                >
+                  profyspace@gmail.com
+                </a>
               </div>
             </div>
           </div>

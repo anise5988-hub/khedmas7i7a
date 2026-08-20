@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { IconCheck, IconShield } from "@/components/icons";
+import { GoogleAuthModal } from "@/components/google-auth-modal";
 
 export function GoogleIcon() {
   return (
@@ -35,6 +36,7 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     return params.get("registered") === "1" || params.get("registered") === "true";
   });
+  const [googleModalOpen, setGoogleModalOpen] = useState(false);
 
   async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,8 +80,9 @@ export default function LoginPage() {
     }
   }
 
-  function handleGoogleLogin() {
-    alert("Authentification Google : Vous pouvez créer votre compte directement ou vous connecter ci-dessous avec vos identifiants.");
+  function handleGoogleSuccess(user: { role?: string } | null) {
+    setGoogleModalOpen(false);
+    window.location.href = user?.role === "TEACHER" ? "/teacher/dashboard" : "/dashboard";
   }
 
   return (
@@ -108,7 +111,7 @@ export default function LoginPage() {
         {/* Google OAuth Button */}
         <button
           type="button"
-          onClick={handleGoogleLogin}
+          onClick={() => setGoogleModalOpen(true)}
           className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
         >
           <GoogleIcon />
@@ -184,6 +187,14 @@ export default function LoginPage() {
           <span>Gestionnaire de mots de passe Google & Chrome compatible</span>
         </div>
       </div>
+
+      {/* Google Sign-in Modal */}
+      <GoogleAuthModal
+        isOpen={googleModalOpen}
+        onClose={() => setGoogleModalOpen(false)}
+        onSuccess={handleGoogleSuccess}
+        role="STUDENT"
+      />
     </main>
   );
 }
