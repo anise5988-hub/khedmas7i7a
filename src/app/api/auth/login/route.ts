@@ -2,6 +2,7 @@ import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { loginSchema } from "@/lib/validation/login";
+import { fallbackStore } from "@/lib/server/fallback-store";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -9,6 +10,12 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Email ou mot de passe invalide." }, { status: 400 });
   }
+
+  const cookieOptions = {
+    path: "/",
+    sameSite: "lax" as const,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  };
 
   try {
     const user = await prisma.user.findUnique({
@@ -20,46 +27,66 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!user || !(await compare(parsed.data.password, user.passwordHash))) {
-      return NextResponse.json({ error: "Email ou mot de passe incorrect." }, { status: 401 });
-    }
+    if (user && (await compare(parsed.data.password, user.passwordHash))) {
+      // Auto-create wallet if missing
+      let wallet = user.wallet;
+      if (!wallet) {
+        try {
+          wallet = await prisma.wallet.create({
+            data: { userId: user.id, availableMillimes: 0, pendingMillimes: 0 },
+          });
+        } catch {}
+      }
 
-    // Auto-create wallet if missing
-    let wallet = user.wallet;
-    if (!wallet) {
-      wallet = await prisma.wallet.create({
-        data: { userId: user.id, availableMillimes: 0, pendingMillimes: 0 },
-      });
-    }
+      const userData = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        availableTnd: (wallet?.availableMillimes ?? 0) / 1000,
+      };
 
+      const response = NextResponse.json({
+        success: true,
+        role: user.role,
+        user: userData,
+      }, { status: 200 });
+
+      response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
+      response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
+      response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+
+      return response;
+    }
+  } catch (dbError) {
+    console.warn("Prisma login query failed, checking fallback store", dbError);
+  }
+
+  // Check in-memory store
+  const fallbackUser = fallbackStore.getUserByEmail(parsed.data.email);
+  if (fallbackUser && (await compare(parsed.data.password, fallbackUser.passwordHash))) {
     const userData = {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      availableTnd: (wallet?.availableMillimes ?? 0) / 1000,
+      id: fallbackUser.id,
+      firstName: fallbackUser.firstName,
+      lastName: fallbackUser.lastName,
+      email: fallbackUser.email,
+      role: fallbackUser.role,
+      availableTnd: 0,
     };
 
     const response = NextResponse.json({
       success: true,
-      role: user.role,
+      role: fallbackUser.role,
       user: userData,
     }, { status: 200 });
 
-    const cookieOptions = {
-      path: "/",
-      sameSite: "lax" as const,
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    };
-
-    response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+    response.cookies.set("profy_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: true });
+    response.cookies.set("profy_role", fallbackUser.role, { ...cookieOptions, httpOnly: true });
+    response.cookies.set("profyspace_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: false });
 
     return response;
-  } catch (error) {
-    console.error("Login failed", error);
-    return NextResponse.json({ error: "La base de données est indisponible." }, { status: 503 });
   }
+
+  return NextResponse.json({ error: "Email ou mot de passe incorrect." }, { status: 401 });
 }

@@ -29,7 +29,7 @@ export async function GET(request: Request) {
             online: user.teacher.online,
             inPerson: user.teacher.inPerson,
             verificationStatus: user.teacher.verificationStatus,
-            subjects: user.teacher.subjects.map((s) => s.subject),
+            subjects: (user.teacher.subjects as Array<{ subject: string } | string>).map((s) => (typeof s === "string" ? s : s.subject)),
             availabilities: user.teacher.availabilities,
           }
         : null,

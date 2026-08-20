@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/server/prisma";
+import { fallbackStore } from "./fallback-store";
 
 export async function getCurrentUser(request?: Request) {
-  try {
-    let userId: string | undefined;
+  let userId: string | undefined;
 
+  try {
     // 1. Check header if request is provided
     if (request) {
       const headerUserId = request.headers.get("x-user-id");
@@ -28,33 +30,50 @@ export async function getCurrentUser(request?: Request) {
 
     if (!userId) return null;
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        student: true,
-        teacher: {
-          include: {
-            subjects: true,
-            availabilities: true,
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          student: true,
+          teacher: {
+            include: {
+              subjects: true,
+              availabilities: true,
+            },
           },
+          wallet: true,
         },
-        wallet: true,
-      },
-    });
-
-    if (!user) return null;
-
-    // Auto-create wallet if missing
-    if (!user.wallet) {
-      const createdWallet = await prisma.wallet.create({
-        data: { userId: user.id, availableMillimes: 0, pendingMillimes: 0 },
       });
-      user.wallet = createdWallet;
+
+      if (user) {
+        // Auto-create wallet if missing
+        if (!user.wallet) {
+          try {
+            const createdWallet = await prisma.wallet.create({
+              data: { userId: user.id, availableMillimes: 0, pendingMillimes: 0 },
+            });
+            user.wallet = createdWallet;
+          } catch {}
+        }
+        return user;
+      }
+    } catch (dbError) {
+      console.warn("Prisma user lookup failed, using fallback store", dbError);
     }
 
-    return user;
+    // Fallback in-memory lookup
+    const fallbackUser = fallbackStore.getUserById(userId);
+    if (fallbackUser) {
+      return fallbackUser as any;
+    }
+
+    return null;
   } catch (error) {
     console.error("Failed to get current user:", error);
+    if (userId) {
+      const fallbackUser = fallbackStore.getUserById(userId);
+      if (fallbackUser) return fallbackUser as any;
+    }
     return null;
   }
 }
