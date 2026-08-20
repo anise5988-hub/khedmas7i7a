@@ -24,6 +24,7 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
       return null;
     }
   });
+
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -91,9 +92,11 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
           <Link href="/#how" className="hover:text-[#0d8d78] transition duration-200">
             Comment ça marche
           </Link>
-          <Link href="/teacher/onboarding" className="hover:text-[#0d8d78] transition duration-200">
-            Devenir professeur
-          </Link>
+          {(!user || user.role === "TEACHER") && (
+            <Link href="/register?role=TEACHER" className="hover:text-[#0d8d78] transition duration-200">
+              Devenir professeur
+            </Link>
+          )}
         </div>
 
         {/* Actions */}
@@ -118,7 +121,6 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 <IconUser className="h-4 w-4 shrink-0 text-[#0d8d78]" />
                 <span className="truncate">{user.firstName} (Mon Espace)</span>
               </Link>
-
               <button
                 onClick={handleLogout}
                 title="Se déconnecter"
@@ -193,13 +195,15 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             >
               Comment ça marche
             </Link>
-            <Link
-              href="/teacher/onboarding"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#0d8d78] transition"
-            >
-              Devenir professeur
-            </Link>
+            {(!user || user.role === "TEACHER") && (
+              <Link
+                href="/register?role=TEACHER"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-1 hover:text-[#0d8d78] transition"
+              >
+                Devenir professeur
+              </Link>
+            )}
 
             {user ? (
               <div className="pt-3 border-t border-slate-200/20 flex flex-col gap-2">
@@ -225,7 +229,6 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 >
                   🔔 Centre de Notifications
                 </Link>
-
                 <Link
                   href="/dashboard/settings"
                   onClick={() => setMobileMenuOpen(false)}
@@ -233,7 +236,6 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 >
                   Paramètres du compte
                 </Link>
-
                 <button
                   type="button"
                   onClick={() => {
