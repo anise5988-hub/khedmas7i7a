@@ -103,18 +103,16 @@ export function InteractiveWhiteboard() {
           <button
             type="button"
             onClick={() => setIsEraser(false)}
-            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-              !isEraser ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700"
-            }`}
+            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${!isEraser ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700"
+              }`}
           >
             ✏️ Stylet
           </button>
           <button
             type="button"
             onClick={() => setIsEraser(true)}
-            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-              isEraser ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700"
-            }`}
+            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${isEraser ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700"
+              }`}
           >
             🧹 Gomme
           </button>
@@ -129,9 +127,8 @@ export function InteractiveWhiteboard() {
                 type="button"
                 onClick={() => setColor(c)}
                 style={{ backgroundColor: c }}
-                className={`h-6 w-6 rounded-full transition ${
-                  color === c ? "ring-2 ring-offset-2 ring-[#0d8d78] scale-110" : "opacity-80 hover:opacity-100"
-                }`}
+                className={`h-6 w-6 rounded-full transition ${color === c ? "ring-2 ring-offset-2 ring-[#0d8d78] scale-110" : "opacity-80 hover:opacity-100"
+                  }`}
               />
             ))}
           </div>

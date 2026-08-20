@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { IconUser, IconTeacher, IconShield } from "@/components/icons";
+import { GoogleIcon } from "@/app/login/page";
 
 export default function RegisterPage() {
   const [role, setRole] = useState<"STUDENT" | "TEACHER" | null>(null);
@@ -39,15 +40,20 @@ export default function RegisterPage() {
     }
 
     event.currentTarget.reset();
-    // Redirect to login with success indicator
+    // Direct redirect to login with confirmation
     window.location.href = "/login?registered=1";
+  }
+
+  function handleGoogleRegister() {
+    alert("Authentification Google : Vous pouvez créer votre compte ci-dessous en quelques secondes.");
   }
 
   return (
     <main className="min-h-screen bg-[#11233f] px-4 py-8 sm:px-6 sm:py-12 text-[#11233f]">
       <div className="mx-auto max-w-4xl">
-        <Link href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em] text-white">
-          profy<span className="text-[#72d6bf]">.tn</span>
+        <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight text-white">
+          <span>ProfySpace</span>
+          <span className="rounded-md bg-[#72d6bf] px-1.5 py-0.5 text-xs font-extrabold text-[#11233f]">.tn</span>
         </Link>
 
         <div className="mt-8 rounded-3xl bg-white p-6 sm:p-10 shadow-2xl">
@@ -59,7 +65,23 @@ export default function RegisterPage() {
             Choisissez votre profil pour commencer votre expérience d'apprentissage ou d'enseignement.
           </p>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {/* Google Sign-in Alternative */}
+          <button
+            type="button"
+            onClick={handleGoogleRegister}
+            className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
+          >
+            <GoogleIcon />
+            <span>S’inscrire rapidement avec Google</span>
+          </button>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-100" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ou choisir un parcours</span>
+            <div className="h-px flex-1 bg-slate-100" />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => {
@@ -106,13 +128,15 @@ export default function RegisterPage() {
           </div>
 
           {role && (
-            <form onSubmit={register} className="mt-8 space-y-4 border-t border-slate-100 pt-6">
+            <form onSubmit={register} method="post" className="mt-8 space-y-4 border-t border-slate-100 pt-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Prénom *</label>
                   <input
                     name="firstName"
+                    id="firstName"
                     required
+                    autoComplete="given-name"
                     placeholder="Ex: Yassine"
                     className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
                   />
@@ -121,7 +145,9 @@ export default function RegisterPage() {
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Nom *</label>
                   <input
                     name="lastName"
+                    id="lastName"
                     required
+                    autoComplete="family-name"
                     placeholder="Ex: Trabelsi"
                     className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
                   />
@@ -132,8 +158,10 @@ export default function RegisterPage() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Adresse Email *</label>
                 <input
                   name="email"
+                  id="email"
                   type="email"
                   required
+                  autoComplete="username email"
                   placeholder="nom@exemple.tn"
                   className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
                 />
@@ -143,6 +171,8 @@ export default function RegisterPage() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Numéro de téléphone</label>
                 <input
                   name="phone"
+                  id="phone"
+                  autoComplete="tel"
                   placeholder="+216 20 000 000"
                   className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
                 />
@@ -152,9 +182,11 @@ export default function RegisterPage() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Mot de passe (8 caractères minimum) *</label>
                 <input
                   name="password"
+                  id="password"
                   type="password"
                   required
                   minLength={8}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
                 />
@@ -174,12 +206,12 @@ export default function RegisterPage() {
                 disabled={pending}
                 className="w-full rounded-2xl bg-[#0d8d78] py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] disabled:opacity-50"
               >
-                {pending ? "Création du compte en cours..." : "Créer mon compte et continuer →"}
+                {pending ? "Création du compte en cours..." : "Créer mon compte et se connecter →"}
               </button>
 
               <div className="flex items-center justify-center gap-2 pt-2 text-xs text-slate-400">
                 <IconShield className="h-4 w-4 text-[#0d8d78]" />
-                <span>Données protégées et conformes aux normes de sécurité</span>
+                <span>Compatible avec le gestionnaire de mots de passe Google / Chrome</span>
               </div>
             </form>
           )}

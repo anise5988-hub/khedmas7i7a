@@ -20,7 +20,20 @@ export async function POST(request: Request) {
         phone: parsed.data.phone || null,
         passwordHash,
         role: parsed.data.role,
-        ...(parsed.data.role === "STUDENT" ? { student: { create: {} }, wallet: { create: {} } } : { teacher: { create: { slug: `${parsed.data.firstName}-${parsed.data.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), hourlyRateMillimes: 0 } } }),
+        wallet: { create: {} },
+        ...(parsed.data.role === "STUDENT"
+          ? { student: { create: {} } }
+          : {
+              teacher: {
+                create: {
+                  slug: `${parsed.data.firstName}-${parsed.data.lastName}-${Date.now()}`
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/^-|-$/g, ""),
+                  hourlyRateMillimes: 0,
+                },
+              },
+            }),
       },
       select: { id: true, role: true },
     });

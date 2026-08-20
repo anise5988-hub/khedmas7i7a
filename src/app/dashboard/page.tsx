@@ -39,8 +39,8 @@ const links = [
   ["Vue d'ensemble", "/dashboard"],
   ["Mes cours", "/dashboard/classes"],
   ["Calendrier", "/dashboard/calendar"],
-  ["Wallet & Solde", "/dashboard/wallet"],
-  ["Recharger mon compte", "/dashboard/wallet/add-money"],
+  ["Portefeuille (Wallet)", "/dashboard/wallet"],
+  ["Paramètres du compte", "/dashboard/settings"],
   ["Trouver un professeur", "/teachers"],
 ];
 
@@ -79,10 +79,10 @@ export default function StudentDashboard() {
           </a>
           <div className="flex items-center gap-2.5 sm:gap-3">
             <a
-              href="/dashboard/wallet/add-money"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 hover:border-slate-300 sm:text-sm"
+              href="/dashboard/settings"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 sm:text-sm"
             >
-              Recharger solde
+              Paramètres
             </a>
             <a
               href="/teachers"
