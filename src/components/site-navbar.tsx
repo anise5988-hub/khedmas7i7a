@@ -220,14 +220,14 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center py-2.5 rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xs border border-[#0d8d78]/20"
                 >
-                  💬 Messagerie / Discussions
+                  Messagerie / Discussions
                 </Link>
                 <Link
                   href="/dashboard/notifications"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center py-2.5 rounded-2xl border border-slate-200 font-bold text-xs"
                 >
-                  🔔 Centre de Notifications
+                  Centre de Notifications
                 </Link>
                 <Link
                   href="/dashboard/settings"

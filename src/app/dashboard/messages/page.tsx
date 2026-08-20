@@ -44,33 +44,44 @@ export default function MessagesPage() {
     const teacherId = params.get("teacherId");
     fetchConversations(teacherId);
 
+    // Fast polling every 2 seconds for instant messaging responsiveness
+    const interval = setInterval(() => {
+      fetchConversations(null, true);
+    }, 2000);
+
     // Set default offer date to tomorrow 14:00
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(14, 0, 0, 0);
     setOfferStartsAt(tomorrow.toISOString().slice(0, 16));
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeConv?.messages]);
 
-  async function fetchConversations(teacherId?: string | null) {
-    setLoading(true);
+  async function fetchConversations(teacherId?: string | null, isSilent = false) {
+    if (!isSilent) setLoading(true);
     try {
       const url = teacherId ? `/api/chat/conversations?teacherId=${teacherId}` : "/api/chat/conversations";
       const res = await fetch(url, { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setConversations(data.conversations || []);
-        if (data.activeConversation) {
+        if (data.activeConversation && !isSilent) {
           setActiveConv(data.activeConversation);
-        } else if (data.conversations && data.conversations.length > 0) {
+        } else if (data.conversations && data.conversations.length > 0 && !activeConv) {
           setActiveConv(data.conversations[0]);
+        } else if (activeConv) {
+          // Update active conversation in place without clearing history
+          const updated = (data.conversations || []).find((c: Conversation) => c.id === activeConv.id);
+          if (updated) setActiveConv(updated);
         }
       }
     } catch {} finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   }
 
@@ -78,14 +89,17 @@ export default function MessagesPage() {
     if (e) e.preventDefault();
     if (!text.trim() || !activeConv) return;
 
+    const messageText = text.trim();
+    setText("");
     setPending(true);
+
     try {
       const res = await fetch("/api/chat/messages", {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
           conversationId: activeConv.id,
-          text: text.trim(),
+          text: messageText,
         }),
       });
 
@@ -93,7 +107,6 @@ export default function MessagesPage() {
         const data = await res.json();
         if (data.message) {
           setActiveConv((prev) => prev ? { ...prev, messages: [...prev.messages, data.message] } : null);
-          setText("");
         }
       }
     } catch {} finally {
@@ -113,7 +126,7 @@ export default function MessagesPage() {
         headers: getAuthHeaders(),
         body: JSON.stringify({
           conversationId: activeConv.id,
-          text: `🎯 Nouvelle offre de cours : ${offerSubject} (${offerAmountTnd} DT)`,
+          text: `Nouvelle offre de cours : ${offerSubject} (${offerAmountTnd} DT)`,
           offer: {
             subject: offerSubject,
             startsAt: offerStartsAt,
@@ -157,8 +170,8 @@ export default function MessagesPage() {
         return;
       }
 
-      alert("🎉 Offre acceptée et séance réservée ! Le montant a été prélevé de votre portefeuille.");
-      fetchConversations();
+      alert("Offre acceptée et séance réservée avec succès ! Le montant a été prélevé de votre portefeuille.");
+      fetchConversations(null, true);
     } catch {
       alert("Erreur de connexion.");
     }
@@ -171,7 +184,7 @@ export default function MessagesPage() {
         headers: getAuthHeaders(),
       });
       if (res.ok) {
-        fetchConversations();
+        fetchConversations(null, true);
       }
     } catch {}
   }
@@ -320,7 +333,7 @@ export default function MessagesPage() {
                       >
                         <p>{m.text}</p>
 
-                        {/* Custom Offer Card in Chat */}
+                        {/* Custom Offer Card in Chat (Permanently Saved in History) */}
                         {m.offer && (
                           <div className="mt-3 rounded-2xl bg-white p-4 border border-slate-200 text-slate-800 shadow-md space-y-2.5">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -341,8 +354,8 @@ export default function MessagesPage() {
                             <div>
                               <p className="font-bold text-sm text-[#11233f]">{m.offer.subject}</p>
                               <div className="mt-1 flex flex-wrap items-center gap-3 text-slate-500 text-[11px]">
-                                <span>⏱️ {m.offer.durationMinutes} min</span>
-                                <span>📅 {new Date(m.offer.startsAt).toLocaleDateString("fr-TN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                                <span>Durée : {m.offer.durationMinutes} min</span>
+                                <span>Date : {new Date(m.offer.startsAt).toLocaleDateString("fr-TN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                               </div>
                             </div>
 
