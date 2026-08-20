@@ -50,7 +50,7 @@ export async function POST(request: Request) {
                     hourlyRateMillimes: 25000,
                     online: true,
                     inPerson: false,
-                    verificationStatus: "APPROVED",
+                    verificationStatus: "PENDING",
                   },
                 }
               : undefined,
