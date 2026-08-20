@@ -23,6 +23,13 @@ export default function MessagesPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  function getAuthHeaders(): Record<string, string> {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem("profyspace_user");
@@ -52,7 +59,7 @@ export default function MessagesPage() {
     setLoading(true);
     try {
       const url = teacherId ? `/api/chat/conversations?teacherId=${teacherId}` : "/api/chat/conversations";
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setConversations(data.conversations || []);
@@ -75,7 +82,7 @@ export default function MessagesPage() {
     try {
       const res = await fetch("/api/chat/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           conversationId: activeConv.id,
           text: text.trim(),
@@ -103,7 +110,7 @@ export default function MessagesPage() {
     try {
       const res = await fetch("/api/chat/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           conversationId: activeConv.id,
           text: `🎯 Nouvelle offre de cours : ${offerSubject} (${offerAmountTnd} DT)`,
@@ -138,6 +145,7 @@ export default function MessagesPage() {
     try {
       const res = await fetch(`/api/chat/offers/${offer.id}/accept`, {
         method: "POST",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
 
@@ -160,6 +168,7 @@ export default function MessagesPage() {
     try {
       const res = await fetch(`/api/chat/offers/${offer.id}/reject`, {
         method: "POST",
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         fetchConversations();
@@ -173,7 +182,7 @@ export default function MessagesPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-6 border border-slate-200 shadow-sm">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
-            Messagerie Directe
+            Messagerie Directe ProfySpace
           </span>
           <h1 className="mt-1 text-2xl font-bold text-[#11233f]">
             Conversations & Offres Sur-Mesure
@@ -202,11 +211,19 @@ export default function MessagesPage() {
           </h2>
 
           {loading ? (
-            <p className="text-xs text-slate-400 p-4">Chargement...</p>
+            <p className="text-xs text-slate-400 p-4">Chargement des conversations...</p>
           ) : conversations.length === 0 ? (
-            <p className="text-xs text-slate-400 p-4 text-center">
-              Aucune conversation pour le moment. Allez sur le profil d'un professeur et cliquez sur "Discuter pour une offre".
-            </p>
+            <div className="p-4 text-center space-y-3">
+              <p className="text-xs text-slate-500">
+                Aucune conversation pour le moment.
+              </p>
+              <a
+                href="/teachers"
+                className="inline-block rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+              >
+                Trouver un professeur →
+              </a>
+            </div>
           ) : (
             conversations.map((c) => {
               const otherName = userRole === "TEACHER" ? c.studentName : c.teacherName;
@@ -216,7 +233,7 @@ export default function MessagesPage() {
                   key={c.id}
                   onClick={() => setActiveConv(c)}
                   className={`flex items-center gap-3 rounded-2xl p-3.5 cursor-pointer transition ${
-                    isActive ? "bg-[#11233f] text-white" : "hover:bg-slate-50 text-slate-700"
+                    isActive ? "bg-[#11233f] text-white shadow-md" : "hover:bg-slate-50 text-slate-700"
                   }`}
                 >
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl font-bold text-sm ${
@@ -251,6 +268,15 @@ export default function MessagesPage() {
                     En ligne • Discussion sécurisée ProfySpace
                   </span>
                 </div>
+
+                {userRole === "TEACHER" && (
+                  <button
+                    onClick={() => setShowOfferModal(true)}
+                    className="rounded-xl border border-[#0d8d78] bg-[#e5f7f2] px-3.5 py-1.5 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+                  >
+                    + Créer Offre (DT)
+                  </button>
+                )}
               </div>
 
               {/* Messages Feed */}
@@ -354,18 +380,28 @@ export default function MessagesPage() {
                   placeholder="Écrivez votre message..."
                   className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-800 outline-none focus:border-[#0d8d78] focus:bg-white transition"
                 />
+                {userRole === "TEACHER" && (
+                  <button
+                    type="button"
+                    onClick={() => setShowOfferModal(true)}
+                    className="rounded-2xl border border-[#0d8d78] bg-[#e5f7f2] px-3.5 py-3 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] shrink-0"
+                  >
+                    + Offre (DT)
+                  </button>
+                )}
                 <button
                   type="submit"
                   disabled={sending || !text.trim()}
-                  className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50"
+                  className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50 shrink-0"
                 >
-                  Envoyer
+                  Envoyer →
                 </button>
               </form>
             </>
           ) : (
-            <div className="py-20 text-center text-slate-400 text-xs">
-              Sélectionnez une conversation pour afficher les messages.
+            <div className="py-20 text-center text-slate-400 text-xs space-y-2">
+              <p className="font-bold text-slate-600 text-sm">Sélectionnez une conversation</p>
+              <p>Choisissez un échange dans la liste de gauche pour afficher vos messages.</p>
             </div>
           )}
         </div>
