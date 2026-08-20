@@ -246,8 +246,8 @@ export default function MessagesPage() {
                   <h3 className="text-sm font-bold text-[#11233f]">
                     {userRole === "TEACHER" ? activeConv.studentName : activeConv.teacherName}
                   </h3>
-                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[11px] font-semibold flex items-center gap-1.5 mt-0.5 text-emerald-600">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     En ligne • Discussion sécurisée ProfySpace
                   </span>
                 </div>

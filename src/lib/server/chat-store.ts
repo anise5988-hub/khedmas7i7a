@@ -38,6 +38,32 @@ export type Conversation = {
   messages: ChatMessage[];
 };
 
+const userPresenceMap = new Map<string, Date>();
+
+export const presenceStore = {
+  touchUser(userId: string) {
+    if (userId) {
+      userPresenceMap.set(userId, new Date());
+    }
+  },
+
+  isUserOnline(userId: string): { isOnline: boolean; statusText: string } {
+    const lastActive = userPresenceMap.get(userId);
+    if (!lastActive) {
+      return { isOnline: false, statusText: "Hors ligne" };
+    }
+    const diffMin = Math.floor((Date.now() - lastActive.getTime()) / 60000);
+    if (diffMin < 3) {
+      return { isOnline: true, statusText: "En ligne" };
+    } else if (diffMin < 60) {
+      return { isOnline: false, statusText: `En ligne il y a ${diffMin} min` };
+    } else {
+      const diffHours = Math.floor(diffMin / 60);
+      return { isOnline: false, statusText: `En ligne il y a ${diffHours}h` };
+    }
+  },
+};
+
 const globalStore = globalThis as unknown as {
   __profyspace_conversations?: Map<string, Conversation>;
 };
@@ -128,16 +154,14 @@ export const chatStore = {
 
   updateOfferStatus(offerId: string, newStatus: OfferStatus): { success: boolean; offer?: CustomOffer } {
     let foundOffer: CustomOffer | null = null;
-
-    globalStore.__profyspace_conversations!.forEach((conv) => {
-      conv.messages.forEach((msg) => {
+    globalStore.__profyspace_conversations!.forEach((conv: Conversation) => {
+      conv.messages.forEach((msg: ChatMessage) => {
         if (msg.offer && msg.offer.id === offerId) {
           msg.offer.status = newStatus;
           foundOffer = msg.offer;
         }
       });
     });
-
     if (foundOffer) {
       return { success: true, offer: foundOffer };
     }
