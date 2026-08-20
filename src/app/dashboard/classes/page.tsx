@@ -19,6 +19,7 @@ type Booking = {
 
 export default function StudentClassesPage() {
   const [activeTab, setActiveTab] = useState<"BOOKINGS" | "COURSES">("BOOKINGS");
+  const [bookingFilter, setBookingFilter] = useState<"ALL" | "UPCOMING" | "PAST">("ALL");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [purchasedCourses, setPurchasedCourses] = useState<{ course: Course; access: { purchasedAt: string } }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,10 +50,10 @@ export default function StudentClassesPage() {
   }, []);
 
   const now = new Date();
-  const filtered = bookings.filter((b) => {
+  const filteredBookings = bookings.filter((b) => {
     const isUpcoming = new Date(b.startsAt) >= now;
-    if (filter === "UPCOMING") return isUpcoming;
-    if (filter === "PAST") return !isUpcoming;
+    if (bookingFilter === "UPCOMING") return isUpcoming;
+    if (bookingFilter === "PAST") return !isUpcoming;
     return true;
   });
 
@@ -107,69 +108,106 @@ export default function StudentClassesPage() {
         {loading ? (
           <div className="py-20 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>
-            <p className="mt-3 text-sm text-slate-500">Chargement de vos séances...</p>
+            <p className="mt-3 text-sm text-slate-500">Chargement de votre espace...</p>
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
-              <IconCalendar className="h-7 w-7" />
-            </div>
-            <h2 className="text-lg font-bold">Aucune séance dans cette vue.</h2>
-            <p className="mt-1 text-xs text-slate-500">Choisissez un professeur et commencez votre apprentissage.</p>
-            <Link
-              href="/teachers"
-              className="mt-5 inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
-            >
-              Explorer les professeurs →
-            </Link>
-          </div>
-        ) : (
-          <div className="mt-6 space-y-4">
-            {filtered.map((b) => (
-              <div
-                key={b.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78]">
-                    {b.teacherName.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base">{b.teacherName}</h3>
-                    <p className="text-xs font-bold text-[#0d8d78]">{b.subject}</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      📅 {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} à{" "}
-                      {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                    <p className="mt-0.5 text-xs text-slate-400">
-                      Durée : {b.durationMinutes} min · Tarif : {b.amountTnd} DT
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-bold ${
-                      b.status === "CONFIRMED"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : b.status === "COMPLETED"
-                        ? "bg-slate-100 text-slate-700"
-                        : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    {b.status}
-                  </span>
-
-                  <Link
-                    href={`/classroom/${b.id}`}
-                    className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
-                  >
-                    Rejoindre la classe →
-                  </Link>
-                </div>
+        ) : activeTab === "BOOKINGS" ? (
+          filteredBookings.length === 0 ? (
+            <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
+                <IconCalendar className="h-7 w-7" />
               </div>
-            ))}
-          </div>
+              <h2 className="text-lg font-bold">Aucune séance en direct réservée.</h2>
+              <p className="mt-1 text-xs text-slate-500">Choisissez un professeur et commencez votre apprentissage.</p>
+              <Link
+                href="/teachers"
+                className="mt-5 inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+              >
+                Explorer les professeurs →
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              {filteredBookings.map((b) => (
+                <div
+                  key={b.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78]">
+                      {b.teacherName.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base">{b.teacherName}</h3>
+                      <p className="text-xs font-bold text-[#0d8d78]">{b.subject}</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        📅 {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} à{" "}
+                        {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        Durée : {b.durationMinutes} min · Tarif : {b.amountTnd} DT
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-bold ${
+                        b.status === "CONFIRMED"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : b.status === "COMPLETED"
+                          ? "bg-slate-100 text-slate-700"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {b.status}
+                    </span>
+
+                    <Link
+                      href={`/classroom/${b.id}`}
+                      className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                    >
+                      Rejoindre la classe →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : (
+          purchasedCourses.length === 0 ? (
+            <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+              <h2 className="text-lg font-bold">Aucun pack ou cours vidéo débloqué.</h2>
+              <p className="mt-1 text-xs text-slate-500">Parcourez le catalogue et débloquez des cours pour étudier à votre rythme.</p>
+              <Link
+                href="/courses"
+                className="mt-5 inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+              >
+                Découvrir le catalogue de cours →
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {purchasedCourses.map(({ course }) => (
+                <div key={course.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#0d8d78]">{course.subject}</span>
+                    <h3 className="font-bold text-base text-[#11233f]">{course.title}</h3>
+                    <p className="text-xs text-slate-500 line-clamp-2">{course.description}</p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-xs text-slate-400">{course.totalLessons} leçons ({course.durationMinutes} min)</span>
+                    <Link
+                      href={`/courses/${course.id}`}
+                      className="rounded-xl bg-[#11233f] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#1a355e]"
+                    >
+                      Continuer l'apprentissage →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </main>
