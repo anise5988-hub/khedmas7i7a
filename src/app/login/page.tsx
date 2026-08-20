@@ -104,25 +104,9 @@ export default function LoginPage() {
         )}
 
         <h1 className="mt-8 text-3xl font-bold tracking-tight text-[#11233f]">Bon retour.</h1>
-        <p className="mt-1 text-xs sm:text-sm text-slate-500">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 mb-6">
           Connectez-vous pour retrouver vos cours, vos réservations et votre portefeuille.
         </p>
-
-        {/* Google OAuth Button */}
-        <button
-          type="button"
-          onClick={() => setGoogleModalOpen(true)}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
-        >
-          <GoogleIcon />
-          <span>Continuer avec Google</span>
-        </button>
-
-        <div className="my-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-slate-100" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ou par email</span>
-          <div className="h-px flex-1 bg-slate-100" />
-        </div>
 
         <form onSubmit={login} method="post" className="space-y-4">
           <div>
@@ -174,6 +158,22 @@ export default function LoginPage() {
             {pending ? "Connexion en cours..." : "Se connecter →"}
           </button>
         </form>
+
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-100" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ou</span>
+          <div className="h-px flex-1 bg-slate-100" />
+        </div>
+
+        {/* Google OAuth Button - At Bottom */}
+        <button
+          type="button"
+          onClick={() => setGoogleModalOpen(true)}
+          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
+        >
+          <GoogleIcon />
+          <span>Continuer avec Google</span>
+        </button>
 
         <p className="mt-8 text-center text-xs text-slate-500">
           Pas encore de compte ?{" "}

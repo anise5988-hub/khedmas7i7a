@@ -1,9 +1,9 @@
-﻿ 
+﻿
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
-import { IconUser, IconTeacher, IconShield } from "@/components/icons";
+import { IconUser, IconTeacher } from "@/components/icons";
 import { GoogleIcon } from "@/app/login/page";
 import { GoogleAuthModal } from "@/components/google-auth-modal";
 
@@ -88,25 +88,9 @@ export default function RegisterPage() {
           <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#11233f]">
             Rejoignez la communauté ProfySpace.tn
           </h1>
-          <p className="mt-2 text-xs sm:text-sm text-slate-500">
+          <p className="mt-2 text-xs sm:text-sm text-slate-500 mb-6">
             Créez votre compte pour réserver vos cours particuliers ou proposer vos enseignements.
           </p>
-
-          {/* Google Sign-in Alternative */}
-          <button
-            type="button"
-            onClick={() => setGoogleModalOpen(true)}
-            className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
-          >
-            <GoogleIcon />
-            <span>S’inscrire rapidement avec Google</span>
-          </button>
-
-          <div className="my-6 flex items-center gap-3">
-            <div className="h-px flex-1 bg-slate-100" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ou remplir le formulaire</span>
-            <div className="h-px flex-1 bg-slate-100" />
-          </div>
 
           {/* Role Selection Tabs */}
           <div>
@@ -226,12 +210,23 @@ export default function RegisterPage() {
             >
               {pending ? "Création du compte en cours..." : "Créer mon compte et continuer →"}
             </button>
-
-            <div className="flex items-center justify-center gap-2 pt-2 text-xs text-slate-400">
-              <IconShield className="h-4 w-4 text-[#0d8d78]" />
-              <span>Compatible avec le gestionnaire de mots de passe Google & Chrome</span>
-            </div>
           </form>
+
+          <div className="my-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-100" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ou</span>
+            <div className="h-px flex-1 bg-slate-100" />
+          </div>
+
+          {/* Google Sign-in Alternative - At Bottom */}
+          <button
+            type="button"
+            onClick={() => setGoogleModalOpen(true)}
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
+          >
+            <GoogleIcon />
+            <span>S’inscrire rapidement avec Google</span>
+          </button>
 
           <p className="mt-8 text-center text-xs text-slate-500">
             Vous avez déjà un compte ?{" "}

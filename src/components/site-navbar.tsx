@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IconUser, IconLogout } from "./icons";
-import { ThemeToggle } from "./theme-toggle";
 
 type UserSession = {
   id: string;
@@ -91,8 +90,6 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <ThemeToggle />
-
           {!loading && user ? (
             <div className="hidden md:flex items-center gap-2 sm:gap-3">
               <Link

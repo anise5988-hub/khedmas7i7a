@@ -25,26 +25,15 @@ type ApprovedTeacher = {
   city: string;
 };
 
-const testimonials = [
-  {
-    name: "Mariem Khelil",
-    role: "Élève en Baccalauréat Math",
-    text: "Grâce à mon professeur de Maths sur ProfySpace, j'ai surmonté mes blocages en analyse et géométrie. La classe virtuelle avec tableau blanc est ultra fluide !",
-    rating: 5,
-  },
-  {
-    name: "Mohamed Ben Amor",
-    role: "Parent d'élève (9ème de base)",
-    text: "Une plateforme tunisienne sérieuse. Paiement D17 instantané et professeurs très pédagogues. Ma fille a nettement amélioré ses moyennes.",
-    rating: 5,
-  },
-  {
-    name: "Professeur Hichem",
-    role: "Enseignant de Physique",
-    text: "ProfySpace me permet d'enseigner en direct depuis chez moi avec des élèves motivés sur toute la Tunisie. Retraits rapides et interface claire.",
-    rating: 5,
-  },
-];
+type RealReview = {
+  id: string;
+  name: string;
+  role: string;
+  teacherName: string;
+  rating: number;
+  text: string;
+  createdAt: string;
+};
 
 const faqs = [
   {
@@ -70,13 +59,23 @@ export default function Home() {
   const [level, setLevel] = useState("bac");
   const [mode, setMode] = useState("ONLINE");
   const [featuredTeachers, setFeaturedTeachers] = useState<ApprovedTeacher[]>([]);
+  const [reviews, setReviews] = useState<RealReview[]>([]);
   const [stats, setStats] = useState<{
     studentsCount: number;
     teachersCount: number;
     hoursTaught: number;
     satisfactionRate: number;
   } | null>(null);
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Review submission modal state
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewStudentName, setReviewStudentName] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewStatus, setReviewStatus] = useState({ type: "", text: "" });
 
   useEffect(() => {
     fetch("/api/teachers")
@@ -94,7 +93,61 @@ export default function Home() {
         if (data) setStats(data);
       })
       .catch(() => {});
+
+    loadReviews();
   }, []);
+
+  function loadReviews() {
+    fetch("/api/reviews")
+      .then((res) => (res.ok ? res.json() : { reviews: [] }))
+      .then((data) => {
+        if (Array.isArray(data.reviews)) {
+          setReviews(data.reviews);
+        }
+      })
+      .catch(() => {});
+  }
+
+  async function handleReviewSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setReviewSubmitting(true);
+    setReviewStatus({ type: "", text: "" });
+
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: reviewStudentName.trim() || "Élève Satisfait",
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setReviewStatus({
+          type: "success",
+          text: "Merci ! Votre avis a été publié en direct avec succès !",
+        });
+        setReviewComment("");
+        loadReviews();
+        setTimeout(() => {
+          setReviewModalOpen(false);
+          setReviewStatus({ type: "", text: "" });
+        }, 1200);
+      } else {
+        setReviewStatus({
+          type: "error",
+          text: data.error || "Erreur lors de l'enregistrement de votre avis.",
+        });
+      }
+    } catch {
+      setReviewStatus({ type: "error", text: "Erreur de connexion au serveur." });
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -200,7 +253,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Dynamic Key Stats Bar - Real Database Connected */}
+      {/* Real Live Database Stats Bar */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-6 py-8 sm:grid-cols-4 lg:px-10">
           <div className="flex items-center gap-3">
@@ -359,40 +412,71 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Real Reviews Section - Connected to Database */}
       <section className="bg-slate-50 border-y border-slate-200 px-6 py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <p className="text-xs font-bold uppercase tracking-[.2em] text-[#0d8d78]">Avis & Réussite</p>
-            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
-              Ce que disent nos élèves et parents.
-            </h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-500">
-              Des milliers de familles nous font confiance pour accompagner leur parcours scolaire.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.2em] text-[#0d8d78]">Avis & Réussite</p>
+              <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+                Ce que disent nos élèves satisfaits.
+              </h2>
+              <p className="mt-2 text-xs sm:text-sm text-slate-500">
+                Avis et retours d'expérience vérifiés d'élèves et parents sur ProfySpace.tn.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setReviewModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md transition hover:bg-[#0b7866] shrink-0"
+            >
+              <span>✍️</span>
+              <span>Laisser un avis d'élève satisfait</span>
+            </button>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-3">
-            {testimonials.map((t, idx) => (
-              <div key={idx} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-1 text-amber-500 mb-3">
-                    {[...Array(t.rating)].map((_, i) => (
-                      <IconStar key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    ))}
+          {reviews.length === 0 ? (
+            <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+              <span className="text-3xl">⭐</span>
+              <h3 className="mt-3 font-bold text-base text-slate-800">Aucun avis pour le moment.</h3>
+              <p className="mt-1 text-xs text-slate-500">Soyez le premier élève à partager votre expérience de cours !</p>
+              <button
+                type="button"
+                onClick={() => setReviewModalOpen(true)}
+                className="mt-4 rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white shadow-xs"
+              >
+                Écrire mon avis →
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {reviews.map((r) => (
+                <div key={r.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1 text-amber-500 mb-3">
+                      {[...Array(r.rating)].map((_, i) => (
+                        <IconStar key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed italic">
+                      "{r.text}"
+                    </p>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed italic">
-                    "{t.text}"
-                  </p>
-                </div>
 
-                <div className="mt-6 border-t border-slate-100 pt-3">
-                  <p className="font-bold text-sm text-[#11233f]">{t.name}</p>
-                  <p className="text-[11px] text-[#0d8d78] font-semibold">{t.role}</p>
+                  <div className="mt-6 border-t border-slate-100 pt-3 flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-sm text-[#11233f]">{r.name}</p>
+                      <p className="text-[11px] text-[#0d8d78] font-semibold">{r.role}</p>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {new Date(r.createdAt).toLocaleDateString("fr-TN")}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -473,6 +557,105 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Review Submission Modal */}
+      {reviewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-lg font-bold text-[#11233f]">Donner mon avis d'élève</h3>
+              <button
+                type="button"
+                onClick={() => setReviewModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {reviewStatus.text && (
+              <div
+                className={`rounded-xl p-3 text-xs font-semibold ${
+                  reviewStatus.type === "success"
+                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
+                    : "bg-rose-50 text-rose-900 border border-rose-200"
+                }`}
+              >
+                {reviewStatus.text}
+              </div>
+            )}
+
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  Votre Prénom & Nom *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={reviewStudentName}
+                  onChange={(e) => setReviewStudentName(e.target.value)}
+                  placeholder="Ex: Yassine Trabelsi"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  Votre Note d'évaluation (1 à 5 étoiles) *
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      type="button"
+                      key={star}
+                      onClick={() => setReviewRating(star)}
+                      className="p-1.5 focus:outline-none"
+                    >
+                      <IconStar
+                        className={`h-7 w-7 transition ${
+                          star <= reviewRating ? "fill-amber-400 text-amber-400 scale-110" : "text-slate-200"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  Votre commentaire / retour d'expérience *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Partagez votre avis sur les cours, la pédagogie et vos résultats..."
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78]"
+                />
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setReviewModalOpen(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={reviewSubmitting}
+                  className="rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50"
+                >
+                  {reviewSubmitting ? "Publication..." : "Publier mon avis →"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
