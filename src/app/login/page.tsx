@@ -82,10 +82,12 @@ export default function LoginPage() {
 
   async function handleGoogleLogin() {
     setGooglePending(true);
+    setError("");
     try {
       const { error } = await signInWithGoogle("STUDENT");
       if (error) {
-        setError(error.message);
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        setError(`Erreur Google: ${error.message}. Ajoutez "${origin}/auth/callback" dans Supabase > Authentication > URL Configuration > Redirect URLs.`);
         setGooglePending(false);
       }
     } catch {

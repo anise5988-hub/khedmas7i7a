@@ -72,10 +72,15 @@ export default function RegisterPage() {
 
   async function handleGoogleRegister() {
     setGooglePending(true);
+    setStatus(null);
     try {
       const { error } = await signInWithGoogle(role);
       if (error) {
-        setStatus({ type: "error", message: error.message });
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        setStatus({
+          type: "error",
+          message: `Erreur Google: ${error.message}. Ajoutez "${origin}/auth/callback" dans Supabase > Authentication > URL Configuration > Redirect URLs.`,
+        });
         setGooglePending(false);
       }
     } catch {

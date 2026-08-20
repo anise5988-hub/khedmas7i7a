@@ -7,19 +7,33 @@ export const supabase = url && anonKey ? createClient(url, anonKey) : null;
 
 export async function signInWithGoogle(role: "STUDENT" | "TEACHER" = "STUDENT") {
   if (!supabase) {
-    alert("Configuration Supabase manquante. Veuillez ajouter NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans votre fichier .env");
-    return { data: null, error: new Error("Supabase non configuré.") };
+    const errorMsg = "Configuration Supabase manquante. Veuillez vérifier NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY.";
+    alert(errorMsg);
+    return { data: null, error: new Error(errorMsg) };
   }
 
   if (typeof window !== "undefined") {
     localStorage.setItem("profyspace_oauth_role", role);
   }
 
-  const redirectTo = `${window.location.origin}/auth/callback`;
-  return await supabase.auth.signInWithOAuth({
+  const origin = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
+  const redirectTo = `${origin}/auth/callback`;
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo,
     },
   });
+
+  if (error) {
+    console.error("Supabase Google OAuth Error:", error, "Redirect URL used:", redirectTo);
+    return { data, error };
+  }
+
+  if (data?.url) {
+    window.location.href = data.url;
+  }
+
+  return { data, error: null };
 }
