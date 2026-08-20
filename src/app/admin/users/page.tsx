@@ -1,4 +1,4 @@
-﻿ 
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -19,6 +19,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/users")
@@ -27,6 +28,29 @@ export default function AdminUsersPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleRoleChange(userId: string, newRole: "STUDENT" | "TEACHER" | "ADMIN") {
+    setUpdatingId(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      if (res.ok) {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+        );
+      } else {
+        alert("Erreur lors de la modification du rôle.");
+      }
+    } catch {
+      alert("Erreur de connexion.");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
 
   const filtered = users.filter((u) => {
     const matchesSearch =
@@ -115,17 +139,22 @@ export default function AdminUsersPage() {
                       <div className="text-slate-400">{u.phone}</div>
                     </td>
                     <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                      <select
+                        disabled={updatingId === u.id}
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u.id, e.target.value as "STUDENT" | "TEACHER" | "ADMIN")}
+                        className={`rounded-xl border border-white/20 px-3 py-1.5 text-xs font-bold outline-none transition disabled:opacity-50 ${
                           u.role === "ADMIN"
-                            ? "bg-purple-500/20 text-purple-300"
+                            ? "bg-purple-900/60 text-purple-200 border-purple-500/40"
                             : u.role === "TEACHER"
-                            ? "bg-emerald-500/20 text-emerald-300"
-                            : "bg-blue-500/20 text-blue-300"
+                            ? "bg-emerald-900/60 text-emerald-200 border-emerald-500/40"
+                            : "bg-blue-900/60 text-blue-200 border-blue-500/40"
                         }`}
                       >
-                        {u.role === "STUDENT" ? "Élève" : u.role === "TEACHER" ? "Professeur" : "Admin"}
-                      </span>
+                        <option value="STUDENT">Élève</option>
+                        <option value="TEACHER">Professeur</option>
+                        <option value="ADMIN">👑 Administrateur</option>
+                      </select>
                     </td>
                     <td className="px-4 py-4 text-xs font-semibold text-white">
                       {u.walletBalanceTnd.toFixed(3)} DT
