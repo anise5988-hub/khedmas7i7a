@@ -24,8 +24,6 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
@@ -34,3 +32,51 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# Profy.tn
+
+Marketplace tunisienne pour trouver, réserver et suivre des cours particuliers.
+
+## Local
+
+```bash
+npm install
+npm run dev
+```
+
+## Database
+
+Le projet utilise PostgreSQL avec Prisma.
+
+1. Crée une base PostgreSQL sur Neon ou Supabase.
+2. Copie sa chaîne de connexion dans `.env` :
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/profy?sslmode=require"
+```
+
+3. Génère le client et applique le schéma :
+
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+## Vercel
+
+Dans **Project Settings → Environment Variables**, ajoute `DATABASE_URL` pour `Production`, `Preview` et `Development`, puis redeploie.
+
+Pour initialiser une base de production depuis un terminal avec la même variable :
+
+```bash
+npx prisma migrate deploy
+```
+
+L'endpoint `POST /api/auth/register` valide les données, vérifie l'email, hash le mot de passe et crée un élève avec son wallet ou un professeur en attente de vérification. Sans `DATABASE_URL`, il renvoie une erreur explicite au lieu de faire croire que le compte a été créé.
+
+## Vérification
+
+```bash
+npm run lint
+npm run build
+```

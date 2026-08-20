@@ -7,12 +7,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role { STUDENT TEACHER ADMIN }
-enum VerificationStatus { PENDING UNDER_REVIEW APPROVED REJECTED SUSPENDED }
-enum BookingStatus { PENDING CONFIRMED CANCELLED COMPLETED }
-enum PaymentStatus { PENDING PROCESSING PAID FAILED CANCELLED REFUNDED }
-enum WithdrawalStatus { PENDING APPROVED PROCESSING PAID REJECTED }
-enum TransactionType { DEPOSIT BOOKING_PAYMENT REFUND TEACHER_EARNING WITHDRAWAL WITHDRAWAL_FEE }
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  PAID
+  REJECTED
+}
+
+enum TransactionType {
+  DEPOSIT
+  BOOKING_PAYMENT
+  REFUND
+  TEACHER_EARNING
+  WITHDRAWAL
+  WITHDRAWAL_FEE
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -20,6 +60,7 @@ model User {
   firstName String
   lastName  String
   phone     String?
+  passwordHash String
   role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -27,7 +68,6 @@ model User {
   teacher   TeacherProfile?
   wallet    Wallet?
   bookingsAsStudent Booking[] @relation("studentBookings")
-  bookingsAsTeacher Booking[] @relation("teacherBookings")
   reviews   Review[]
   favorites Favorite[]
 }
@@ -60,6 +100,8 @@ model TeacherProfile {
   availabilities     Availability[]
   bookings           Booking[] @relation("teacherBookings")
   withdrawals        WithdrawalRequest[]
+  reviews            Review[]
+  favorites          Favorite[]
 }
 
 model TeacherSubject {
@@ -149,6 +191,7 @@ model Review {
   comment    String?
   createdAt  DateTime @default(now())
   student    User @relation(fields: [studentId], references: [id])
+  teacher    TeacherProfile @relation(fields: [teacherId], references: [id])
   @@index([teacherId, createdAt])
 }
 
@@ -156,5 +199,6 @@ model Favorite {
   studentId String
   teacherId String
   student   User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   @@id([studentId, teacherId])
 }
