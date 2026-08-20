@@ -30,8 +30,14 @@ export async function POST(request: Request) {
   };
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { email: parsed.data.email.toLowerCase().trim() },
+    const cleanEmail = parsed.data.email.trim();
+    const user = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: cleanEmail,
+          mode: "insensitive",
+        },
+      },
       include: {
         wallet: true,
         teacher: true,
