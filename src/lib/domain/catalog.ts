@@ -7,12 +7,12 @@ export type CatalogItem = {
 };
 
 export const educationLevels: CatalogItem[] = [
-  ...["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة"].map((year, index) => ({ slug: `primaire-${index + 1}`, name: `${year} ابتدائي`, cycle: "PRIMARY" as const })),
-  ...[7, 8, 9].map((year) => ({ slug: `base-${year}`, name: `${year}ème année de base`, cycle: "BASIC" as const })),
+  ...["1ère année", "2ème année", "3ème année", "4ème année", "5ème année", "6ème année"].map((year, index) => ({ slug: `primaire-${index + 1}`, name: `${year} primaire`, cycle: "PRIMARY" as const })),
+  ...[7, 8, 9].map((year) => ({ slug: `base-${year}`, name: `${year}ème année de base (Collège)`, cycle: "BASIC" as const })),
   ...[1, 2, 3].map((year) => ({ slug: `secondaire-${year}`, name: `${year}ème année secondaire`, cycle: "SECONDARY" as const })),
-  { slug: "universite", name: "Université", cycle: "UNIVERSITY" },
-  { slug: "formation-professionnelle", name: "Formation professionnelle", cycle: "PROFESSIONAL" },
-  { slug: "bac", name: "Bac", cycle: "SECONDARY" },
+  { slug: "bac", name: "Baccalauréat (Bac)", cycle: "SECONDARY" },
+  { slug: "universite", name: "Enseignement Supérieur (Université)", cycle: "UNIVERSITY" },
+  { slug: "formation-professionnelle", name: "Formation Professionnelle", cycle: "PROFESSIONAL" },
 ];
 
 export const academicSections = [

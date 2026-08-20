@@ -93,6 +93,7 @@ model TeacherProfile {
   id                 String @id @default(cuid())
   userId             String @unique
   slug               String @unique
+  avatarUrl          String?
   title              String?
   bio                String?
   experienceYears    Int @default(0)

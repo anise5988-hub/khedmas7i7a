@@ -1,7 +1,9 @@
 ﻿
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconCreditCard, IconShield } from "@/components/icons";
 
 
 type Wallet = {
@@ -92,15 +94,20 @@ export default function StudentWalletPage() {
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Moyens de recharge acceptés</span>
-              <p className="mt-2 font-bold text-base">D17 · Flouci · Virement · Banque Zitouna</p>
+              <p className="mt-2 font-bold text-base">D17 · Flouci · Virement Bancaire</p>
               <p className="mt-1 text-xs text-slate-500">
-                Paiement direct en Dinars Tunisiens (TND) vérifié sous quelques minutes par notre service financier.
+                Paiement direct en Dinars Tunisiens (TND) vérifié sous 15 minutes par notre service financier.
               </p>
             </div>
 
-            <div className="mt-4 border-t border-slate-100 pt-3 flex justify-between text-xs text-slate-500">
-              <span>Sécurité plateforme : 100% garanti</span>
-              <a href="/support" className="font-bold text-[#0d8d78] hover:underline">Support paiement ProfySpace</a>
+            <div className="mt-4 border-t border-slate-100 pt-3 flex flex-col sm:flex-row justify-between gap-2 text-xs text-slate-500">
+              <span className="flex items-center gap-1">
+                <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
+                Sécurité 100% garantie
+              </span>
+              <div className="text-slate-600 font-semibold">
+                Support : <a href="tel:+21658249938" className="text-[#0d8d78] hover:underline">+216 58 249 938</a>
+              </div>
             </div>
           </div>
         </div>
@@ -114,8 +121,10 @@ export default function StudentWalletPage() {
             <div className="py-12 text-center text-slate-400">Chargement...</div>
           ) : !wallet?.deposits || wallet.deposits.length === 0 ? (
             <div className="py-12 text-center">
-              <span className="text-3xl">💳</span>
-              <p className="mt-2 font-bold text-slate-600">Aucune recharge enregistrée.</p>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
+                <IconCreditCard className="h-7 w-7" />
+              </div>
+              <p className="font-bold text-slate-600">Aucune recharge enregistrée.</p>
               <p className="mt-1 text-xs text-slate-400">Alimentez votre solde pour commencer vos cours.</p>
             </div>
           ) : (

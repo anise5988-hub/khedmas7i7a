@@ -1,6 +1,7 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages */
+﻿ 
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { CopyButton } from "@/components/copy-button";
 import { IconCreditCard, IconShield, IconCheck } from "@/components/icons";
@@ -9,40 +10,32 @@ const depositMethods = [
   {
     id: "D17",
     name: "La Poste Tunisienne (D17)",
-    recipientTitle: "Numéro D17 Profy",
+    recipientTitle: "Numéro D17",
     copyValue: "21000319",
-    displayValue: "+216 21 000 319",
-    instructions: "Effectuez le transfert depuis votre application D17 vers notre numéro ci-dessus, puis saisissez le numéro de transaction SMS.",
+    displayValue: "21000319",
+    instructions: "Effectuez le transfert depuis votre application D17 vers ce numéro, puis saisissez le numéro de transaction reçu par SMS.",
   },
   {
     id: "FLOUCI",
     name: "Flouci Wallet",
-    recipientTitle: "Numéro / Compte Flouci",
+    recipientTitle: "Numéro Flouci",
     copyValue: "21000319",
-    displayValue: "21000319 (@profy_tn)",
-    instructions: "Transférez le montant vers le compte Flouci ci-dessus puis collez la référence de transfert.",
+    displayValue: "21000319",
+    instructions: "Transférez le montant vers ce numéro sur Flouci puis collez la référence de transfert.",
   },
   {
     id: "BANK_TRANSFER",
     name: "Virement Bancaire (RIB)",
-    recipientTitle: "RIB Banque de Tunisie",
-    copyValue: "08000123456789012345",
-    displayValue: "08 000 1234567890123 45",
-    instructions: "Effectuez votre virement vers ce RIB officiel et mentionnez votre Nom & Prénom en libellé.",
-  },
-  {
-    id: "ZITOUNA",
-    name: "Banque Zitouna",
-    recipientTitle: "Compte Banque Zitouna",
-    copyValue: "25000987654321012399",
-    displayValue: "25 000 9876543210123 99",
-    instructions: "Versement au guichet ou virement vers notre compte Zitouna ci-dessus.",
+    recipientTitle: "RIB Bancaire",
+    copyValue: "08001000123456789012",
+    displayValue: "08001000123456789012",
+    instructions: "Effectuez votre virement vers ce RIB et mentionnez votre Nom & Prénom en libellé.",
   },
 ] as const;
 
 export default function AddMoneyPage() {
   const [amount, setAmount] = useState(30);
-  const [method, setMethod] = useState<"D17" | "BANK_TRANSFER" | "FLOUCI" | "ZITOUNA">("D17");
+  const [method, setMethod] = useState<"D17" | "BANK_TRANSFER" | "FLOUCI">("D17");
   const [reference, setReference] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -94,9 +87,10 @@ export default function AddMoneyPage() {
             <span className="text-slate-300">/</span>
             <span className="font-bold text-sm">Recharger mon solde</span>
           </div>
-          <a href="/" className="font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-[-.06em]">
-            profy<span className="text-[#0d8d78]">.tn</span>
-          </a>
+          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight">
+            <span>ProfySpace</span>
+            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
+          </Link>
         </div>
       </header>
 

@@ -1,10 +1,9 @@
-﻿/* eslint-disable @next/next/no-location-assign-relative-destination */
+﻿/* eslint-disable @next/next/no-location-assign-relative-destination, @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
-import { calculateTeacherWithdrawal, formatTndFromMillimes } from "@/lib/finance/withdrawal";
 import { educationLevels, subjects } from "@/lib/domain/catalog";
 import {
   IconSearch,
@@ -18,6 +17,7 @@ import {
 type ApprovedTeacher = {
   id: string;
   slug: string;
+  avatarUrl?: string | null;
   initials: string;
   name: string;
   subject: string;
@@ -26,11 +26,9 @@ type ApprovedTeacher = {
   city: string;
 };
 
-const feeExample = calculateTeacherWithdrawal(250_000);
-
 export default function Home() {
   const [subject, setSubject] = useState("Mathématiques");
-  const [level, setLevel] = useState("Bac");
+  const [level, setLevel] = useState("bac");
   const [mode, setMode] = useState("ONLINE");
   const [featuredTeachers, setFeaturedTeachers] = useState<ApprovedTeacher[]>([]);
 
@@ -55,7 +53,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative bg-[#11233f] text-white">
         <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:48px_48px]" />
-
+        
         {/* Auth-Aware Navbar */}
         <SiteNavbar dark={true} />
 
@@ -114,9 +112,8 @@ export default function Home() {
                     onChange={(event) => setLevel(event.target.value)}
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
                   >
-                    <option value="Bac">Baccalauréat (Bac)</option>
                     {educationLevels.map((item) => (
-                      <option key={item.slug} value={item.name}>
+                      <option key={item.slug} value={item.slug}>
                         {item.name}
                       </option>
                     ))}
@@ -169,7 +166,7 @@ export default function Home() {
             </div>
             <div>
               <p className="text-xl font-bold text-[#11233f]">Classe HD</p>
-              <p className="text-xs text-slate-500">Audio, Vidéo & Partage WebRTC</p>
+              <p className="text-xs text-slate-500">Audio, Vidéo & Tableau interactif</p>
             </div>
           </div>
 
@@ -234,8 +231,12 @@ export default function Home() {
                 >
                   <div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#72d6bf] font-bold text-lg text-[#11233f]">
-                        {teacher.initials}
+                      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#72d6bf] font-bold text-lg text-[#11233f] overflow-hidden">
+                        {teacher.avatarUrl ? (
+                          <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <span>{teacher.initials}</span>
+                        )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-1.5">
@@ -297,30 +298,67 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Finance Transparency */}
+      {/* Why Choose ProfySpace & Dedicated Local Support */}
       <section className="border-t border-slate-200 bg-white px-6 py-16 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 lg:flex-row lg:items-center">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Transparence financière</p>
-            <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#11233f]">
-              Des retraits clairs, sans surprise pour les professeurs.
-            </h2>
-            <p className="mt-2 max-w-xl text-xs sm:text-sm leading-relaxed text-slate-500">
-              Frais fixes de 10% sur les retraits pour la gestion des serveurs WebRTC et les passerelles de paiement.
-            </p>
-          </div>
-          <div className="min-w-[280px] rounded-3xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm">
-            <div className="flex justify-between text-xs text-slate-500">
-              <span>Montant demandé :</span>
-              <span className="font-bold">{formatTndFromMillimes(feeExample.requestedAmountInMillimes)}</span>
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-8 lg:grid-cols-2 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#e5f7f2] px-3.5 py-1 text-xs font-bold text-[#0d8d78] mb-3">
+                <IconShield className="h-4 w-4" />
+                Garantie de Qualité & Sérénité
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+                Pourquoi choisir ProfySpace.tn ?
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                ProfySpace.tn met la technologie au service de la réussite scolaire tunisienne. Nous sélectionnons avec rigueur chaque enseignant pour garantir un apprentissage bienveillant et structuré.
+              </p>
+
+              <div className="mt-6 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e5f7f2] text-[#0d8d78] text-xs font-bold">✓</div>
+                  <p className="text-xs sm:text-sm text-slate-700 font-medium">Professeurs certifiés et revus minutieusement par notre administration</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e5f7f2] text-[#0d8d78] text-xs font-bold">✓</div>
+                  <p className="text-xs sm:text-sm text-slate-700 font-medium">Classe virtuelle WebRTC HD avec tableau blanc et partage de documents</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e5f7f2] text-[#0d8d78] text-xs font-bold">✓</div>
+                  <p className="text-xs sm:text-sm text-slate-700 font-medium">Recharge instantanée par D17, Flouci et virement bancaire local</p>
+                </div>
+              </div>
             </div>
-            <div className="mt-3 flex justify-between text-xs text-slate-500">
-              <span>Frais Profy (10%) :</span>
-              <span className="font-bold text-amber-700">- {formatTndFromMillimes(feeExample.feeAmountInMillimes)}</span>
-            </div>
-            <div className="mt-4 flex justify-between border-t border-slate-200 pt-3 font-bold text-sm text-[#11233f]">
-              <span>Net versé :</span>
-              <span className="text-[#0d8d78] text-base">{formatTndFromMillimes(feeExample.payoutAmountInMillimes)}</span>
+
+            {/* Support Direct Contact Card */}
+            <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-[#11233f] to-[#1a365d] p-8 text-white shadow-xl">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#72d6bf]">Assistance Continue 7j/7</p>
+              <h3 className="mt-2 text-2xl font-bold">Une équipe à votre écoute</h3>
+              <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Besoin d'aide pour choisir un professeur ou pour une question sur votre recharge ? Notre support tunisien vous répond immédiatement.
+              </p>
+
+              <div className="mt-6 space-y-3 border-t border-white/10 pt-5">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">📞</span>
+                  <div>
+                    <p className="text-xs text-slate-400">Téléphone / WhatsApp</p>
+                    <a href="tel:+21658249938" className="font-mono text-base font-bold text-[#72d6bf] hover:underline">
+                      +216 58 249 938
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">✉️</span>
+                  <div>
+                    <p className="text-xs text-slate-400">Email officiel</p>
+                    <a href="mailto:profyspace@gmail.com" className="text-sm font-bold text-white hover:underline">
+                      profyspace@gmail.com
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -330,7 +368,7 @@ export default function Home() {
       <footer className="bg-[#11233f] text-slate-400 px-6 py-10 lg:px-10 border-t border-white/10">
         <div className="mx-auto flex flex-col sm:flex-row max-w-7xl justify-between items-center gap-4 text-xs">
           <p className="font-bold text-white">
-            profy<span className="text-[#72d6bf]">.tn</span> · Marketplace Tunisienne de Cours Particuliers
+            ProfySpace<span className="text-[#72d6bf]">.tn</span> · Marketplace Tunisienne de Cours Particuliers
           </p>
           <div className="flex gap-6">
             <Link href="/teachers" className="hover:text-white transition">Professeurs</Link>

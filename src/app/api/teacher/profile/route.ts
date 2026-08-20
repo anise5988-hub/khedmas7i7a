@@ -31,6 +31,7 @@ export async function GET() {
     teacher: {
       id: teacher.id,
       slug: teacher.slug,
+      avatarUrl: teacher.avatarUrl,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
         where: { id: teacher.id },
         data: {
           title: body.title || "Professeur",
+          avatarUrl: body.avatarUrl || null,
           bio: body.bio || "",
           experienceYears: Number(body.experienceYears) || 0,
           hourlyRateMillimes,

@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-hooks/set-state-in-effect */
+﻿/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import { governorates, subjects, educationLevels } from "@/lib/domain/catalog";
 type Teacher = {
   id: string;
   slug: string;
+  avatarUrl?: string | null;
   initials: string;
   name: string;
   title: string;
@@ -228,8 +229,12 @@ export default function TeachersPage() {
                     <div>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78]">
-                            {t.initials}
+                          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78] overflow-hidden border border-[#0d8d78]/20">
+                            {t.avatarUrl ? (
+                              <img src={t.avatarUrl} alt={t.name} className="h-full w-full object-cover" />
+                            ) : (
+                              <span>{t.initials}</span>
+                            )}
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">

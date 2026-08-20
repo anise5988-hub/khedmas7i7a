@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconUser } from "@/components/icons";
 
 type StudentInfo = {
   id: string;
@@ -69,7 +70,9 @@ export default function TeacherStudentsPage() {
           <div className="py-20 text-center text-slate-400">Chargement des élèves...</div>
         ) : students.length === 0 ? (
           <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <span className="text-4xl">👨‍🎓</span>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
+              <IconUser className="h-7 w-7" />
+            </div>
             <h2 className="mt-3 text-lg font-bold">Aucun élève pour le moment.</h2>
             <p className="mt-1 text-xs text-slate-500">
               Vos futurs élèves apparaîtront ici dès leurs premières réservations.

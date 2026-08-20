@@ -2,6 +2,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  IconVideo,
+  IconBookOpen,
+  IconCreditCard,
+  IconCalendar,
+  IconShield,
+} from "@/components/icons";
 
 
 type UserProfile = {
@@ -189,21 +196,24 @@ export default function StudentDashboard() {
 
                   <a
                     href={`/classroom/${nextBooking.id}`}
-                    className="block w-full rounded-xl bg-[#0d8d78] py-3 text-center text-sm font-bold text-white transition hover:bg-[#0b7866] shadow-lg shadow-[#0d8d78]/20"
+                    className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white transition hover:bg-[#0b7866] shadow-lg shadow-[#0d8d78]/20"
                   >
-                    🚀 Rejoindre la salle WebRTC en direct →
+                    <IconVideo className="h-4 w-4" />
+                    <span>Rejoindre la salle WebRTC en direct →</span>
                   </a>
                 </div>
               ) : (
                 <div className="py-12 text-center">
-                  <span className="text-3xl">📚</span>
-                  <p className="mt-2 font-bold text-slate-700">Aucun cours prévu prochainement.</p>
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
+                    <IconBookOpen className="h-7 w-7" />
+                  </div>
+                  <p className="font-bold text-slate-700">Aucun cours prévu prochainement.</p>
                   <p className="mt-1 text-xs text-slate-400">
                     Explorez les professeurs vérifiés et réservez votre première séance !
                   </p>
                   <a
                     href="/teachers"
-                    className="mt-4 inline-block rounded-xl bg-[#11233f] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-slate-800"
+                    className="mt-4 inline-block rounded-2xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm"
                   >
                     Trouver un professeur →
                   </a>
@@ -213,29 +223,34 @@ export default function StudentDashboard() {
 
             {/* Quick Actions Side Card */}
             <div className="space-y-4">
-              <div className="rounded-2xl border border-slate-200 bg-[#e7f5f1] p-6">
-                <span className="text-2xl">💳</span>
+              <div className="rounded-3xl border border-slate-200 bg-[#e7f5f1] p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78]">
+                  <IconCreditCard className="h-5 w-5" />
+                </div>
                 <h3 className="mt-3 font-bold text-base text-[#11233f]">Recharge Wallet Rapide</h3>
                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">
-                  Alimentez votre solde via D17, Flouci, virement ou Banque Zitouna pour réserver instantanément.
+                  Alimentez votre solde via D17, Flouci ou virement pour réserver instantanément.
                 </p>
                 <a
                   href="/dashboard/wallet/add-money"
-                  className="mt-4 inline-block rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                  className="mt-4 inline-block rounded-2xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm"
                 >
                   Effectuer un dépôt →
                 </a>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <span className="text-2xl">💡</span>
-                <h3 className="mt-2 font-bold text-base">Besoin d'aide ?</h3>
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#11233f]/10 text-[#11233f]">
+                  <IconShield className="h-5 w-5" />
+                </div>
+                <h3 className="mt-3 font-bold text-base">Besoin d&apos;aide ?</h3>
                 <p className="mt-1 text-xs text-slate-500">
                   Une question sur vos cours ou un paiement ? L'équipe support ProfySpace.tn est disponible.
                 </p>
-                <a href="/support" className="mt-3 inline-block text-xs font-bold text-[#0d8d78] hover:underline">
-                  Contacter le support →
-                </a>
+                <div className="mt-3 space-y-1 text-xs">
+                  <p className="font-semibold text-slate-700">📞 +216 58 249 938</p>
+                  <p className="text-slate-500">✉️ profyspace@gmail.com</p>
+                </div>
               </div>
             </div>
           </div>

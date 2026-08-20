@@ -25,6 +25,7 @@ export async function GET() {
       return {
         id: profile.id,
         slug: profile.slug,
+        avatarUrl: profile.avatarUrl,
         initials,
         name,
         title: profile.title ?? "Professeur particulier",

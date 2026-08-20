@@ -34,6 +34,7 @@ export async function GET(
     return NextResponse.json({
       id: profile.id,
       slug: profile.slug,
+      avatarUrl: profile.avatarUrl,
       name: `${profile.user.firstName} ${profile.user.lastName}`.trim(),
       initials: `${profile.user.firstName?.[0] ?? ""}${profile.user.lastName?.[0] ?? ""}`.toUpperCase(),
       title: profile.title ?? "Professeur particulier",

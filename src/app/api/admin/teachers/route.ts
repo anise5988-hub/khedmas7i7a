@@ -24,6 +24,7 @@ export async function GET() {
         id: t.id,
         userId: t.userId,
         slug: t.slug,
+        avatarUrl: t.avatarUrl,
         name: `${t.user.firstName} ${t.user.lastName}`.trim(),
         email: t.user.email,
         phone: t.user.phone ?? "Non renseigné",

@@ -1,8 +1,10 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars */
+﻿/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState, useRef } from "react";
 import { subjects, governorates } from "@/lib/domain/catalog";
+import { IconCamera, IconCheck, IconShield, IconUser } from "@/components/icons";
 
 const days = [
   { index: 0, label: "Lundi" },
@@ -20,6 +22,7 @@ export default function TeacherOnboardingPage() {
   const [message, setMessage] = useState({ type: "", text: "" });
 
   const [title, setTitle] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [bio, setBio] = useState("");
   const [experienceYears, setExperienceYears] = useState(2);
   const [hourlyRate, setHourlyRate] = useState(25);
@@ -39,6 +42,8 @@ export default function TeacherOnboardingPage() {
   });
   const [currentStatus, setCurrentStatus] = useState<string | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetch("/api/teacher/profile")
       .then((res) => (res.ok ? res.json() : null))
@@ -46,6 +51,7 @@ export default function TeacherOnboardingPage() {
         if (data?.teacher) {
           const t = data.teacher;
           if (t.title) setTitle(t.title);
+          if (t.avatarUrl) setAvatarUrl(t.avatarUrl);
           if (t.bio) setBio(t.bio);
           if (t.experienceYears !== undefined) setExperienceYears(t.experienceYears);
           if (t.hourlyRateTnd) setHourlyRate(t.hourlyRateTnd);
@@ -60,6 +66,18 @@ export default function TeacherOnboardingPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setAvatarUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
 
   function toggleSubject(subj: string) {
     if (selectedSubjects.includes(subj)) {
@@ -76,7 +94,7 @@ export default function TeacherOnboardingPage() {
     setMessage({ type: "", text: "" });
 
     const activeAvailabilities = Object.entries(availabilities)
-      .filter(([_, val]) => val.enabled && val.start && val.end)
+      .filter(([, val]) => val.enabled && val.start && val.end)
       .map(([dayIndex, val]) => ({
         dayOfWeek: Number(dayIndex),
         startTime: val.start,
@@ -89,6 +107,7 @@ export default function TeacherOnboardingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
+          avatarUrl,
           bio,
           experienceYears: Number(experienceYears),
           hourlyRateMillimes: Math.round(Number(hourlyRate) * 1000),
@@ -106,7 +125,7 @@ export default function TeacherOnboardingPage() {
         setCurrentStatus("PENDING");
         setMessage({
           type: "success",
-          text: "Candidature envoyée avec succès ! Votre dossier est maintenant en attente de vérification par l'équipe d'administration.",
+          text: "Candidature enregistrée avec succès ! Votre dossier est en attente de vérification par l'équipe administrative.",
         });
       } else {
         setMessage({ type: "error", text: data.error || "Une erreur est survenue." });
@@ -133,25 +152,28 @@ export default function TeacherOnboardingPage() {
     <main className="min-h-screen bg-[#f8fafc] px-4 py-8 sm:px-6 sm:py-12 text-[#11233f]">
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
-          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
             <span>ProfySpace</span>
             <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/teacher/dashboard"
             className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
           >
             Accéder à mon espace →
-          </a>
+          </Link>
         </div>
 
+        {/* Status Alert Banner */}
         {currentStatus === "PENDING" && (
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 shadow-sm">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⏳</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-200 text-amber-900 font-bold">
+                ⏳
+              </div>
               <div>
                 <h3 className="font-bold text-base">Candidature en cours de traitement</h3>
-                <p className="mt-1 text-sm text-amber-800">
+                <p className="mt-1 text-xs sm:text-sm text-amber-800 leading-relaxed">
                   Votre dossier a été soumis et est actuellement analysé par un administrateur. Vous recevrez une
                   confirmation dès validation. Vous pouvez mettre à jour vos informations ci-dessous à tout moment.
                 </p>
@@ -163,10 +185,12 @@ export default function TeacherOnboardingPage() {
         {currentStatus === "APPROVED" && (
           <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 shadow-sm">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">✅</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-200 text-emerald-900 font-bold">
+                <IconCheck className="h-5 w-5 text-emerald-700" />
+              </div>
               <div>
                 <h3 className="font-bold text-base">Profil approuvé et actif</h3>
-                <p className="mt-1 text-sm text-emerald-800">
+                <p className="mt-1 text-xs sm:text-sm text-emerald-800">
                   Félicitations ! Votre profil professeur est validé et visible par les élèves sur la marketplace.
                 </p>
               </div>
@@ -177,10 +201,12 @@ export default function TeacherOnboardingPage() {
         {currentStatus === "REJECTED" && (
           <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-200 text-rose-900 font-bold">
+                ✕
+              </div>
               <div>
                 <h3 className="font-bold text-base">Dossier incomplet ou non retenu</h3>
-                <p className="mt-1 text-sm text-rose-800">
+                <p className="mt-1 text-xs sm:text-sm text-rose-800">
                   Votre candidature nécessite des modifications. Veuillez compléter votre biographie, préciser vos
                   matières et ré-enregistrer votre dossier.
                 </p>
@@ -203,16 +229,48 @@ export default function TeacherOnboardingPage() {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Dossier de candidature</p>
+            <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Dossier Professionnel</p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight">Formulaire de professeur</h1>
             <p className="mt-2 text-sm text-slate-500">
-              Remplissez les informations de votre profil. Elles seront examinées par l'équipe ProfySpace.tn avant
-              publication.
+              Renseignez vos informations professionnelles et ajoutez votre photo de profil.
             </p>
           </div>
 
-          <section className="space-y-4">
-            <h2 className="text-lg font-bold border-b border-slate-100 pb-2">1. Informations Générales</h2>
+          {/* Section 1: Photo & Informations Générales */}
+          <section className="space-y-5">
+            <h2 className="text-lg font-bold border-b border-slate-100 pb-2">1. Photo & Informations Générales</h2>
+
+            {/* Avatar Upload */}
+            <div className="flex flex-col sm:flex-row items-center gap-5 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+              <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-slate-200 overflow-hidden shadow-sm">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Aperçu" className="h-full w-full object-cover" />
+                ) : (
+                  <IconUser className="h-10 w-10 text-slate-400" />
+                )}
+              </div>
+
+              <div className="flex-1 text-center sm:text-left space-y-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handlePhotoUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50"
+                >
+                  <IconCamera className="h-4 w-4 text-[#0d8d78]" />
+                  <span>{avatarUrl ? "Modifier ma photo" : "Ajouter une photo de profil"}</span>
+                </button>
+                <p className="text-xs text-slate-400">
+                  Format JPG, PNG ou WebP. Une photo professionnelle augmente le taux de réservation.
+                </p>
+              </div>
+            </div>
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
@@ -308,6 +366,7 @@ export default function TeacherOnboardingPage() {
             </div>
           </section>
 
+          {/* Section 2: Matières enseignées */}
           <section className="space-y-4">
             <h2 className="text-lg font-bold border-b border-slate-100 pb-2">2. Matières enseignées *</h2>
             <p className="text-xs text-slate-500">Sélectionnez les matières que vous maîtrisez :</p>
@@ -322,7 +381,7 @@ export default function TeacherOnboardingPage() {
                     onClick={() => toggleSubject(subj)}
                     className={`flex items-center justify-between rounded-xl border p-3 text-left text-xs font-semibold transition ${
                       isSelected
-                        ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
+                        ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78] ring-1 ring-[#0d8d78]"
                         : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                     }`}
                   >
@@ -334,12 +393,13 @@ export default function TeacherOnboardingPage() {
             </div>
           </section>
 
+          {/* Section 3: Modes d'enseignement */}
           <section className="space-y-4">
             <h2 className="text-lg font-bold border-b border-slate-100 pb-2">3. Modes d'enseignement</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <label
                 className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition ${
-                  online ? "border-[#0d8d78] bg-[#e5f7f2]" : "border-slate-200 bg-white"
+                  online ? "border-[#0d8d78] bg-[#e5f7f2] ring-1 ring-[#0d8d78]" : "border-slate-200 bg-white"
                 }`}
               >
                 <input
@@ -350,13 +410,13 @@ export default function TeacherOnboardingPage() {
                 />
                 <div>
                   <p className="font-bold text-sm">Cours en ligne (WebRTC)</p>
-                  <p className="text-xs text-slate-500">Depuis la classe virtuelle interactive Profy</p>
+                  <p className="text-xs text-slate-500">Depuis la classe virtuelle interactive ProfySpace</p>
                 </div>
               </label>
 
               <label
                 className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition ${
-                  inPerson ? "border-[#0d8d78] bg-[#e5f7f2]" : "border-slate-200 bg-white"
+                  inPerson ? "border-[#0d8d78] bg-[#e5f7f2] ring-1 ring-[#0d8d78]" : "border-slate-200 bg-white"
                 }`}
               >
                 <input
@@ -373,6 +433,7 @@ export default function TeacherOnboardingPage() {
             </div>
           </section>
 
+          {/* Section 4: Créneaux de disponibilité */}
           <section className="space-y-4">
             <h2 className="text-lg font-bold border-b border-slate-100 pb-2">4. Créneaux de disponibilité</h2>
             <div className="space-y-2.5">
@@ -412,7 +473,7 @@ export default function TeacherOnboardingPage() {
                               [index]: { ...current, start: e.target.value },
                             })
                           }
-                          className="rounded-lg border border-slate-200 p-2 outline-none"
+                          className="rounded-lg border border-slate-200 p-2 outline-none font-semibold"
                         />
                         <span>à</span>
                         <input
@@ -424,7 +485,7 @@ export default function TeacherOnboardingPage() {
                               [index]: { ...current, end: e.target.value },
                             })
                           }
-                          className="rounded-lg border border-slate-200 p-2 outline-none"
+                          className="rounded-lg border border-slate-200 p-2 outline-none font-semibold"
                         />
                       </div>
                     ) : (
@@ -444,10 +505,10 @@ export default function TeacherOnboardingPage() {
             >
               {submitting ? "Enregistrement en cours..." : "Soumettre ma candidature pour validation →"}
             </button>
-            <p className="mt-3 text-center text-xs text-slate-400">
-              En soumettant ce formulaire, votre profil passera au statut <strong>PENDING</strong> en attente de
-              validation.
-            </p>
+            <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+              <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
+              <span>Dossier examiné sous 24h par l'administration ProfySpace.tn</span>
+            </div>
           </div>
         </form>
       </div>

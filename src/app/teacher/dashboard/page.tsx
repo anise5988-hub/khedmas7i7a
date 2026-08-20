@@ -3,6 +3,11 @@
 
 import { useEffect, useState } from "react";
 import { formatTndFromMillimes } from "@/lib/finance/withdrawal";
+import {
+  IconCalendar,
+  IconClock,
+  IconCreditCard,
+} from "@/components/icons";
 
 
 type TeacherData = {
@@ -229,9 +234,14 @@ export default function TeacherDashboardPage() {
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Statut profil</span>
-            <p className="mt-2 text-xl font-bold text-[#11233f]">
-              {isApproved ? "🟢 Validé" : isPending ? "🟡 En attente" : "🔴 Refusé"}
-            </p>
+            <div className="mt-2 flex items-center gap-1.5 font-bold text-lg text-[#11233f]">
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${
+                  isApproved ? "bg-emerald-500" : isPending ? "bg-amber-500" : "bg-rose-500"
+                }`}
+              />
+              <span>{isApproved ? "Validé & Visible" : isPending ? "En cours d'examen" : "Non validé"}</span>
+            </div>
             <p className="mt-1 text-xs text-slate-400">Visibilité marketplace</p>
           </div>
         </div>
@@ -240,28 +250,34 @@ export default function TeacherDashboardPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           <a
             href="/teacher/dashboard/bookings"
-            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
+            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
           >
-            <span className="text-2xl">📅</span>
-            <h3 className="mt-3 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Mes séances & cours</h3>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78] group-hover:bg-[#0d8d78] group-hover:text-white transition duration-200">
+              <IconCalendar className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Mes séances & cours</h3>
             <p className="mt-1 text-xs text-slate-500">Consultez votre planning et rejoignez la classe WebRTC en direct.</p>
           </a>
 
           <a
             href="/teacher/dashboard/availability"
-            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
+            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
           >
-            <span className="text-2xl">⏰</span>
-            <h3 className="mt-3 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Gérer mes disponibilités</h3>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78] group-hover:bg-[#0d8d78] group-hover:text-white transition duration-200">
+              <IconClock className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Gérer mes disponibilités</h3>
             <p className="mt-1 text-xs text-slate-500">Configurez vos créneaux horaires ouverts aux réservations des élèves.</p>
           </a>
 
           <a
             href="/teacher/dashboard/withdrawals"
-            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
+            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
           >
-            <span className="text-2xl">💳</span>
-            <h3 className="mt-3 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Retraits & Virement</h3>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78] group-hover:bg-[#0d8d78] group-hover:text-white transition duration-200">
+              <IconCreditCard className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Retraits & Virement</h3>
             <p className="mt-1 text-xs text-slate-500">Demandez le versement de vos gains via D17, Flouci ou virement bancaire.</p>
           </a>
         </div>
@@ -280,8 +296,10 @@ export default function TeacherDashboardPage() {
 
           {upcomingBookings.length === 0 ? (
             <div className="py-12 text-center">
-              <span className="text-3xl">☕</span>
-              <p className="mt-2 font-bold text-slate-700">Aucune séance à venir pour le moment.</p>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
+                <IconCalendar className="h-7 w-7" />
+              </div>
+              <p className="font-bold text-slate-700">Aucune séance à venir pour le moment.</p>
               <p className="mt-1 text-xs text-slate-400">
                 {isPending
                   ? "Vos créneaux seront réservables une fois votre candidature approuvée par l'admin."

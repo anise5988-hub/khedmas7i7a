@@ -19,6 +19,7 @@ export async function GET() {
         ? {
             id: user.teacher.id,
             slug: user.teacher.slug,
+            avatarUrl: user.teacher.avatarUrl,
             title: user.teacher.title,
             bio: user.teacher.bio,
             experienceYears: user.teacher.experienceYears,

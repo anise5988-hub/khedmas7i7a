@@ -1,14 +1,17 @@
 ﻿/* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { WebRTCRoom } from "./webrtc-room";
+import { InteractiveWhiteboard } from "./interactive-whiteboard";
 import {
   IconPaperclip,
   IconSend,
   IconFileText,
   IconImage,
   IconDownload,
+  IconVideo,
 } from "@/components/icons";
 
 type Attachment = {
@@ -27,11 +30,12 @@ type Message = {
 };
 
 export function ClassroomClient({ id }: { id: string }) {
+  const [activeTab, setActiveTab] = useState<"video" | "whiteboard">("video");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       sender: "Système",
-      text: "Bienvenue dans la classe virtuelle ProfySpace.tn. Vous pouvez échanger des messages, envoyer des exercices, des documents PDF et des photos en direct.",
+      text: "Bienvenue dans la classe virtuelle ProfySpace.tn. Vous pouvez suivre la vidéo en direct, utiliser le tableau blanc interactif et échanger des documents en temps réel.",
       time: "Direct",
     },
   ]);
@@ -39,6 +43,9 @@ export function ClassroomClient({ id }: { id: string }) {
   const [userName, setUserName] = useState("Vous");
   const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Session elapsed timer
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +58,22 @@ export function ClassroomClient({ id }: { id: string }) {
         }
       })
       .catch(() => {});
+
+    // Timer interval
+    const timer = setInterval(() => {
+      setSecondsElapsed((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
+
+  const formatTimer = (totalSecs: number) => {
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    const hours = Math.floor(mins / 60);
+    const displayMins = mins % 60;
+    return `${hours > 0 ? String(hours).padStart(2, "0") + ":" : ""}${String(displayMins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -91,42 +113,76 @@ export function ClassroomClient({ id }: { id: string }) {
   return (
     <main className="min-h-screen bg-[#101b2d] text-white flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6 bg-[#0c1626]">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6 bg-[#0c1626]">
         <div className="flex items-center gap-4">
-          <a
+          <Link
             href="/dashboard"
             className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
           >
             ← Quitter
-          </a>
-          <div>
-            <h1 className="font-bold text-sm sm:text-base">Classe Virtuelle Profy</h1>
-            <p className="text-[11px] text-slate-400">Session #{id.slice(-6).toUpperCase()}</p>
+          </Link>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sm sm:text-base">Classe Virtuelle ProfySpace</span>
+            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-[11px] font-extrabold text-white">.tn</span>
+            <span className="text-[11px] text-slate-400 hidden sm:inline">#{id.slice(-6).toUpperCase()}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            En direct
-          </span>
+        {/* View switcher & Session Timer */}
+        <div className="flex items-center gap-3">
+          {/* Timer */}
+          <div className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1 text-xs font-mono font-bold text-slate-200">
+            <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
+            <span>{formatTimer(secondsElapsed)}</span>
+          </div>
+
+          {/* Mode Switcher */}
+          <div className="flex rounded-xl bg-black/40 p-1 border border-white/10 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => setActiveTab("video")}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 transition ${
+                activeTab === "video" ? "bg-[#0d8d78] text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <IconVideo className="h-3.5 w-3.5" />
+              <span>Vidéo</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("whiteboard")}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 transition ${
+                activeTab === "whiteboard" ? "bg-[#0d8d78] text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <span>🎨</span>
+              <span>Tableau</span>
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Main Classroom Workspace */}
       <div className="flex-1 mx-auto w-full max-w-7xl grid gap-4 p-4 sm:p-6 lg:grid-cols-[1fr_360px]">
-        {/* WebRTC Video Stream Area */}
-        <section className="flex flex-col justify-between rounded-3xl border border-white/10 bg-white/[.03] p-4 sm:p-6 shadow-2xl">
-          <WebRTCRoom roomId={id} />
+        {/* Main Stage (Video or Whiteboard) */}
+        <section className="flex flex-col justify-between rounded-3xl border border-white/10 bg-white/[.03] p-4 sm:p-5 shadow-2xl overflow-hidden">
+          {activeTab === "video" ? (
+            <WebRTCRoom roomId={id} />
+          ) : (
+            <InteractiveWhiteboard />
+          )}
 
-          <div className="mt-4 border-t border-white/10 pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
-            <span>Classe sécurisée de bout en bout (P2P WebRTC HD)</span>
-            <a
+          <div className="mt-4 border-t border-white/10 pt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+            <span className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+              <span>Connexion P2P Sécurisée · ProfySpace WebRTC</span>
+            </span>
+            <Link
               href="/dashboard"
-              className="rounded-xl bg-rose-500/20 border border-rose-500/40 px-4 py-2 font-bold text-rose-300 transition hover:bg-rose-500/30"
+              className="rounded-xl bg-rose-500/20 border border-rose-500/40 px-4 py-1.5 font-bold text-rose-300 transition hover:bg-rose-500/30"
             >
               Terminer la séance
-            </a>
+            </Link>
           </div>
         </section>
 
@@ -134,7 +190,7 @@ export function ClassroomClient({ id }: { id: string }) {
         <aside className="flex flex-col rounded-3xl border border-white/10 bg-white/[.04] p-4 sm:p-5 shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 className="font-bold text-sm">Chat & Fichiers du cours</h2>
-            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-slate-300">Direct</span>
+            <span className="rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 text-[10px] font-bold">En direct</span>
           </div>
 
           {/* Messages Scroll Area */}

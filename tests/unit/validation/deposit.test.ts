@@ -4,7 +4,7 @@ import { depositSchema } from "@/lib/validation/deposit";
 describe("depositSchema", () => {
   describe("Positive Cases", () => {
     it("should accept valid deposit requests for each supported method", () => {
-      const validMethods = ["D17", "BANK_TRANSFER", "FLOUCI", "ZITOUNA"] as const;
+      const validMethods = ["D17", "BANK_TRANSFER", "FLOUCI"] as const;
 
       validMethods.forEach((method) => {
         const input = {

@@ -1,4 +1,5 @@
- 
+
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
@@ -12,6 +13,7 @@ import {
 type TeacherData = {
   id: string;
   slug: string;
+  avatarUrl?: string | null;
   name: string;
   initials: string;
   title: string;
@@ -166,8 +168,12 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
           <div className="space-y-6">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-[#d9f1e9] text-2xl font-bold text-[#0d8d78]">
-                  {teacher.initials}
+                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-[#d9f1e9] text-2xl font-bold text-[#0d8d78] overflow-hidden border-2 border-[#0d8d78]/20 shadow-sm">
+                  {teacher.avatarUrl ? (
+                    <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{teacher.initials}</span>
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2">
