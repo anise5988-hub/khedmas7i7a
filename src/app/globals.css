@@ -37,6 +37,8 @@ body {
 .profy-reveal-delay-1 { animation-delay: 100ms; }
 .profy-reveal-delay-2 { animation-delay: 200ms; }
 
+nav a[href="/login"] { display: inline-flex; align-items: center; }
+
 @media (prefers-reduced-motion: reduce) {
   .profy-reveal { animation: none; }
 }

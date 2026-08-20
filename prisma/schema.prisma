@@ -54,6 +54,13 @@ enum TransactionType {
   WITHDRAWAL_FEE
 }
 
+enum DepositMethod {
+  D17
+  BANK_TRANSFER
+  FLOUCI
+  ZITOUNA
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -155,6 +162,22 @@ model Wallet {
   pendingMillimes   Int @default(0)
   user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions      WalletTransaction[]
+  deposits          WalletDeposit[]
+}
+
+model WalletDeposit {
+  id             String @id @default(cuid())
+  walletId       String
+  method         DepositMethod
+  amountMillimes Int
+  reference      String
+  proofUrl       String?
+  status         PaymentStatus @default(PENDING)
+  wallet         Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@unique([method, reference])
+  @@index([walletId, status, createdAt])
 }
 
 model WalletTransaction {
