@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/client/supabase";
@@ -168,15 +168,44 @@ export function WebRTCRoom({ roomId }: { roomId: string }) {
         localStream.current = cameraStream;
         localVideo.current.srcObject = cameraStream;
         setIsScreenSharing(false);
+
+        if (peer.current) {
+          const videoSender = peer.current.getSenders().find((s) => s.track?.kind === "video");
+          const newTrack = cameraStream.getVideoTracks()[0];
+          if (videoSender && newTrack) {
+            videoSender.replaceTrack(newTrack);
+          }
+        }
       }
     } else {
       try {
         const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         if (screenStream && localVideo.current) {
+          localStream.current = screenStream;
           localVideo.current.srcObject = screenStream;
           setIsScreenSharing(true);
-          screenStream.getVideoTracks()[0].onended = () => {
+
+          const screenTrack = screenStream.getVideoTracks()[0];
+          if (peer.current) {
+            const videoSender = peer.current.getSenders().find((s) => s.track?.kind === "video");
+            if (videoSender && screenTrack) {
+              videoSender.replaceTrack(screenTrack);
+            }
+          }
+
+          screenTrack.onended = async () => {
             setIsScreenSharing(false);
+            const cam = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }).catch(() => null);
+            if (cam && localVideo.current) {
+              localStream.current = cam;
+              localVideo.current.srcObject = cam;
+              if (peer.current) {
+                const sender = peer.current.getSenders().find((s) => s.track?.kind === "video");
+                if (sender && cam.getVideoTracks()[0]) {
+                  sender.replaceTrack(cam.getVideoTracks()[0]);
+                }
+              }
+            }
           };
         }
       } catch {
