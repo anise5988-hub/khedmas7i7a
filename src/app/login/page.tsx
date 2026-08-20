@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { IconCheck, IconShield } from "@/components/icons";
-import { GoogleAuthModal } from "@/components/google-auth-modal";
+import { signInWithGoogle } from "@/lib/client/supabase";
 
 export function GoogleIcon() {
   return (
@@ -36,7 +36,7 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     return params.get("registered") === "1" || params.get("registered") === "true";
   });
-  const [googleModalOpen, setGoogleModalOpen] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
 
   async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,9 +80,18 @@ export default function LoginPage() {
     }
   }
 
-  function handleGoogleSuccess(user: { role?: string } | null) {
-    setGoogleModalOpen(false);
-    window.location.href = user?.role === "TEACHER" ? "/teacher/dashboard" : "/dashboard";
+  async function handleGoogleLogin() {
+    setGooglePending(true);
+    try {
+      const { error } = await signInWithGoogle("STUDENT");
+      if (error) {
+        setError(error.message);
+        setGooglePending(false);
+      }
+    } catch {
+      setError("Erreur de connexion Google.");
+      setGooglePending(false);
+    }
   }
 
   return (
@@ -168,11 +177,12 @@ export default function LoginPage() {
         {/* Google OAuth Button - At Bottom */}
         <button
           type="button"
-          onClick={() => setGoogleModalOpen(true)}
-          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
+          disabled={googlePending}
+          onClick={handleGoogleLogin}
+          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300 disabled:opacity-60"
         >
           <GoogleIcon />
-          <span>Continuer avec Google</span>
+          <span>{googlePending ? "Redirection vers Google..." : "Continuer avec Google"}</span>
         </button>
 
         <p className="mt-8 text-center text-xs text-slate-500">
@@ -186,15 +196,7 @@ export default function LoginPage() {
           <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
           <span>Gestionnaire de mots de passe Google & Chrome compatible</span>
         </div>
-      </div>
-
-      {/* Google Sign-in Modal */}
-      <GoogleAuthModal
-        isOpen={googleModalOpen}
-        onClose={() => setGoogleModalOpen(false)}
-        onSuccess={handleGoogleSuccess}
-        role="STUDENT"
-      />
-    </main>
-  );
-}
+            </div>
+          </main>
+        );
+      }

@@ -1,17 +1,17 @@
-﻿
+
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { IconUser, IconTeacher } from "@/components/icons";
 import { GoogleIcon } from "@/app/login/page";
-import { GoogleAuthModal } from "@/components/google-auth-modal";
+import { signInWithGoogle } from "@/lib/client/supabase";
 
 export default function RegisterPage() {
   const [role, setRole] = useState<"STUDENT" | "TEACHER">("STUDENT");
   const [status, setStatus] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [pending, setPending] = useState(false);
-  const [googleModalOpen, setGoogleModalOpen] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
 
   async function register(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,9 +70,18 @@ export default function RegisterPage() {
     }
   }
 
-  function handleGoogleSuccess() {
-    setGoogleModalOpen(false);
-    window.location.replace(role === "TEACHER" ? "/teacher/dashboard" : "/dashboard");
+  async function handleGoogleRegister() {
+    setGooglePending(true);
+    try {
+      const { error } = await signInWithGoogle(role);
+      if (error) {
+        setStatus({ type: "error", message: error.message });
+        setGooglePending(false);
+      }
+    } catch {
+      setStatus({ type: "error", message: "Erreur de connexion Google." });
+      setGooglePending(false);
+    }
   }
 
   return (
@@ -221,11 +230,12 @@ export default function RegisterPage() {
           {/* Google Sign-in Alternative - At Bottom */}
           <button
             type="button"
-            onClick={() => setGoogleModalOpen(true)}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300"
+            disabled={googlePending}
+            onClick={handleGoogleRegister}
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 py-3.5 text-xs sm:text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100 hover:border-slate-300 disabled:opacity-60"
           >
             <GoogleIcon />
-            <span>S’inscrire rapidement avec Google</span>
+            <span>{googlePending ? "Redirection vers Google..." : "S’inscrire rapidement avec Google"}</span>
           </button>
 
           <p className="mt-8 text-center text-xs text-slate-500">
@@ -234,16 +244,8 @@ export default function RegisterPage() {
               Se connecter
             </Link>
           </p>
-        </div>
-      </div>
-
-      {/* Google Sign-in Modal */}
-      <GoogleAuthModal
-        isOpen={googleModalOpen}
-        onClose={() => setGoogleModalOpen(false)}
-        onSuccess={handleGoogleSuccess}
-        role={role}
-      />
-    </main>
-  );
-}
+                </div>
+              </div>
+            </main>
+          );
+        }
