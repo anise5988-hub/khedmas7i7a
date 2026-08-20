@@ -61,10 +61,10 @@ export async function GET(request: Request) {
       teacherSlug,
     });
 
-    const allList = chatStore.getUserConversations(user.id);
+    const allList = chatStore.getUserConversations(user.id, user.email);
     return NextResponse.json({ conversations: allList, activeConversation: conv });
   }
 
-  const list = chatStore.getUserConversations(user.id);
+  const list = chatStore.getUserConversations(user.id, user.email);
   return NextResponse.json({ conversations: list });
 }

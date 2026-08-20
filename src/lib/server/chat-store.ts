@@ -110,10 +110,19 @@ export const chatStore = {
     return conv;
   },
 
-  getUserConversations(userId: string): Conversation[] {
+  getUserConversations(userId: string, userEmail?: string): Conversation[] {
     const list: Conversation[] = [];
+    const normalizedEmailPrefix = (userEmail || "").toLowerCase().trim().split("@")[0];
+
     globalStore.__profyspace_conversations!.forEach((conv) => {
-      if (conv.studentId === userId || conv.teacherId === userId) {
+      const isStudent = conv.studentId === userId;
+      const isTeacher =
+        conv.teacherId === userId ||
+        (normalizedEmailPrefix && conv.teacherId.toLowerCase().includes(normalizedEmailPrefix)) ||
+        (normalizedEmailPrefix && conv.teacherSlug?.toLowerCase().includes(normalizedEmailPrefix)) ||
+        (userId && conv.teacherId.includes(userId));
+
+      if (isStudent || isTeacher) {
         list.push(conv);
       }
     });

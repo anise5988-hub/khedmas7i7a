@@ -215,14 +215,25 @@ export default function MessagesPage() {
           ) : conversations.length === 0 ? (
             <div className="p-4 text-center space-y-3">
               <p className="text-xs text-slate-500">
-                Aucune conversation pour le moment.
+                {userRole === "TEACHER"
+                  ? "Aucun message reçu pour le moment. Vos élèves pourront vous contacter directement ici."
+                  : "Aucune conversation pour le moment."}
               </p>
-              <a
-                href="/teachers"
-                className="inline-block rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
-              >
-                Trouver un professeur →
-              </a>
+              {userRole === "STUDENT" ? (
+                <a
+                  href="/teachers"
+                  className="inline-block rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                >
+                  Trouver un professeur →
+                </a>
+              ) : (
+                <a
+                  href="/teachers"
+                  className="inline-block rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                >
+                  Voir ma fiche publique ↗
+                </a>
+              )}
             </div>
           ) : (
             conversations.map((c) => {
