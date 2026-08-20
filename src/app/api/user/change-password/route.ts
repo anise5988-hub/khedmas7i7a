@@ -10,7 +10,7 @@ const changePasswordSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
 
   const body = await request.json().catch(() => null);

@@ -3,8 +3,8 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { bookingRequestSchema } from "@/lib/validation/booking";
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(request: Request) {
+  const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
 
   try {
@@ -77,7 +77,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: "Connexion requise pour réserver." }, { status: 401 });
 
   const body = await request.json().catch(() => null);

@@ -4,8 +4,8 @@ import { prisma } from "@/lib/server/prisma";
 import { calculateTeacherWithdrawal } from "@/lib/finance/withdrawal";
 import { withdrawalRequestSchema } from "@/lib/validation/withdrawal";
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(request: Request) {
+  const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
 
   try {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const user = await getCurrentUser();
+  const user = await getCurrentUser(request);
   const breakdown = calculateTeacherWithdrawal(parsed.data.amountInMillimes);
 
   if (user && user.teacher) {

@@ -8,7 +8,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser(request);
   if (!user || user.role !== "ADMIN") {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }

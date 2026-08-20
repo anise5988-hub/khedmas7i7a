@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(request: Request) {
+  const user = await getCurrentUser(request);
   if (!user || user.role !== "ADMIN") {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }

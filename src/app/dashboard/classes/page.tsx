@@ -105,6 +105,35 @@ export default function StudentClassesPage() {
           </div>
         </div>
 
+        {activeTab === "BOOKINGS" && (
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => setBookingFilter("ALL")}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                bookingFilter === "ALL" ? "bg-slate-800 text-white" : "bg-white border border-slate-200 text-slate-600"
+              }`}
+            >
+              Toutes ({bookings.length})
+            </button>
+            <button
+              onClick={() => setBookingFilter("UPCOMING")}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                bookingFilter === "UPCOMING" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-600"
+              }`}
+            >
+              À venir
+            </button>
+            <button
+              onClick={() => setBookingFilter("PAST")}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                bookingFilter === "PAST" ? "bg-slate-600 text-white" : "bg-white border border-slate-200 text-slate-600"
+              }`}
+            >
+              Passées
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="py-20 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>

@@ -1,13 +1,14 @@
-/* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { formatTndFromMillimes } from "@/lib/finance/withdrawal";
 import {
   IconCalendar,
   IconClock,
   IconCreditCard,
 } from "@/components/icons";
+import { Course } from "@/lib/server/courses-store";
 
 
 type TeacherData = {
@@ -46,13 +47,25 @@ type TeacherData = {
 
 export default function TeacherDashboardPage() {
   const [data, setData] = useState<TeacherData | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
+  function getAuthHeaders(): Record<string, string> {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
+
   useEffect(() => {
-    fetch("/api/teacher/profile")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        if (json?.teacher) setData(json.teacher);
+    const headers = getAuthHeaders();
+    Promise.all([
+      fetch("/api/teacher/profile", { headers }).then((res) => (res.ok ? res.json() : null)),
+      fetch("/api/courses", { headers }).then((res) => (res.ok ? res.json() : { courses: [] })),
+    ])
+      .then(([teacherJson, coursesJson]) => {
+        if (teacherJson?.teacher) setData(teacherJson.teacher);
+        if (coursesJson?.courses) setCourses(coursesJson.courses);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -88,40 +101,43 @@ export default function TeacherDashboardPage() {
   const availableBalanceMillimes = Math.max(0, totalEarningsMillimes - totalPaidWithdrawals);
   const upcomingBookings = teacher?.bookings.filter((b) => new Date(b.startsAt) >= new Date()) ?? [];
 
+  const totalCourseStudents = courses.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+  const totalStudents = (teacher?.bookings.length ?? 0) + totalCourseStudents;
+
   return (
     <main className="min-h-screen bg-[#f8fafc] px-4 py-8 sm:px-6 sm:py-10 text-[#11233f]">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
           <div className="flex items-center gap-3">
-            <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+            <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
               <span>ProfySpace</span>
               <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-            </a>
+            </Link>
             <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 px-3 py-1 text-xs font-bold text-[#0d8d78]">
               Espace Professeur
             </span>
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <a
+            <Link
               href="/dashboard/messages"
               className="rounded-2xl border border-slate-200 bg-[#e5f7f2] px-4 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] sm:text-sm"
             >
               💬 Messagerie / Chat
-            </a>
-            <a
-              href="/teacher/onboarding"
+            </Link>
+            <Link
+              href="/teacher/dashboard/courses"
               className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300 sm:text-sm"
             >
-              Modifier mon dossier / tarifs
-            </a>
-            <a
+              📚 Mes cours
+            </Link>
+            <Link
               href="/teacher/dashboard/withdrawals"
               className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
             >
               Retraits & Revenus
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -240,19 +256,19 @@ export default function TeacherDashboardPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Séances confirmées</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Élèves inscrits</span>
             <p className="mt-2 text-2xl font-bold text-[#11233f]">
-              {teacher?.bookings.length ?? 0}
+              {totalStudents}
             </p>
-            <p className="mt-1 text-xs text-slate-400">Historique total</p>
+            <p className="mt-1 text-xs text-slate-400">{teacher?.bookings.length ?? 0} direct · {totalCourseStudents} packs</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Tarif horaire</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Mes Cours & Packs</span>
             <p className="mt-2 text-2xl font-bold text-[#11233f]">
-              {teacher?.hourlyRateTnd ? `${teacher.hourlyRateTnd} DT / h` : "—"}
+              {courses.length}
             </p>
-            <p className="mt-1 text-xs text-slate-400">Déterminé par vous</p>
+            <p className="mt-1 text-xs text-slate-400">Packs e-learning créés</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -271,7 +287,7 @@ export default function TeacherDashboardPage() {
 
         {/* Quick Nav Cards */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <a
+          <Link
             href="/teacher/dashboard/courses"
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
           >
@@ -280,9 +296,9 @@ export default function TeacherDashboardPage() {
             </div>
             <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Mes cours & packs</h3>
             <p className="mt-1 text-xs text-slate-500">Créez et publiez vos cours vidéo enregistrés avec verrouillage payant.</p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/teacher/dashboard/bookings"
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
           >
@@ -291,9 +307,9 @@ export default function TeacherDashboardPage() {
             </div>
             <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Mes séances live</h3>
             <p className="mt-1 text-xs text-slate-500">Consultez votre planning et rejoignez la classe WebRTC en direct.</p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/teacher/dashboard/availability"
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
           >
@@ -302,9 +318,9 @@ export default function TeacherDashboardPage() {
             </div>
             <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Gérer mes disponibilités</h3>
             <p className="mt-1 text-xs text-slate-500">Configurez vos créneaux horaires ouverts aux réservations des élèves.</p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/teacher/dashboard/withdrawals"
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
           >
@@ -313,7 +329,7 @@ export default function TeacherDashboardPage() {
             </div>
             <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Retraits & Virement</h3>
             <p className="mt-1 text-xs text-slate-500">Demandez le versement de vos gains via D17, Flouci ou virement bancaire.</p>
-          </a>
+          </Link>
         </div>
 
         {/* Upcoming Sessions */}

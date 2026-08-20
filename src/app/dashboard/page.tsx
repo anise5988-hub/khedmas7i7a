@@ -1,12 +1,11 @@
-/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   IconVideo,
   IconBookOpen,
   IconCreditCard,
-  IconCalendar,
   IconShield,
 } from "@/components/icons";
 
@@ -90,23 +89,23 @@ export default function StudentDashboard() {
       {/* Top Header */}
       <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
             <span>ProfySpace</span>
             <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-          </a>
+          </Link>
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <a
+            <Link
               href="/dashboard/settings"
               className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 sm:text-sm"
             >
               Paramètres
-            </a>
-            <a
+            </Link>
+            <Link
               href="/teachers"
               className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
             >
               Trouver un professeur
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -118,7 +117,7 @@ export default function StudentDashboard() {
           <p className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-slate-400">Espace élève</p>
           <nav className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-1 lg:overflow-visible">
             {links.map(([label, href], index) => (
-              <a
+              <Link
                 key={label}
                 href={href}
                 className={`block shrink-0 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
@@ -128,22 +127,29 @@ export default function StudentDashboard() {
                 }`}
               >
                 {label}
-              </a>
+              </Link>
             ))}
           </nav>
         </aside>
 
         {/* Content */}
         <section className="min-w-0">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Bonjour, bienvenue</p>
-            <h1 className="mt-1 text-3xl font-bold sm:text-4xl">
-              {user ? `${user.firstName} ${user.lastName}` : "Mon espace élève"}
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Gérez vos cours particuliers, votre planning et votre solde d'apprentissage.
-            </p>
-          </div>
+          {loading ? (
+            <div className="py-20 text-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>
+              <p className="mt-3 text-sm text-slate-500">Chargement de votre espace...</p>
+            </div>
+          ) : (
+            <>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Bonjour, bienvenue</p>
+                <h1 className="mt-1 text-3xl font-bold sm:text-4xl">
+                  {user ? `${user.firstName} ${user.lastName}` : "Mon espace élève"}
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">
+                  Gérez vos cours particuliers, votre planning et votre solde d'apprentissage.
+                </p>
+              </div>
 
           {/* Metrics */}
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -152,9 +158,9 @@ export default function StudentDashboard() {
               <p className="mt-2 text-2xl font-bold text-[#0d8d78]">
                 {wallet ? `${wallet.availableTnd.toFixed(3)} DT` : "0.000 DT"}
               </p>
-              <a href="/dashboard/wallet/add-money" className="mt-1 block text-xs font-semibold text-[#0d8d78] hover:underline">
+              <Link href="/dashboard/wallet/add-money" className="mt-1 block text-xs font-semibold text-[#0d8d78] hover:underline">
                 + Ajouter des fonds →
-              </a>
+              </Link>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -162,9 +168,9 @@ export default function StudentDashboard() {
               <p className="mt-2 text-2xl font-bold text-[#11233f]">
                 {upcomingBookings.length}
               </p>
-              <a href="/dashboard/classes" className="mt-1 block text-xs font-semibold text-slate-500 hover:underline">
+              <Link href="/dashboard/classes" className="mt-1 block text-xs font-semibold text-slate-500 hover:underline">
                 Voir le planning →
-              </a>
+              </Link>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -211,13 +217,13 @@ export default function StudentDashboard() {
                     Durée : <strong>{nextBooking.durationMinutes} minutes</strong> · Tarif : <strong>{nextBooking.amountTnd} DT</strong>
                   </div>
 
-                  <a
+                  <Link
                     href={`/classroom/${nextBooking.id}`}
                     className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white transition hover:bg-[#0b7866] shadow-lg shadow-[#0d8d78]/20"
                   >
                     <IconVideo className="h-4 w-4" />
                     <span>Rejoindre la salle WebRTC en direct →</span>
-                  </a>
+                  </Link>
                 </div>
               ) : (
                 <div className="py-12 text-center">
@@ -228,12 +234,12 @@ export default function StudentDashboard() {
                   <p className="mt-1 text-xs text-slate-400">
                     Explorez les professeurs vérifiés et réservez votre première séance !
                   </p>
-                  <a
+                  <Link
                     href="/teachers"
                     className="mt-4 inline-block rounded-2xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm"
                   >
                     Trouver un professeur →
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>
@@ -248,12 +254,12 @@ export default function StudentDashboard() {
                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">
                   Alimentez votre solde via D17, Flouci ou virement pour réserver instantanément.
                 </p>
-                <a
+                <Link
                   href="/dashboard/wallet/add-money"
                   className="mt-4 inline-block rounded-2xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm"
                 >
                   Effectuer un dépôt →
-                </a>
+                </Link>
               </div>
 
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -271,7 +277,9 @@ export default function StudentDashboard() {
               </div>
             </div>
           </div>
-        </section>
+        </>
+      )}
+    </section>
       </div>
     </main>
   );
