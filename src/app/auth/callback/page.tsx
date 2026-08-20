@@ -64,8 +64,12 @@ export default function AuthCallbackPage() {
           localStorage.setItem("profyspace_user", JSON.stringify(data.user));
         }
 
-        const targetUrl = data.role === "TEACHER" ? "/teacher/dashboard" : "/dashboard";
-        window.location.replace(targetUrl);
+        if (data.needsPasswordSetup) {
+          window.location.replace("/set-password");
+        } else {
+          const targetUrl = data.role === "TEACHER" ? "/teacher/dashboard" : "/dashboard";
+          window.location.replace(targetUrl);
+        }
       } catch (err) {
         console.error("Callback error:", err);
         setError("Erreur de connexion au serveur.");
