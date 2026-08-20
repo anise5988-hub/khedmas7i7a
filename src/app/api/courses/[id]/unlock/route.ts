@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { coursesStore } from "@/lib/server/courses-store";
 import { prisma } from "@/lib/server/prisma";
-import { notificationsStore } from "@/lib/server/notifications-store";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function POST(
   request: Request,
@@ -87,22 +87,27 @@ export async function POST(
   // Grant course access
   coursesStore.grantAccess(courseId, user.id, course.priceTnd);
 
-  // Send notifications to teacher and student
-  notificationsStore.addNotification({
-    userId: course.teacherId,
-    title: "Nouveau membre inscrit à votre cours ! 🎉",
-    message: `${user.firstName} ${user.lastName} vient de débloquer votre cours "${course.title}" (${course.priceTnd} DT).`,
-    type: "SUCCESS",
-    link: "/teacher/dashboard/courses",
-  });
-
-  notificationsStore.addNotification({
-    userId: user.id,
-    title: "Cours débloqué avec succès ! 🔓",
-    message: `Vous avez désormais un accès illimité au cours "${course.title}". Bon apprentissage !`,
-    type: "SUCCESS",
-    link: `/courses/${course.id}`,
-  });
+  // Send notifications & emails to teacher and student
+  await Promise.all([
+    notifyUser({
+      userId: course.teacherId,
+      type: "COURSE_PURCHASED",
+      title: "Nouvelle inscription à votre cours ! 🎉",
+      message: `${user.firstName} ${user.lastName} vient d'acheter votre cours "${course.title}" (${course.priceTnd} DT).`,
+      emailSubject: `Nouvel élève inscrit à votre cours "${course.title}"`,
+      link: "/teacher/dashboard/courses",
+      dedupeKey: `course_purchase:${course.id}:${user.id}:${Date.now()}`,
+    }),
+    notifyUser({
+      userId: user.id,
+      type: "COURSE_UNLOCKED",
+      title: "Cours débloqué avec succès ! 🔓",
+      message: `Vous avez désormais un accès illimité au cours "${course.title}". Bon apprentissage !`,
+      emailSubject: `Votre cours "${course.title}" est maintenant disponible`,
+      link: `/courses/${course.id}`,
+      dedupeKey: `course_unlocked:${course.id}:${user.id}:${Date.now()}`,
+    }),
+  ]);
 
   return NextResponse.json({
     success: true,

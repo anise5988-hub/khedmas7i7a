@@ -4,30 +4,29 @@ import { prisma } from "@/lib/server/prisma";
 import { registerSchema } from "@/lib/validation/auth";
 import { fallbackStore } from "@/lib/server/fallback-store";
 import { supabaseAuth } from "@/lib/server/supabase-auth";
+import { sendTransactionalEmail } from "@/lib/server/email";
 
 export async function POST(request: Request) {
   const parsed = registerSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Vérifie les informations saisies.", issues: parsed.error.flatten() }, { status: 400 });
   const input = parsed.data;
 
-  if (!supabaseAuth) {
-    console.error("Supabase email authentication is not configured", {
-      hasUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
-      hasAnonKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-    });
-    return NextResponse.json({ error: "Inscription temporairement indisponible : le service de confirmation email n'est pas configuré." }, { status: 503 });
-  }
-
-  const { data, error } = await supabaseAuth.auth.signUp({
+  if (supabaseAuth) {
+    const { data, error } = await supabaseAuth.auth.signUp({
       email: input.email,
       password: input.password,
-      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin}/auth/callback`, data: { firstName: input.firstName, lastName: input.lastName, role: input.role, phone: input.phone || "" } },
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin}/auth/callback`,
+        data: { firstName: input.firstName, lastName: input.lastName, role: input.role, phone: input.phone || "" },
+      },
     });
-  if (error || !data.user) {
-    console.error("Supabase sign-up failed", { message: error?.message, status: error?.status, code: error?.code });
-    return NextResponse.json({ error: error?.message || "Inscription impossible." }, { status: 400 });
-  }
-  try {
+
+    if (error || !data.user) {
+      console.error("Supabase sign-up failed", { message: error?.message, status: error?.status, code: error?.code });
+      return NextResponse.json({ error: error?.message || "Inscription impossible." }, { status: 400 });
+    }
+
+    try {
       const user = await prisma.user.upsert({
         where: { id: data.user.id },
         update: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null },
@@ -41,19 +40,39 @@ export async function POST(request: Request) {
           role: input.role,
         },
       });
+
       await prisma.wallet.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
+
       if (input.role === "STUDENT") {
         await prisma.studentProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
       } else {
         const slug = `${input.firstName}-${input.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 0 } });
       }
-  } catch (profileError) {
-    console.error("Supabase user profile sync failed", profileError);
-    return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
-  }
-  return NextResponse.json({ success: true, user: data.user, requiresEmailConfirmation: !data.session, message: "Compte créé. Consultez votre email pour confirmer votre adresse." }, { status: 201 });
+    } catch (profileError) {
+      console.error("Supabase user profile sync failed", profileError);
+      return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
+    }
 
+    // Also send welcome / confirmation email via Brevo transactional email
+    await sendTransactionalEmail({
+      to: input.email,
+      name: input.firstName,
+      subject: "Bienvenue sur Profy ! Confirmez votre adresse email",
+      title: "Bienvenue sur ProfySpace.tn",
+      message: `Bonjour ${input.firstName}, votre compte ${input.role === "TEACHER" ? "Professeur" : "Élève"} a été créé avec succès. Veuillez confirmer votre adresse email pour profiter de toutes les fonctionnalités.`,
+      link: "/login",
+    });
+
+    return NextResponse.json({
+      success: true,
+      user: data.user,
+      requiresEmailConfirmation: !data.session,
+      message: "Compte créé. Consultez votre email pour confirmer votre adresse.",
+    }, { status: 201 });
+  }
+
+  // Fallback direct DB registration when Supabase Auth is not enabled
   const passwordHash = await hash(input.password, 12);
 
   try {
@@ -86,6 +105,15 @@ export async function POST(request: Request) {
       select: { id: true, firstName: true, lastName: true, email: true, role: true },
     });
 
+    await sendTransactionalEmail({
+      to: input.email,
+      name: input.firstName,
+      subject: "Bienvenue sur Profy !",
+      title: "Bienvenue sur ProfySpace.tn",
+      message: `Bonjour ${input.firstName}, votre compte ${input.role === "TEACHER" ? "Professeur" : "Élève"} a été créé avec succès.`,
+      link: "/login",
+    });
+
     const response = NextResponse.json({
       success: true,
       user,
@@ -106,7 +134,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.warn("Prisma registration failed, falling back to in-memory store", error);
 
-    // Fallback in-memory user creation so user is never blocked
     const fallbackUser = await fallbackStore.createUser({
       firstName: input.firstName,
       lastName: input.lastName,

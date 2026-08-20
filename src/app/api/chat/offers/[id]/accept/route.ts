@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { chatStore } from "@/lib/server/chat-store";
 import { prisma } from "@/lib/server/prisma";
-import { notificationsStore } from "@/lib/server/notifications-store";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function POST(
   request: Request,
@@ -80,22 +80,27 @@ export async function POST(
       console.warn("Prisma wallet deduction failed, updating fallback store", dbErr);
     }
 
-  // Send notifications
-  notificationsStore.addNotification({
-    userId: offer.teacherId,
-    title: "Offre acceptée & Cours réservé ! 🎉",
-    message: `${user.firstName} ${user.lastName} a accepté votre offre pour "${offer.subject}" (${offer.amountTnd} DT). Le montant est crédité.`,
-    type: "SUCCESS",
-    link: "/teacher/dashboard/bookings",
-  });
-
-  notificationsStore.addNotification({
-    userId: user.id,
-    title: "Réservation confirmée ! ✅",
-    message: `Votre séance pour "${offer.subject}" avec ${offer.teacherName} est enregistrée. Le montant de ${offer.amountTnd} DT a été réglé depuis votre portefeuille.`,
-    type: "SUCCESS",
-    link: "/dashboard/bookings",
-  });
+  // Send notifications and emails
+  await Promise.all([
+    notifyUser({
+      userId: offer.teacherId,
+      type: "OFFER_ACCEPTED",
+      title: "Offre acceptée & Cours réservé ! 🎉",
+      message: `${user.firstName} ${user.lastName} a accepté votre offre pour "${offer.subject}" (${offer.amountTnd} DT).`,
+      emailSubject: `Votre offre de cours "${offer.subject}" a été acceptée`,
+      link: "/teacher/dashboard/bookings",
+      dedupeKey: `offer_accept_teacher:${offer.id}`,
+    }),
+    notifyUser({
+      userId: user.id,
+      type: "BOOKING_CONFIRMED",
+      title: "Réservation confirmée ! ✅",
+      message: `Votre séance pour "${offer.subject}" avec ${offer.teacherName} est confirmée.`,
+      emailSubject: `Votre réservation pour "${offer.subject}" est confirmée`,
+      link: "/dashboard/bookings",
+      dedupeKey: `offer_accept_student:${offer.id}`,
+    }),
+  ]);
 
   return NextResponse.json({
     success: true,

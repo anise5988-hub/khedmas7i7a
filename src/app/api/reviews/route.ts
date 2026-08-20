@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
+import { notifyUser } from "@/lib/server/notification-service";
 import { z } from "zod";
 
 const createReviewSchema = z.object({
@@ -104,7 +105,22 @@ export async function POST(request: Request) {
         rating: parsed.data.rating,
         comment: parsed.data.comment,
       },
+      include: {
+        teacher: { select: { userId: true, slug: true } },
+      },
     });
+
+    if (review.teacher?.userId) {
+      await notifyUser({
+        userId: review.teacher.userId,
+        type: "NEW_REVIEW",
+        title: "Nouvel avis reçu ⭐",
+        message: `Un élève vous a attribué une note de ${parsed.data.rating}/5 : "${parsed.data.comment.substring(0, 80)}..."`,
+        emailSubject: "Vous avez reçu un nouvel avis sur Profy",
+        link: `/teachers/${review.teacher.slug}`,
+        dedupeKey: `review:${review.id}`,
+      });
+    }
 
     return NextResponse.json(
       {

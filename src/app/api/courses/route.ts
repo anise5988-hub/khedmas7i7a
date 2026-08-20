@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { coursesStore } from "@/lib/server/courses-store";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -78,6 +79,16 @@ export async function POST(request: Request) {
       reviewCount: 0,
       studentCount: 0,
       sections: sections || [],
+    });
+
+    await notifyUser({
+      userId: user.id,
+      type: "COURSE_PUBLISHED",
+      title: "Cours publié avec succès ! 🚀",
+      message: `Votre cours "${title}" (${price > 0 ? `${price} DT` : "Gratuit"}) a été publié et est accessible sur la plateforme.`,
+      emailSubject: `Votre cours "${title}" est en ligne sur Profy`,
+      link: `/courses/${newCourse.id}`,
+      dedupeKey: `course_published:${newCourse.id}`,
     });
 
     return NextResponse.json({ success: true, course: newCourse }, { status: 201 });

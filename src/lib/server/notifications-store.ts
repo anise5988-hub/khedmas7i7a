@@ -17,41 +17,7 @@ const globalStore = globalThis as unknown as {
 };
 
 if (!globalStore.__profyspace_notifications) {
-  globalStore.__profyspace_notifications = [
-    {
-      id: "notif_welcome_system",
-      userId: null,
-      role: null,
-      title: "Bienvenue sur ProfySpace.tn",
-      message: "Votre espace d'apprentissage en ligne est activé. Explorez nos professeurs qualifiés et réservez votre premier cours.",
-      type: "INFO",
-      readBy: [],
-      createdAt: new Date(Date.now() - 3600000 * 2),
-      link: "/teachers",
-    },
-    {
-      id: "notif_wallet_info",
-      userId: null,
-      role: "STUDENT",
-      title: "Recharge Portefeuille",
-      message: "Procédez au rechargement de votre portefeuille via D17 ou virement bancaire pour réserver vos séances en un clic.",
-      type: "SUCCESS",
-      readBy: [],
-      createdAt: new Date(Date.now() - 3600000 * 5),
-      link: "/dashboard/wallet",
-    },
-    {
-      id: "notif_teacher_info",
-      userId: null,
-      role: "TEACHER",
-      title: "Espace Enseignant",
-      message: "Pensez à mettre à jour vos disponibilités hebdomadaires pour maximiser vos réservations de cours.",
-      type: "INFO",
-      readBy: [],
-      createdAt: new Date(Date.now() - 3600000 * 12),
-      link: "/teacher/dashboard/availabilities",
-    },
-  ];
+  globalStore.__profyspace_notifications = [];
 }
 
 export const notificationsStore = {

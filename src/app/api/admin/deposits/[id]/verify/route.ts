@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { PaymentStatus } from "@prisma/client";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function POST(
   request: Request,
@@ -46,6 +47,31 @@ export async function POST(
         });
       }
     });
+
+    const depositWallet = await prisma.wallet.findUnique({ where: { id: deposit.walletId }, select: { userId: true } });
+    if (depositWallet?.userId) {
+      if (status === "PAID") {
+        await notifyUser({
+          userId: depositWallet.userId,
+          type: "PAYMENT_SUCCESS",
+          title: "Recharge portefeuille validée ! 💳",
+          message: `Votre recharge de ${(deposit.amountMillimes / 1000).toFixed(1)} DT a été validée et créditée à votre portefeuille.`,
+          emailSubject: `Votre recharge de ${(deposit.amountMillimes / 1000).toFixed(1)} DT a été validée`,
+          link: "/dashboard/wallet",
+          dedupeKey: `deposit_verified:${deposit.id}:${status}`,
+        });
+      } else {
+        await notifyUser({
+          userId: depositWallet.userId,
+          type: "PAYMENT_FAILED",
+          title: "Recharge portefeuille non validée",
+          message: `Votre demande de recharge (${deposit.reference}) n'a pas pu être validée par l'administration.`,
+          emailSubject: `Mise à jour concernant votre recharge (${deposit.reference})`,
+          link: "/dashboard/wallet",
+          dedupeKey: `deposit_verified:${deposit.id}:${status}`,
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,

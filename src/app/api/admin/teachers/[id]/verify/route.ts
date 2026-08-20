@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
-import { notificationsStore } from "@/lib/server/notifications-store";
+import { notifyUser } from "@/lib/server/notification-service";
 import { VerificationStatus } from "@prisma/client";
 
 export async function POST(
@@ -40,28 +40,34 @@ export async function POST(
 
     if (updatedTeacher.userId) {
       if (status === "APPROVED") {
-        notificationsStore.addNotification({
+        await notifyUser({
           userId: updatedTeacher.userId,
+          type: "PROFESSOR_VERIFIED",
           title: "Compte Enseignant Vérifié ! 🎉",
-          message: "Félicitations, votre dossier enseignant a été validé par l'administration. Votre profil est désormais vérifié et visible sur ProfySpace.tn.",
-          type: "SUCCESS",
+          message: "Félicitations, votre dossier enseignant a été validé. Votre profil est désormais vérifié sur Profy.",
+          emailSubject: "Votre profil Professeur a été vérifié sur Profy",
           link: "/teacher/dashboard",
+          dedupeKey: `teacher_verified:${updatedTeacher.id}:approved`,
         });
       } else if (status === "REJECTED") {
-        notificationsStore.addNotification({
+        await notifyUser({
           userId: updatedTeacher.userId,
+          type: "PROFESSOR_REJECTED",
           title: "Mise à jour de votre dossier Enseignant",
           message: "Votre demande de vérification nécessite des modifications. Rendez-vous sur votre espace pour mettre à jour vos informations.",
-          type: "WARNING",
+          emailSubject: "Mise à jour de votre demande de vérification Profy",
           link: "/teacher/dashboard",
+          dedupeKey: `teacher_verified:${updatedTeacher.id}:rejected`,
         });
       } else if (status === "UNDER_REVIEW") {
-        notificationsStore.addNotification({
+        await notifyUser({
           userId: updatedTeacher.userId,
+          type: "PROFESSOR_VERIFIED",
           title: "Dossier Enseignant en cours d'examen ⏳",
           message: "Votre demande de vérification de profil est actuellement en cours d'analyse par l'administration.",
-          type: "INFO",
+          emailSubject: "Votre dossier Professeur est en cours d'analyse",
           link: "/teacher/dashboard",
+          dedupeKey: `teacher_verified:${updatedTeacher.id}:review`,
         });
       }
     }

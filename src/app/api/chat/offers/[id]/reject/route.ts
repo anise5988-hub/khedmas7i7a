@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { chatStore } from "@/lib/server/chat-store";
-import { notificationsStore } from "@/lib/server/notifications-store";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function POST(
   request: Request,
@@ -21,12 +21,14 @@ export async function POST(
 
   const offer = updateRes.offer;
 
-  notificationsStore.addNotification({
+  await notifyUser({
     userId: offer.teacherId,
-    title: "Offre refusée",
-    message: `${user.firstName} ${user.lastName} n'a pas accepté l'offre pour "${offer.subject}". Vous pouvez lui proposer une autre date ou un autre tarif.`,
-    type: "WARNING",
+    type: "OFFER_REJECTED",
+    title: "Offre non acceptée",
+    message: `${user.firstName} ${user.lastName} n'a pas retenu l'offre pour "${offer.subject}". Vous pouvez lui proposer un autre créneau.`,
+    emailSubject: `Mise à jour concernant votre offre pour "${offer.subject}"`,
     link: `/dashboard/messages?conversationId=${offer.conversationId}`,
+    dedupeKey: `offer_reject:${offer.id}`,
   });
 
   return NextResponse.json({

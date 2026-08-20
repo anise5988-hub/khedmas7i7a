@@ -6,9 +6,15 @@ import { useState } from "react";
 import { IconCheck, IconShield } from "@/components/icons";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("email") || "";
+  });
   const [newPassword, setNewPassword] = useState("");
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2>(() => {
+    if (typeof window === "undefined") return 1;
+    return new URLSearchParams(window.location.search).get("email") ? 2 : 1;
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
+import { notifyUser } from "@/lib/server/notification-service";
 import { compare, hash } from "bcryptjs";
 import { z } from "zod";
 
@@ -33,6 +34,16 @@ export async function POST(request: Request) {
     await prisma.user.update({
       where: { id: user.id },
       data: { passwordHash: newHash },
+    });
+
+    await notifyUser({
+      userId: user.id,
+      type: "PASSWORD_CHANGED",
+      title: "Sécurité : Mot de passe modifié 🔒",
+      message: "Le mot de passe de votre compte a été modifié avec succès. Si vous n'êtes pas à l'origine de cette modification, contactez le support.",
+      emailSubject: "Votre mot de passe Profy a été modifié",
+      link: "/dashboard",
+      dedupeKey: `pwd_changed:${user.id}:${Date.now()}`,
     });
 
     return NextResponse.json({
