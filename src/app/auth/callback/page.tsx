@@ -14,7 +14,11 @@ export default function AuthCallbackPage() {
       }
 
       const params = new URLSearchParams(window.location.search);
-      const roleParam = params.get("role") || "STUDENT";
+      const roleFromStorage = typeof window !== "undefined" ? localStorage.getItem("profyspace_oauth_role") : null;
+      const roleParam = params.get("role") || roleFromStorage || "STUDENT";
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("profyspace_oauth_role");
+      }
 
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 

@@ -11,7 +11,11 @@ export async function signInWithGoogle(role: "STUDENT" | "TEACHER" = "STUDENT") 
     return { data: null, error: new Error("Supabase non configuré.") };
   }
 
-  const redirectTo = `${window.location.origin}/auth/callback?role=${role}`;
+  if (typeof window !== "undefined") {
+    localStorage.setItem("profyspace_oauth_role", role);
+  }
+
+  const redirectTo = `${window.location.origin}/auth/callback`;
   return await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
