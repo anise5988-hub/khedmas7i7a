@@ -8,6 +8,14 @@ export async function GET(request: Request) {
   const level = searchParams.get("level") || undefined;
   const search = searchParams.get("search") || undefined;
   const teacherId = searchParams.get("teacherId") || undefined;
+  const user = await getCurrentUser(request);
+
+  // Private teacher listings must be scoped to the authenticated teacher (or admin).
+  if (teacherId) {
+    if (!user || (user.id !== teacherId && user.id !== `teach_${teacherId}` && user.role !== "ADMIN")) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    }
+  }
 
   const courses = coursesStore.getAllCourses({
     subject,
@@ -29,11 +37,29 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { title, description, subject, level, language, priceTnd, visibility, thumbnailUrl, sections } = body;
 
-    if (!title || !description || !subject || !level) {
-      return NextResponse.json({ error: "Champs obligatoires manquants" }, { status: 400 });
+    if (![title, description, subject, level].every((value) => typeof value === "string" && value.trim())) {
+      return NextResponse.json({ error: "Le titre, la description, la matière et le niveau sont obligatoires." }, { status: 400 });
     }
 
-    const price = Number(priceTnd) || 0;
+    const price = Number(priceTnd);
+    if (!Number.isFinite(price) || price < 0 || price > 10000) {
+      return NextResponse.json({ error: "Le tarif doit être compris entre 0 et 10 000 DT." }, { status: 400 });
+    }
+
+    const allowedVisibility = ["PUBLIC", "LOCKED", "PRIVATE", "DRAFT"];
+    if (visibility && !allowedVisibility.includes(visibility)) {
+      return NextResponse.json({ error: "Visibilité de cours invalide." }, { status: 400 });
+    }
+
+    if (!Array.isArray(sections) || sections.length === 0 || !sections.every((section) =>
+      section && typeof section.title === "string" && section.title.trim() && Array.isArray(section.lessons) &&
+      section.lessons.length > 0 && section.lessons.every((lesson: { title?: unknown; durationMinutes?: unknown; videoUrl?: unknown }) =>
+        typeof lesson.title === "string" && lesson.title.trim() && Number.isInteger(Number(lesson.durationMinutes)) &&
+        Number(lesson.durationMinutes) >= 1 && typeof lesson.videoUrl === "string" && lesson.videoUrl.trim()
+      )
+    )) {
+      return NextResponse.json({ error: "Ajoutez au moins un module et une leçon vidéo valide." }, { status: 400 });
+    }
 
     const newCourse = coursesStore.createCourse({
       teacherId: user.id,

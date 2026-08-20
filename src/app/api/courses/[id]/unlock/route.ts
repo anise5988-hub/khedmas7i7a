@@ -54,23 +54,34 @@ export async function POST(
     );
   }
 
-  // Deduct from student wallet
+  // Payment and access must be fail-closed: never grant access when the wallet
+  // transaction did not complete successfully.
   try {
-    await prisma.wallet.update({
-      where: { userId: user.id },
-      data: {
-        availableMillimes: { decrement: requiredMillimes },
-        transactions: {
-          create: {
-            type: "BOOKING_PAYMENT",
-            amountMillimes: -requiredMillimes,
-            reference: `Achat Cours: ${course.title} (${Date.now()})`,
-          },
+    await prisma.$transaction(async (tx) => {
+      const deduction = await tx.wallet.updateMany({
+        where: { userId: user.id, availableMillimes: { gte: requiredMillimes } },
+        data: { availableMillimes: { decrement: requiredMillimes } },
+      });
+
+      if (deduction.count !== 1) {
+        throw new Error("WALLET_BALANCE_CHANGED");
+      }
+
+      const updatedWallet = await tx.wallet.findUnique({ where: { userId: user.id } });
+      if (!updatedWallet) throw new Error("WALLET_NOT_FOUND");
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: updatedWallet.id,
+          type: "BOOKING_PAYMENT",
+          amountMillimes: -requiredMillimes,
+          reference: `Achat Cours: ${course.title} (${Date.now()})`,
         },
-      },
+      });
     });
   } catch (dbErr) {
-    console.warn("Wallet deduction DB warning:", dbErr);
+    console.error("Course payment failed:", dbErr);
+    return NextResponse.json({ error: "Le paiement n'a pas pu être confirmé. Aucun accès n'a été accordé." }, { status: 502 });
   }
 
   // Grant course access

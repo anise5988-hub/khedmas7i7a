@@ -7,7 +7,7 @@ import { Course, CourseVisibility } from "@/lib/server/courses-store";
 export default function TeacherCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowOfferModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [step, setStep] = useState(1);
 
   // Form State
@@ -40,8 +40,11 @@ export default function TeacherCoursesPage() {
       if (res.ok) {
         const data = await res.json();
         setCourses(data.courses || []);
+      } else {
+        setError("Impossible de charger vos cours. Veuillez réessayer.");
       }
     } catch {
+      setError("Impossible de charger vos cours. Vérifiez votre connexion.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +71,7 @@ export default function TeacherCoursesPage() {
           level,
           language,
           priceTnd,
-          visibility,
+          visibility: priceTnd === 0 && visibility === "LOCKED" ? "PUBLIC" : visibility,
           thumbnailUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
           sections: [
             {
@@ -95,9 +98,9 @@ export default function TeacherCoursesPage() {
         return;
       }
 
-      setShowOfferModal(false);
+      setShowCreateModal(false);
       resetForm();
-      fetchTeacherCourses();
+      await fetchTeacherCourses();
     } catch {
       setSaving(false);
       setError("Erreur de connexion.");
@@ -112,16 +115,28 @@ export default function TeacherCoursesPage() {
         headers: getAuthHeaders(),
       });
       if (res.ok) {
-        fetchTeacherCourses();
+        await fetchTeacherCourses();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Impossible de supprimer ce cours.");
       }
-    } catch {}
+    } catch {
+      setError("Impossible de supprimer ce cours. Vérifiez votre connexion.");
+    }
   };
 
   const resetForm = () => {
     setStep(1);
     setTitle("");
     setDescription("");
+    setSubject("Mathématiques");
+    setLevel("4ème Année Secondaire (Bac)");
     setPriceTnd(30);
+    setVisibility("LOCKED");
+    setLessonTitle("Leçon 1 : Introduction et rappels");
+    setLessonDuration(30);
+    setLessonVideo("https://www.w3schools.com/html/mov_bbb.mp4");
+    setError("");
   };
 
   return (
@@ -141,7 +156,10 @@ export default function TeacherCoursesPage() {
         </div>
 
         <button
-          onClick={() => setShowOfferModal(true)}
+          onClick={() => {
+            setError("");
+            setShowCreateModal(true);
+          }}
           className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#0b7866]"
         >
           + Créer un nouveau cours →
@@ -161,7 +179,10 @@ export default function TeacherCoursesPage() {
               Proposez des packs de révision ou des cours e-learning à vos élèves et générez des revenus récurrents.
             </p>
             <button
-              onClick={() => setShowOfferModal(true)}
+              onClick={() => {
+                setError("");
+                setShowCreateModal(true);
+              }}
               className="inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
             >
               Créer mon premier cours →
@@ -234,7 +255,7 @@ export default function TeacherCoursesPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#0d8d78]">Étape {step} sur 3</span>
                 <h3 className="text-base font-bold text-[#11233f]">Créer un cours e-learning</h3>
               </div>
-              <button onClick={() => setShowOfferModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
 
             <form onSubmit={handleCreateCourse} className="space-y-4 text-xs">

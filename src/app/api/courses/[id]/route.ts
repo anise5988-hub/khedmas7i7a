@@ -68,7 +68,17 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const updated = coursesStore.updateCourse(id, body);
+    const allowedFields = ["title", "description", "subject", "level", "language", "priceTnd", "visibility", "thumbnailUrl", "sections"];
+    const updates = Object.fromEntries(Object.entries(body).filter(([key]) => allowedFields.includes(key)));
+
+    if ("priceTnd" in updates && (!Number.isFinite(Number(updates.priceTnd)) || Number(updates.priceTnd) < 0)) {
+      return NextResponse.json({ error: "Tarif invalide" }, { status: 400 });
+    }
+    if ("visibility" in updates && !["PUBLIC", "LOCKED", "PRIVATE", "DRAFT"].includes(String(updates.visibility))) {
+      return NextResponse.json({ error: "Visibilité invalide" }, { status: 400 });
+    }
+
+    const updated = coursesStore.updateCourse(id, updates);
     return NextResponse.json({ success: true, course: updated });
   } catch {
     return NextResponse.json({ error: "Erreur de mise à jour" }, { status: 400 });
