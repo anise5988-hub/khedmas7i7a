@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-location-assign-relative-destination */
 "use client";
 
 import Link from "next/link";
@@ -88,6 +87,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
         <div className={`hidden items-center gap-8 text-sm font-semibold md:flex ${dark ? "text-slate-300" : "text-slate-600"}`}>
           <Link href="/teachers" className="hover:text-[#0d8d78] transition duration-200">
             Explorer les professeurs
+          </Link>
+          <Link href="/courses" className="hover:text-[#0d8d78] transition duration-200">
+            Cours & Packs
           </Link>
           <Link href="/#how" className="hover:text-[#0d8d78] transition duration-200">
             Comment ça marche

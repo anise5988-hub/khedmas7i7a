@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { chatStore } from "@/lib/server/chat-store";
 import { prisma } from "@/lib/server/prisma";
-import { fallbackStore } from "@/lib/server/fallback-store";
 import { notificationsStore } from "@/lib/server/notifications-store";
 
 export async function POST(

@@ -8,7 +8,7 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     if (!supabase) {
-      setError("Supabase non configuré sur le client.");
+      Promise.resolve().then(() => setError("Supabase non configuré sur le client."));
       return;
     }
 

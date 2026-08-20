@@ -270,7 +270,18 @@ export default function TeacherDashboardPage() {
         </div>
 
         {/* Quick Nav Cards */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <a
+            href="/teacher/dashboard/courses"
+            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78] group-hover:bg-[#0d8d78] group-hover:text-white transition duration-200 text-xl font-bold">
+              📚
+            </div>
+            <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Mes cours & packs</h3>
+            <p className="mt-1 text-xs text-slate-500">Créez et publiez vos cours vidéo enregistrés avec verrouillage payant.</p>
+          </a>
+
           <a
             href="/teacher/dashboard/bookings"
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78] hover:shadow-md"
@@ -278,7 +289,7 @@ export default function TeacherDashboardPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78] group-hover:bg-[#0d8d78] group-hover:text-white transition duration-200">
               <IconCalendar className="h-6 w-6" />
             </div>
-            <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Mes séances & cours</h3>
+            <h3 className="mt-4 font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78]">Mes séances live</h3>
             <p className="mt-1 text-xs text-slate-500">Consultez votre planning et rejoignez la classe WebRTC en direct.</p>
           </a>
 

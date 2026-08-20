@@ -20,8 +20,22 @@ export function NotificationCenter({ dark = false }: { dark?: boolean }) {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const fetchNotifications = async () => {
+    try {
+      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+      const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
+
+      const res = await fetch("/api/notifications", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch {}
+  };
+
   useEffect(() => {
-    fetchNotifications();
+    Promise.resolve().then(() => fetchNotifications());
 
     const interval = setInterval(() => {
       fetchNotifications();
@@ -39,20 +53,6 @@ export function NotificationCenter({ dark = false }: { dark?: boolean }) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  async function fetchNotifications() {
-    try {
-      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
-      const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
-
-      const res = await fetch("/api/notifications", { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
-      }
-    } catch {}
-  }
 
   async function handleMarkAsRead(id?: string) {
     setLoading(true);

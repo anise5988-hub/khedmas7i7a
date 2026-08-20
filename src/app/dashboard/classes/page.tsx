@@ -1,8 +1,9 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { IconCalendar } from "@/components/icons";
+import { Course } from "@/lib/server/courses-store";
 
 type Booking = {
   id: string;
@@ -17,14 +18,32 @@ type Booking = {
 };
 
 export default function StudentClassesPage() {
+  const [activeTab, setActiveTab] = useState<"BOOKINGS" | "COURSES">("BOOKINGS");
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [purchasedCourses, setPurchasedCourses] = useState<{ course: Course; access: { purchasedAt: string } }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"ALL" | "UPCOMING" | "PAST">("ALL");
+
+  function getAuthHeaders(): Record<string, string> {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
 
   useEffect(() => {
-    fetch("/api/bookings")
-      .then((res) => (res.ok ? res.json() : { bookings: [] }))
-      .then((data) => setBookings(data.bookings || []))
+    Promise.all([
+      fetch("/api/bookings", { headers: getAuthHeaders() }).then((res) => (res.ok ? res.json() : { bookings: [] })),
+      fetch("/api/courses?visibility=LOCKED", { headers: getAuthHeaders() }).then((res) => (res.ok ? res.json() : { courses: [] })),
+    ])
+      .then(([bookingsData, coursesData]) => {
+        setBookings(bookingsData.bookings || []);
+        // Get unlocked courses
+        const cList = (coursesData.courses || []).map((c: Course) => ({
+          course: c,
+          access: { purchasedAt: c.createdAt },
+        }));
+        setPurchasedCourses(cList);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -42,53 +61,45 @@ export default function StudentClassesPage() {
       <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <a href="/dashboard" className="text-sm font-semibold text-slate-500 hover:text-slate-800">
+            <Link href="/dashboard" className="text-sm font-semibold text-slate-500 hover:text-slate-800">
               ← Dashboard
-            </a>
+            </Link>
             <span className="text-slate-300">/</span>
-            <span className="font-bold text-sm">Mes cours</span>
+            <span className="font-bold text-sm">Mon Apprentissage</span>
           </div>
 
-          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight">
             <span>ProfySpace</span>
             <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-          </a>
+          </Link>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
-            <h1 className="text-3xl font-bold">Mes séances de cours</h1>
+            <h1 className="text-3xl font-bold">Mon Apprentissage & Mes Cours</h1>
             <p className="mt-1 text-sm text-slate-500">
-              Retrouvez toutes vos sessions réservées et accédez à la classe en direct.
+              Retrouvez vos séances en direct ainsi que vos cours et packs e-learning débloqués.
             </p>
           </div>
 
           <div className="flex gap-2">
             <button
-              onClick={() => setFilter("ALL")}
+              onClick={() => setActiveTab("BOOKINGS")}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-                filter === "ALL" ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700"
+                activeTab === "BOOKINGS" ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700"
               }`}
             >
-              Tous ({bookings.length})
+              📅 Séances Live ({bookings.length})
             </button>
             <button
-              onClick={() => setFilter("UPCOMING")}
+              onClick={() => setActiveTab("COURSES")}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-                filter === "UPCOMING" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700"
+                activeTab === "COURSES" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700"
               }`}
             >
-              À venir
-            </button>
-            <button
-              onClick={() => setFilter("PAST")}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-                filter === "PAST" ? "bg-slate-600 text-white" : "bg-white border border-slate-200 text-slate-700"
-              }`}
-            >
-              Passés
+              📚 Packs & Cours ({purchasedCourses.length})
             </button>
           </div>
         </div>
@@ -105,12 +116,12 @@ export default function StudentClassesPage() {
             </div>
             <h2 className="text-lg font-bold">Aucune séance dans cette vue.</h2>
             <p className="mt-1 text-xs text-slate-500">Choisissez un professeur et commencez votre apprentissage.</p>
-            <a
+            <Link
               href="/teachers"
               className="mt-5 inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
             >
               Explorer les professeurs →
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
@@ -149,12 +160,12 @@ export default function StudentClassesPage() {
                     {b.status}
                   </span>
 
-                  <a
+                  <Link
                     href={`/classroom/${b.id}`}
                     className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
                   >
                     Rejoindre la classe →
-                  </a>
+                  </Link>
                 </div>
               </div>
             ))}

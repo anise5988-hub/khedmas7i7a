@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { IconCheck, IconShield } from "@/components/icons";
 
 export default function SetPasswordPage() {
@@ -9,17 +9,18 @@ export default function SetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  const [role, setRole] = useState("STUDENT");
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("profyspace_user");
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u?.role) setRole(u.role);
-      }
-    } catch {}
-  }, []);
+  const [role] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("profyspace_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u?.role) return u.role;
+        }
+      } catch {}
+    }
+    return "STUDENT";
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

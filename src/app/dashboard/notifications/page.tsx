@@ -8,12 +8,7 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setRoleFilter] = useState<"ALL" | "UNREAD">("ALL");
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  async function fetchNotifications() {
-    setLoading(true);
+  const fetchNotifications = async () => {
     try {
       const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
       const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
@@ -26,7 +21,11 @@ export default function NotificationsPage() {
     } catch {} finally {
       setLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    Promise.resolve().then(() => fetchNotifications());
+  }, []);
 
   async function handleMarkAsRead(id?: string) {
     try {

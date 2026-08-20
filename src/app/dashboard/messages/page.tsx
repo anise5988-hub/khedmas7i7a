@@ -1,21 +1,51 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Conversation, CustomOffer } from "@/lib/server/chat-store";
 
 export default function MessagesPage() {
+  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setPending] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
-  const [userRole, setUserRole] = useState<string>("STUDENT");
+  const [currentUserId, setCurrentUserId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("profyspace_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u?.id) return u.id;
+        }
+      } catch {}
+    }
+    return "";
+  });
+  const [userRole, setUserRole] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("profyspace_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u?.role) return u.role;
+        }
+      } catch {}
+    }
+    return "STUDENT";
+  });
 
   // Offer Modal State
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerSubject, setOfferSubject] = useState("Mathématiques - Séance de soutien");
-  const [offerStartsAt, setOfferStartsAt] = useState("");
+  const [offerStartsAt, setOfferStartsAt] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(14, 0, 0, 0);
+    return tomorrow.toISOString().slice(0, 16);
+  });
   const [offerDuration, setOfferDuration] = useState(60);
   const [offerAmountTnd, setOfferAmountTnd] = useState(30);
   const [offerPending, setOfferPending] = useState(false);
@@ -35,8 +65,8 @@ export default function MessagesPage() {
       const stored = localStorage.getItem("profyspace_user");
       if (stored) {
         const u = JSON.parse(stored);
-        if (u?.id) setCurrentUserId(u.id);
-        if (u?.role) setUserRole(u.role);
+        if (u?.id) Promise.resolve().then(() => setCurrentUserId(u.id));
+        if (u?.role) Promise.resolve().then(() => setUserRole(u.role));
       }
     } catch {}
 
@@ -49,13 +79,16 @@ export default function MessagesPage() {
       fetchConversations(null, true);
     }, 2000);
 
-    // Set default offer date to tomorrow 14:00
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(14, 0, 0, 0);
-    setOfferStartsAt(tomorrow.toISOString().slice(0, 16));
+    // Set default offer date to tomorrow 14:00 if not set
+    Promise.resolve().then(() => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(14, 0, 0, 0);
+      setOfferStartsAt(tomorrow.toISOString().slice(0, 16));
+    });
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -165,7 +198,7 @@ export default function MessagesPage() {
       if (!res.ok || !data.success) {
         alert(data.error || "Impossible d'accepter l'offre.");
         if (data.insufficientBalance) {
-          window.location.href = "/dashboard/wallet";
+          router.push("/dashboard/wallet");
         }
         return;
       }
@@ -233,19 +266,19 @@ export default function MessagesPage() {
                   : "Aucune conversation pour le moment."}
               </p>
               {userRole === "STUDENT" ? (
-                <a
+                <Link
                   href="/teachers"
                   className="inline-block rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
                 >
                   Trouver un professeur →
-                </a>
+                </Link>
               ) : (
-                <a
+                <Link
                   href="/teachers"
                   className="inline-block rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
                 >
                   Voir ma fiche publique ↗
-                </a>
+                </Link>
               )}
             </div>
           ) : (
