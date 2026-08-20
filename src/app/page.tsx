@@ -70,6 +70,12 @@ export default function Home() {
   const [level, setLevel] = useState("bac");
   const [mode, setMode] = useState("ONLINE");
   const [featuredTeachers, setFeaturedTeachers] = useState<ApprovedTeacher[]>([]);
+  const [stats, setStats] = useState<{
+    studentsCount: number;
+    teachersCount: number;
+    hoursTaught: number;
+    satisfactionRate: number;
+  } | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
@@ -79,6 +85,13 @@ export default function Home() {
         if (Array.isArray(data)) {
           setFeaturedTeachers(data.slice(0, 6));
         }
+      })
+      .catch(() => {});
+
+    fetch("/api/stats")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setStats(data);
       })
       .catch(() => {});
   }, []);
@@ -187,7 +200,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Dynamic Key Stats Bar */}
+      {/* Dynamic Key Stats Bar - Real Database Connected */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-6 py-8 sm:grid-cols-4 lg:px-10">
           <div className="flex items-center gap-3">
@@ -195,7 +208,9 @@ export default function Home() {
               <IconUser className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#11233f]">+1 450</p>
+              <p className="text-2xl font-bold text-[#11233f]">
+                {stats ? `+${stats.studentsCount}` : "..."}
+              </p>
               <p className="text-xs text-slate-500">Élèves inscrits</p>
             </div>
           </div>
@@ -205,7 +220,9 @@ export default function Home() {
               <IconTeacher className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#11233f]">+180</p>
+              <p className="text-2xl font-bold text-[#11233f]">
+                {stats ? `+${stats.teachersCount}` : "..."}
+              </p>
               <p className="text-xs text-slate-500">Professeurs certifiés</p>
             </div>
           </div>
@@ -215,7 +232,9 @@ export default function Home() {
               <IconClock className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#11233f]">+3 200 h</p>
+              <p className="text-2xl font-bold text-[#11233f]">
+                {stats ? `+${stats.hoursTaught} h` : "..."}
+              </p>
               <p className="text-xs text-slate-500">Heures de cours dispensées</p>
             </div>
           </div>
@@ -225,7 +244,9 @@ export default function Home() {
               <IconStar className="h-6 w-6 fill-[#0d8d78]" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#11233f]">98.4%</p>
+              <p className="text-2xl font-bold text-[#11233f]">
+                {stats ? `${stats.satisfactionRate}%` : "..."}
+              </p>
               <p className="text-xs text-slate-500">Taux de satisfaction</p>
             </div>
           </div>
