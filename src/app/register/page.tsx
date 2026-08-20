@@ -12,6 +12,8 @@ export default function RegisterPage() {
   const [status, setStatus] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [pending, setPending] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
 
   async function register(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,6 +63,7 @@ export default function RegisterPage() {
       }
 
       if (result.requiresEmailConfirmation) {
+        setConfirmationEmail(email);
         setStatus({ type: "success", message: "Compte créé. Consultez votre boîte email et cliquez sur le lien de confirmation avant de vous connecter." });
         return;
       }
@@ -75,6 +78,20 @@ export default function RegisterPage() {
     } catch {
       setPending(false);
       setStatus({ type: "error", message: "Erreur de connexion au serveur." });
+    }
+  }
+
+  async function resendConfirmation() {
+    if (!confirmationEmail) return;
+    setResendingConfirmation(true);
+    try {
+      const response = await fetch("/api/auth/resend-confirmation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: confirmationEmail }) });
+      const result = await response.json().catch(() => ({}));
+      setStatus({ type: response.ok ? "success" : "error", message: result.message || result.error || "Impossible de renvoyer l'email." });
+    } catch {
+      setStatus({ type: "error", message: "Impossible de contacter le service email." });
+    } finally {
+      setResendingConfirmation(false);
     }
   }
 
@@ -236,6 +253,11 @@ export default function RegisterPage() {
                 }`}
               >
                 {status.message}
+                {status.type === "success" && confirmationEmail && (
+                  <button type="button" onClick={resendConfirmation} disabled={resendingConfirmation} className="mt-3 font-bold text-[#0d8d78] underline disabled:opacity-50">
+                    {resendingConfirmation ? "Envoi en cours..." : "Renvoyer l'email de confirmation"}
+                  </button>
+                )}
               </div>
             )}
 
