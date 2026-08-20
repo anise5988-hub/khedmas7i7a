@@ -58,10 +58,11 @@ export default function TeacherDashboardPage() {
   }
 
   useEffect(() => {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
     const headers = getAuthHeaders();
     Promise.all([
       fetch("/api/teacher/profile", { headers }).then((res) => (res.ok ? res.json() : null)),
-      fetch("/api/courses", { headers }).then((res) => (res.ok ? res.json() : { courses: [] })),
+      fetch(`/api/courses?teacherId=${userId}`, { headers }).then((res) => (res.ok ? res.json() : { courses: [] })),
     ])
       .then(([teacherJson, coursesJson]) => {
         if (teacherJson?.teacher) setData(teacherJson.teacher);

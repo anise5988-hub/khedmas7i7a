@@ -254,9 +254,8 @@ export const coursesStore = {
     let courses = [...globalCoursesStore.__profy_courses!];
 
     if (filters?.teacherId) {
-      courses = courses.filter((c) => c.teacherId === filters.teacherId);
-    }
-    if (filters?.visibility) {
+      courses = courses.filter((c) => c.teacherId === filters.teacherId || c.teacherId === `teach_${filters.teacherId}`);
+    } else if (filters?.visibility) {
       courses = courses.filter((c) => c.visibility === filters.visibility);
     } else {
       // By default for public directory, return PUBLIC and LOCKED (exclude DRAFT/PRIVATE unless specified)
