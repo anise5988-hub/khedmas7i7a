@@ -105,6 +105,12 @@ export default function TeacherDashboardPage() {
 
           <div className="flex items-center gap-2.5 sm:gap-3">
             <a
+              href="/dashboard/messages"
+              className="rounded-2xl border border-slate-200 bg-[#e5f7f2] px-4 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] sm:text-sm"
+            >
+              💬 Messagerie / Chat
+            </a>
+            <a
               href="/teacher/onboarding"
               className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300 sm:text-sm"
             >

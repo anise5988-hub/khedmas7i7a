@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -37,9 +37,11 @@ type BookingItem = {
 
 const links = [
   ["Vue d'ensemble", "/dashboard"],
+  ["💬 Messagerie (Chat)", "/dashboard/messages"],
   ["Mes cours", "/dashboard/classes"],
   ["Calendrier", "/dashboard/calendar"],
   ["Portefeuille (Wallet)", "/dashboard/wallet"],
+  ["🔔 Notifications", "/dashboard/notifications"],
   ["Paramètres du compte", "/dashboard/settings"],
   ["Trouver un professeur", "/teachers"],
 ];

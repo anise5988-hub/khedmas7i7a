@@ -46,6 +46,17 @@ export async function POST(request: Request) {
       type: "INFO",
       link: `/dashboard/messages?conversationId=${conv.id}`,
     });
+  } else if (body.text && body.text.trim()) {
+    const recipientId = user.id === conv.studentId ? conv.teacherId : conv.studentId;
+    const previewText = body.text.trim().length > 80 ? body.text.trim().substring(0, 80) + "..." : body.text.trim();
+
+    notificationsStore.addNotification({
+      userId: recipientId,
+      title: `Nouveau message de ${user.firstName} ${user.lastName}`,
+      message: previewText,
+      type: "INFO",
+      link: `/dashboard/messages?conversationId=${conv.id}`,
+    });
   }
 
   const msg = chatStore.sendMessage({

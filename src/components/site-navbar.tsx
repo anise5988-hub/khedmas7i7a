@@ -98,6 +98,12 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {!loading && user && (
+            <div className="flex md:hidden items-center">
+              <NotificationCenter dark={dark} />
+            </div>
+          )}
+
           {!loading && user ? (
             <div className="hidden md:flex items-center gap-2 sm:gap-3">
               <NotificationCenter dark={dark} />
@@ -204,6 +210,20 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 >
                   <IconUser className="h-4 w-4" />
                   <span>Mon Espace ({user.firstName})</span>
+                </Link>
+                <Link
+                  href="/dashboard/messages"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xs border border-[#0d8d78]/20"
+                >
+                  💬 Messagerie / Discussions
+                </Link>
+                <Link
+                  href="/dashboard/notifications"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-2xl border border-slate-200 font-bold text-xs"
+                >
+                  🔔 Centre de Notifications
                 </Link>
 
                 <Link
