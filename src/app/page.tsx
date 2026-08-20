@@ -5,11 +5,7 @@ import { useState } from "react";
 import { calculateTeacherWithdrawal, formatTndFromMillimes } from "@/lib/finance/withdrawal";
 import { educationLevels, subjects } from "@/lib/domain/catalog";
 
-const teachers = [
-  { initials: "AN", name: "Amine Nasri", subject: "Mathématiques · Bac", rating: "4.9", price: "25 DT / h", tone: "bg-[#d9f1e9]" },
-  { initials: "SM", name: "Sarra Mejri", subject: "Français · Collège", rating: "5.0", price: "22 DT / h", tone: "bg-[#fce6d7]" },
-  { initials: "YK", name: "Yassine Khelifi", subject: "Programmation", rating: "4.8", price: "30 DT / h", tone: "bg-[#dce5f7]" },
-];
+const teachers: { initials: string; name: string; subject: string; rating: string; price: string; tone: string }[] = [];
 const subjectIcons = ["∑", "文", "Aa", "◒", "</>"];
 const feeExample = calculateTeacherWithdrawal(250_000);
 
