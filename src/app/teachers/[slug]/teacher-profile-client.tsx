@@ -1,7 +1,13 @@
-/* eslint-disable @next/next/no-html-link-for-pages, react/no-unescaped-entities */
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  IconStar,
+  IconShield,
+  IconCalendar,
+} from "@/components/icons";
 
 type TeacherData = {
   id: string;
@@ -78,9 +84,9 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
         <span className="text-4xl">👨‍🏫</span>
         <h1 className="mt-4 text-2xl font-bold">Professeur introuvable</h1>
         <p className="mt-2 text-sm text-slate-500">Ce professeur n'existe pas ou sa candidature est en cours d'examen.</p>
-        <a href="/teachers" className="mt-6 rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white">
+        <Link href="/teachers" className="mt-6 rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white">
           Explorer les professeurs vérifiés →
-        </a>
+        </Link>
       </main>
     );
   }
@@ -142,15 +148,15 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
       <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <a href="/teachers" className="text-slate-500 hover:text-slate-800 text-sm font-semibold">
+            <Link href="/teachers" className="text-slate-500 hover:text-slate-800 text-sm font-semibold">
               ← Tous les professeurs
-            </a>
+            </Link>
             <span className="text-slate-300">/</span>
             <span className="font-bold text-sm">{teacher.name}</span>
           </div>
-          <a href="/" className="font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-[-.06em]">
+          <Link href="/" className="font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-[-.06em]">
             profy<span className="text-[#0d8d78]">.tn</span>
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -175,8 +181,11 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-center min-w-[80px]">
-                  <span className="block text-lg font-bold text-amber-900">★ {teacher.rating.toFixed(1)}</span>
+                <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-center min-w-[85px]">
+                  <span className="flex items-center justify-center gap-1 text-lg font-bold text-amber-900">
+                    <IconStar className="h-4 w-4 fill-amber-500 text-amber-500" />
+                    {teacher.rating.toFixed(1)}
+                  </span>
                   <span className="block text-xs text-amber-800">{teacher.reviewsCount} avis</span>
                 </div>
               </div>
@@ -399,14 +408,16 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 <button
                   type="submit"
                   disabled={bookingLoading}
-                  className="w-full rounded-2xl bg-[#0d8d78] py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[#0d8d78] py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] disabled:opacity-50"
                 >
-                  {bookingLoading ? "Réservation en cours..." : `Confirmer et Réserver (${calculatedPrice} DT) →`}
+                  <IconCalendar className="h-4 w-4" />
+                  <span>{bookingLoading ? "Réservation en cours..." : `Confirmer et Réserver (${calculatedPrice} DT) →`}</span>
                 </button>
               </form>
 
-              <div className="text-center text-[11px] text-slate-400">
-                🔒 Paiement sécurisé par Wallet Profy.tn ou règlement direct
+              <div className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400">
+                <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
+                <span>Paiement sécurisé par Wallet Profy.tn ou règlement direct</span>
               </div>
             </div>
           </div>

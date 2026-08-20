@@ -1,7 +1,8 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, react/no-unescaped-entities, react-hooks/set-state-in-effect */
+﻿/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
+import { SiteNavbar } from "@/components/site-navbar";
 import { governorates, subjects, educationLevels } from "@/lib/domain/catalog";
 
 type Teacher = {
@@ -94,23 +95,8 @@ export default function TeachersPage() {
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <a href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-            profy<span className="text-[#0d8d78]">.tn</span>
-          </a>
-          <div className="flex items-center gap-3">
-            <a href="/login" className="text-xs font-bold text-slate-700 hover:text-slate-900 sm:text-sm">
-              Connexion
-            </a>
-            <a
-              href="/register"
-              className="rounded-full bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] sm:text-sm"
-            >
-              Créer un compte
-            </a>
-          </div>
-        </div>
+      <header className="border-b border-slate-200 bg-white">
+        <SiteNavbar dark={false} />
       </header>
 
       {/* Hero Banner */}
