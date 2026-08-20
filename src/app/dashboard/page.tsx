@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, react/no-unescaped-entities, @typescript-eslint/no-unused-vars */
+﻿/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -64,21 +64,22 @@ export default function StudentDashboard() {
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
       {/* Top Header */}
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+      <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <a href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-            profy<span className="text-[#0d8d78]">.tn</span>
+          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+            <span>ProfySpace</span>
+            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
           </a>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <a
               href="/dashboard/wallet/add-money"
-              className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 sm:px-4 sm:py-2 sm:text-sm"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 hover:border-slate-300 sm:text-sm"
             >
               Recharger solde
             </a>
             <a
               href="/teachers"
-              className="rounded-full bg-[#11233f] px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 sm:px-4 sm:py-2 sm:text-sm"
+              className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
             >
               Trouver un professeur
             </a>
@@ -230,7 +231,7 @@ export default function StudentDashboard() {
                 <span className="text-2xl">💡</span>
                 <h3 className="mt-2 font-bold text-base">Besoin d'aide ?</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  Une question sur vos cours ou un paiement ? L'équipe support Profy.tn est disponible.
+                  Une question sur vos cours ou un paiement ? L'équipe support ProfySpace.tn est disponible.
                 </p>
                 <a href="/support" className="mt-3 inline-block text-xs font-bold text-[#0d8d78] hover:underline">
                   Contacter le support →

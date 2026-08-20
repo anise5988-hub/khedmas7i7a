@@ -1,4 +1,4 @@
-﻿/* eslint-disable react/no-unescaped-entities, @next/next/no-location-assign-relative-destination */
+﻿/* eslint-disable @next/next/no-location-assign-relative-destination */
 "use client";
 
 import Link from "next/link";
@@ -53,7 +53,7 @@ export default function RegisterPage() {
         <div className="mt-8 rounded-3xl bg-white p-6 sm:p-10 shadow-2xl">
           <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Inscription Sécurisée</p>
           <h1 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
-            Rejoignez la communauté Profy.tn
+            Rejoignez la communauté ProfySpace.tn
           </h1>
           <p className="mt-2 text-sm text-slate-500">
             Choisissez votre profil pour commencer votre expérience d'apprentissage ou d'enseignement.

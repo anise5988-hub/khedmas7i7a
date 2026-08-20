@@ -33,9 +33,9 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-# Profy.tn
+# ProfySpace.tn
 
-Marketplace tunisienne pour trouver, réserver et suivre des cours particuliers.
+Marketplace tunisienne moderne pour trouver, réserver et suivre des cours particuliers en direct.
 
 ## Local
 

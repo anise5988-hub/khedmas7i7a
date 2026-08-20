@@ -3,6 +3,10 @@
 :root {
   --background: #f8fafc;
   --foreground: #11233f;
+  --primary: #0d8d78;
+  --primary-hover: #0b7866;
+  --primary-light: #e5f7f2;
+  --accent: #72d6bf;
 }
 
 @theme inline {
@@ -11,34 +15,106 @@
   --font-sans: var(--font-manrope);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-manrope), sans-serif;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-::selection { background: #c9f2e9; color: #11233f; }
+::selection {
+  background: #c9f2e9;
+  color: #11233f;
+}
 
+/* Custom Smooth Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(13, 141, 120, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(13, 141, 120, 0.5);
+}
+
+/* Glassmorphism & UI Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+  background: rgba(16, 27, 45, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gradient-border {
+  position: relative;
+  background-clip: padding-box;
+}
+
+/* Animations */
 @keyframes profy-reveal {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.profy-reveal { animation: profy-reveal 600ms ease-out both; }
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(0.98); }
+}
+
+.profy-reveal {
+  animation: profy-reveal 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
 .profy-reveal-delay-1 { animation-delay: 100ms; }
 .profy-reveal-delay-2 { animation-delay: 200ms; }
+.profy-reveal-delay-3 { animation-delay: 300ms; }
 
-nav a[href="/login"] { display: inline-flex; align-items: center; }
+.animate-float {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+.card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -8px rgba(17, 35, 63, 0.08);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .profy-reveal { animation: none; }
+  .profy-reveal, .animate-float, .card-hover {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }

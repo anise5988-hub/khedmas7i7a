@@ -1,4 +1,4 @@
-﻿ 
+﻿
 "use client";
 
 import { useEffect, useState } from "react";
@@ -184,7 +184,7 @@ export default function TeacherWithdrawalsPage() {
                 </div>
 
                 <div className="flex justify-between text-slate-600">
-                  <span>Frais plateforme Profy (10%) :</span>
+                  <span>Frais plateforme ProfySpace (10%) :</span>
                   <span className="font-bold text-amber-800">
                     - {formatTndFromMillimes(calculation.feeAmountInMillimes)}
                   </span>

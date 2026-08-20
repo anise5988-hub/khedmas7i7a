@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, react/no-unescaped-entities, @typescript-eslint/no-unused-vars */
+﻿/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -133,12 +133,13 @@ export default function TeacherOnboardingPage() {
     <main className="min-h-screen bg-[#f8fafc] px-4 py-8 sm:px-6 sm:py-12 text-[#11233f]">
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
-          <a href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-            profy<span className="text-[#0d8d78]">.tn</span>
+          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+            <span>ProfySpace</span>
+            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
           </a>
           <a
             href="/teacher/dashboard"
-            className="rounded-full bg-[#11233f] px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800 sm:text-sm"
+            className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
           >
             Accéder à mon espace →
           </a>
@@ -205,7 +206,7 @@ export default function TeacherOnboardingPage() {
             <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Dossier de candidature</p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight">Formulaire de professeur</h1>
             <p className="mt-2 text-sm text-slate-500">
-              Remplissez les informations de votre profil. Elles seront examinées par l'équipe Profy.tn avant
+              Remplissez les informations de votre profil. Elles seront examinées par l'équipe ProfySpace.tn avant
               publication.
             </p>
           </div>

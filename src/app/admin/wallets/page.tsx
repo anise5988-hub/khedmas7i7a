@@ -1,4 +1,4 @@
-﻿/* eslint-disable react/no-unescaped-entities */
+﻿ 
 "use client";
 
 import { useEffect, useState } from "react";
@@ -68,8 +68,9 @@ export default function AdminWalletsPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="flex items-center gap-4">
-            <a href="/admin" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-              profy<span className="text-[#72d6bf]">.admin</span>
+            <a href="/admin" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+              <span>ProfySpace</span>
+              <span className="rounded-md bg-[#72d6bf] px-1.5 py-0.5 text-xs font-extrabold text-[#101b2d]">.admin</span>
             </a>
             <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-slate-300">
               Recharges Wallet & Dépôts

@@ -36,8 +36,9 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="flex items-center gap-4">
-            <a href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-              profy<span className="text-[#72d6bf]">.admin</span>
+            <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+              <span>ProfySpace</span>
+              <span className="rounded-md bg-[#72d6bf] px-1.5 py-0.5 text-xs font-extrabold text-[#101b2d]">.admin</span>
             </a>
             <span className="rounded-full bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 px-3 py-1 text-xs font-bold">
               Console Super-Admin
@@ -47,7 +48,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-3">
             <a
               href="/admin/teacher-verifications"
-              className="rounded-full bg-[#72d6bf] px-4 py-2 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] sm:text-sm"
+              className="rounded-2xl bg-[#72d6bf] px-4 py-2 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] shadow-sm sm:text-sm"
             >
               Candidatures ({stats?.pendingTeachersCount ?? 0} en attente)
             </a>

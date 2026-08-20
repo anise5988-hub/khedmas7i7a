@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unescaped-entities */
+ 
 "use client";
 
 import Link from "next/link";
@@ -154,8 +154,9 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
             <span className="text-slate-300">/</span>
             <span className="font-bold text-sm">{teacher.name}</span>
           </div>
-          <Link href="/" className="font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-[-.06em]">
-            profy<span className="text-[#0d8d78]">.tn</span>
+          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight">
+            <span>ProfySpace</span>
+            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
           </Link>
         </div>
       </header>
@@ -417,7 +418,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
               <div className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400">
                 <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
-                <span>Paiement sécurisé par Wallet Profy.tn ou règlement direct</span>
+                <span>Paiement sécurisé par Wallet ProfySpace.tn ou règlement direct</span>
               </div>
             </div>
           </div>

@@ -31,7 +31,7 @@ export function ClassroomClient({ id }: { id: string }) {
     {
       id: "welcome",
       sender: "Système",
-      text: "Bienvenue dans la classe virtuelle Profy.tn. Vous pouvez échanger des messages, envoyer des exercices, des documents PDF et des photos en direct.",
+      text: "Bienvenue dans la classe virtuelle ProfySpace.tn. Vous pouvez échanger des messages, envoyer des exercices, des documents PDF et des photos en direct.",
       time: "Direct",
     },
   ]);

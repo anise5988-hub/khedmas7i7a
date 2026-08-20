@@ -13,8 +13,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Profy.tn | Trouve le professeur qui te correspond",
-  description: "La marketplace tunisienne pour apprendre avec le bon professeur.",
+  title: "ProfySpace.tn | Trouve le professeur qui te correspond",
+  description: "La marketplace tunisienne moderne pour trouver, réserver et apprendre avec les meilleurs professeurs particuliers.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

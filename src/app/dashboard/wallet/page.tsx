@@ -1,4 +1,4 @@
-﻿ 
+﻿
 "use client";
 
 import { useEffect, useState } from "react";
@@ -100,7 +100,7 @@ export default function StudentWalletPage() {
 
             <div className="mt-4 border-t border-slate-100 pt-3 flex justify-between text-xs text-slate-500">
               <span>Sécurité plateforme : 100% garanti</span>
-              <a href="/support" className="font-bold text-[#0d8d78] hover:underline">Support paiement</a>
+              <a href="/support" className="font-bold text-[#0d8d78] hover:underline">Support paiement ProfySpace</a>
             </div>
           </div>
         </div>

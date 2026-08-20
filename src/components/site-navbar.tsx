@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-location-assign-relative-destination */
+﻿/* eslint-disable @next/next/no-location-assign-relative-destination */
 "use client";
 
 import Link from "next/link";
@@ -15,6 +15,7 @@ type UserSession = {
 export function SiteNavbar({ dark = false }: { dark?: boolean }) {
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -39,74 +40,152 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
       : "/dashboard";
 
   return (
-    <nav className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-      <Link href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-        <span className={dark ? "text-white" : "text-[#11233f]"}>profy</span>
-        <span className={dark ? "text-[#72d6bf]" : "text-[#0d8d78]"}>.tn</span>
-      </Link>
+    <header className="relative w-full z-30">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-4 lg:px-10">
+        <Link
+          href="/"
+          className="group flex items-center gap-1.5 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight transition duration-200"
+        >
+          <span className={dark ? "text-white group-hover:text-slate-100" : "text-[#11233f] group-hover:text-[#0d8d78]"}>
+            ProfySpace
+          </span>
+          <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white shadow-sm">
+            .tn
+          </span>
+        </Link>
 
-      <div className={`hidden items-center gap-8 text-sm font-semibold md:flex ${dark ? "text-slate-300" : "text-slate-600"}`}>
-        <Link href="/teachers" className="hover:text-[#0d8d78] transition">
-          Explorer les professeurs
-        </Link>
-        <Link href="/#how" className="hover:text-[#0d8d78] transition">
-          Comment ça marche
-        </Link>
-        <Link href="/teacher/onboarding" className="hover:text-[#0d8d78] transition">
-          Devenir professeur
-        </Link>
-      </div>
+        {/* Desktop Links */}
+        <div className={`hidden items-center gap-8 text-sm font-semibold md:flex ${dark ? "text-slate-300" : "text-slate-600"}`}>
+          <Link href="/teachers" className="hover:text-[#0d8d78] transition duration-200">
+            Explorer les professeurs
+          </Link>
+          <Link href="/#how" className="hover:text-[#0d8d78] transition duration-200">
+            Comment ça marche
+          </Link>
+          <Link href="/teacher/onboarding" className="hover:text-[#0d8d78] transition duration-200">
+            Devenir professeur
+          </Link>
+        </div>
 
-      <div className="flex items-center gap-3">
-        {!loading && user ? (
-          <div className="flex items-center gap-3">
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          {!loading && user ? (
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                href={dashboardUrl}
+                className={`flex items-center gap-2 rounded-2xl px-3.5 py-2 text-xs sm:text-sm font-bold shadow-sm transition duration-200 ${
+                  dark
+                    ? "bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                    : "bg-[#e5f7f2] text-[#0d8d78] hover:bg-[#d4f2e9] border border-[#0d8d78]/25"
+                }`}
+              >
+                <IconUser className="h-4 w-4 shrink-0 text-[#0d8d78]" />
+                <span className="truncate max-w-[120px] sm:max-w-none">{user.firstName} (Mon Espace)</span>
+              </Link>
+
+              <button
+                onClick={handleLogout}
+                title="Se déconnecter"
+                className={`rounded-xl p-2 text-xs transition duration-200 ${
+                  dark
+                    ? "bg-white/10 text-slate-300 hover:text-white hover:bg-white/20"
+                    : "bg-slate-100 text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200"
+                }`}
+              >
+                <IconLogout className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="hidden sm:flex items-center gap-3">
+              <Link
+                href="/login"
+                className={`text-xs sm:text-sm font-semibold px-3 py-2 transition duration-200 ${
+                  dark ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-slate-900"
+                }`}
+              >
+                Se connecter
+              </Link>
+              <Link
+                href="/register"
+                className={`rounded-2xl px-5 py-2.5 text-xs sm:text-sm font-bold transition duration-300 shadow-md ${
+                  dark
+                    ? "bg-[#72d6bf] text-[#11233f] hover:bg-[#5ec4ad] hover:shadow-[#72d6bf]/20"
+                    : "bg-[#0d8d78] text-white hover:bg-[#0b7866] hover:shadow-[#0d8d78]/20"
+                }`}
+              >
+                S’inscrire
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Hamburger Toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`p-2 rounded-xl md:hidden transition ${
+              dark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-700"
+            }`}
+            aria-label="Menu Mobile"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {mobileMenuOpen ? (
+                <path d="M18 6 6 18M6 6l12 12" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className={`md:hidden px-6 py-5 border-b backdrop-blur-xl ${
+          dark ? "bg-[#101b2d]/95 border-white/10 text-white" : "bg-white/95 border-slate-200 text-[#11233f]"
+        }`}>
+          <div className="flex flex-col space-y-3.5 text-sm font-bold">
             <Link
-              href={dashboardUrl}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold shadow-sm transition ${
-                dark
-                  ? "bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                  : "bg-[#e5f7f2] text-[#0d8d78] hover:bg-[#d4f2e9] border border-[#0d8d78]/20"
-              }`}
+              href="/teachers"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-1 hover:text-[#0d8d78] transition"
             >
-              <IconUser className="h-4 w-4" />
-              <span>{user.firstName} (Mon Espace)</span>
+              Explorer les professeurs
+            </Link>
+            <Link
+              href="/#how"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-1 hover:text-[#0d8d78] transition"
+            >
+              Comment ça marche
+            </Link>
+            <Link
+              href="/teacher/onboarding"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-1 hover:text-[#0d8d78] transition"
+            >
+              Devenir professeur
             </Link>
 
-            <button
-              onClick={handleLogout}
-              title="Se déconnecter"
-              className={`rounded-full p-2 text-xs transition ${
-                dark
-                  ? "bg-white/10 text-slate-300 hover:text-white hover:bg-white/20"
-                  : "bg-slate-100 text-slate-600 hover:text-rose-600 hover:bg-rose-50"
-              }`}
-            >
-              <IconLogout className="h-4 w-4" />
-            </button>
+            {!user && (
+              <div className="pt-3 border-t border-slate-200/20 flex flex-col gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-xl border border-slate-300 font-bold text-xs"
+                >
+                  Se connecter
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-xl bg-[#0d8d78] text-white font-bold text-xs shadow-md"
+                >
+                  S'inscrire
+                </Link>
+              </div>
+            )}
           </div>
-        ) : (
-          <>
-            <Link
-              href="/login"
-              className={`text-xs sm:text-sm font-semibold transition ${
-                dark ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-slate-900"
-              }`}
-            >
-              Se connecter
-            </Link>
-            <Link
-              href="/register"
-              className={`rounded-full px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition duration-300 shadow-md ${
-                dark
-                  ? "bg-[#72d6bf] text-[#11233f] hover:bg-[#5ec4ad]"
-                  : "bg-[#0d8d78] text-white hover:bg-[#0b7866]"
-              }`}
-            >
-              S’inscrire
-            </Link>
-          </>
-        )}
-      </div>
-    </nav>
+        </div>
+      )}
+    </header>
   );
 }

@@ -68,8 +68,9 @@ export default function AdminWithdrawalsPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="flex items-center gap-4">
-            <a href="/admin" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-              profy<span className="text-[#72d6bf]">.admin</span>
+            <a href="/admin" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+              <span>ProfySpace</span>
+              <span className="rounded-md bg-[#72d6bf] px-1.5 py-0.5 text-xs font-extrabold text-[#101b2d]">.admin</span>
             </a>
             <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-slate-300">
               Retraits Professeurs & Commissions
@@ -89,7 +90,7 @@ export default function AdminWithdrawalsPage() {
           <div>
             <h1 className="text-3xl font-bold">Demandes de retraits ({withdrawals.length})</h1>
             <p className="mt-1 text-sm text-slate-400">
-              Vérifiez les gains professeurs et les 10% de frais plateforme Profy.tn avant virement.
+              Vérifiez les gains professeurs et les 10% de frais plateforme ProfySpace.tn avant virement.
             </p>
           </div>
 

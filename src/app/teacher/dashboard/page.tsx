@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, react/no-unescaped-entities */
+﻿/* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -87,25 +87,26 @@ export default function TeacherDashboardPage() {
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
-          <div className="flex items-center gap-4">
-            <a href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-              profy<span className="text-[#0d8d78]">.tn</span>
+          <div className="flex items-center gap-3">
+            <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+              <span>ProfySpace</span>
+              <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
             </a>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+            <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 px-3 py-1 text-xs font-bold text-[#0d8d78]">
               Espace Professeur
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <a
               href="/teacher/onboarding"
-              className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 sm:text-sm"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300 sm:text-sm"
             >
               Modifier mon dossier / tarifs
             </a>
             <a
               href="/teacher/dashboard/withdrawals"
-              className="rounded-full bg-[#11233f] px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800 sm:text-sm"
+              className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
             >
               Retraits & Revenus
             </a>
@@ -129,7 +130,7 @@ export default function TeacherDashboardPage() {
                   </div>
                   <p className="mt-1 text-sm text-amber-800 max-w-2xl leading-relaxed">
                     Votre dossier a été bien reçu. Notre équipe administrative vérifie actuellement vos informations.
-                    Dès approbation, vos créneaux et votre fiche professeur apparaîtront en ligne pour recevoir des réservations.
+                    Dès approbation, vos créneaux et votre fiche professeur apparaîtront en ligne sur ProfySpace.tn.
                   </p>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, react/no-unescaped-entities */
+﻿/* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
 import { useState } from "react";
@@ -247,7 +247,7 @@ export default function AddMoneyPage() {
 
           <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
             <IconShield className="h-4 w-4 text-[#0d8d78]" />
-            <span>Paiement 100% sécurisé et garanti par l'équipe financière Profy.tn</span>
+            <span>Paiement 100% sécurisé et garanti par l'équipe financière ProfySpace.tn</span>
           </div>
         </form>
       </div>

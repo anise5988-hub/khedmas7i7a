@@ -49,8 +49,9 @@ export default function TeacherStudentsPage() {
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
       <header className="border-b border-slate-200 bg-white px-6 py-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <a href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
-            profy<span className="text-[#0d8d78]">.tn</span>
+          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+            <span>ProfySpace</span>
+            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
           </a>
           <a href="/teacher/dashboard" className="text-sm font-bold text-[#0d8d78] hover:underline">
             ← Dashboard professeur

@@ -1,4 +1,4 @@
-﻿/* eslint-disable react/no-unescaped-entities, @next/next/no-location-assign-relative-destination */
+﻿/* eslint-disable @next/next/no-location-assign-relative-destination */
 "use client";
 
 import { useEffect, useState } from "react";
