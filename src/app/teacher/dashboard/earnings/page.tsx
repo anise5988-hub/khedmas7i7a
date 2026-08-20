@@ -1,5 +1,153 @@
-/* eslint-disable @next/next/no-html-link-for-pages */
-import { calculateTeacherWithdrawal, formatTndFromMillimes } from "@/lib/finance/withdrawal";
-import { Metric } from "@/components/page-shell";
+﻿/* eslint-disable @next/next/no-html-link-for-pages, react/no-unescaped-entities */
+"use client";
 
-export default function TeacherEarningsPage() { const withdrawal = calculateTeacherWithdrawal(780_000); return <main className="min-h-screen bg-[#f8fafc] text-[#11233f]"><header className="border-b border-slate-200 bg-white px-6 py-5"><div className="mx-auto flex max-w-7xl items-center justify-between"><a href="/" className="text-2xl font-bold tracking-[-.06em]">profy<span className="text-[#0d8d78]">.tn</span></a><a href="/teacher/dashboard" className="text-sm font-bold text-[#0d8d78]">← Dashboard professeur</a></div></header><section className="mx-auto max-w-7xl px-6 py-12"><p className="text-sm font-bold uppercase tracking-[.18em] text-[#0d8d78]">Espace professeur</p><h1 className="mt-2 text-4xl font-bold tracking-tight">Revenus & retraits</h1><div className="mt-8 grid gap-4 sm:grid-cols-3"><Metric label="Solde disponible" value="780,000 DT" /><Metric label="En attente" value="120,000 DT" /><Metric label="Total gagné" value="4 850,000 DT" /></div><div className="mt-6 grid gap-5 lg:grid-cols-[1fr_380px]"><div className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-bold">Historique des revenus</h2><div className="mt-6 divide-y divide-slate-100">{["Mathématiques · 60 min", "Mathématiques · 90 min", "Révision Bac · 60 min"].map((item, index) => <div key={item} className="flex items-center justify-between py-4"><div><p className="font-semibold">{item}</p><p className="mt-1 text-sm text-slate-500">{index + 1} août 2026 · Payé</p></div><span className="font-bold text-[#0d8d78]">+ {25 + index * 5},000 DT</span></div>)}</div></div><div className="h-fit rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-bold">Demander un retrait</h2><p className="mt-3 text-sm leading-6 text-slate-500">Les frais plateforme sont de 10%. Le montant net est calculé avant validation.</p><div className="mt-5 rounded-xl bg-[#f8fafc] p-4 text-sm"><div className="flex justify-between"><span>Montant demandé</span><strong>{formatTndFromMillimes(withdrawal.requestedAmountInMillimes)}</strong></div><div className="mt-3 flex justify-between text-slate-500"><span>Frais Profy (10%)</span><span>- {formatTndFromMillimes(withdrawal.feeAmountInMillimes)}</span></div><div className="mt-3 flex justify-between border-t border-slate-200 pt-3 font-bold"><span>Vous recevez</span><span className="text-[#0d8d78]">{formatTndFromMillimes(withdrawal.payoutAmountInMillimes)}</span></div></div><button className="mt-5 w-full rounded-xl bg-[#0d8d78] px-4 py-3 font-bold text-white">Demander le retrait</button></div></div></section></main>; }
+import { useEffect, useState } from "react";
+import { formatTndFromMillimes } from "@/lib/finance/withdrawal";
+
+
+type TeacherProfile = {
+  hourlyRateTnd: number;
+  bookings: {
+    id: string;
+    startsAt: string;
+    durationMinutes: number;
+    amountMillimes: number;
+    status: string;
+    student: { firstName: string; lastName: string };
+  }[];
+  withdrawals: {
+    id: string;
+    requestedMillimes: number;
+    feeMillimes: number;
+    payoutMillimes: number;
+    status: string;
+    createdAt: string;
+  }[];
+};
+
+export default function TeacherEarningsPage() {
+  const [teacher, setTeacher] = useState<TeacherProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/teacher/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.teacher) setTeacher(data.teacher);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalEarnedMillimes =
+    teacher?.bookings
+      .filter((b) => b.status === "CONFIRMED" || b.status === "COMPLETED")
+      .reduce((sum, b) => sum + b.amountMillimes, 0) ?? 0;
+
+  const totalWithdrawnMillimes =
+    teacher?.withdrawals
+      .filter((w) => w.status === "PAID" || w.status === "APPROVED")
+      .reduce((sum, w) => sum + w.requestedMillimes, 0) ?? 0;
+
+  const availableBalanceMillimes = Math.max(0, totalEarnedMillimes - totalWithdrawnMillimes);
+
+  return (
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+      <header className="border-b border-slate-200 bg-white px-6 py-5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <a href="/" className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-[-.06em]">
+            profy<span className="text-[#0d8d78]">.tn</span>
+          </a>
+          <a href="/teacher/dashboard" className="text-sm font-bold text-[#0d8d78] hover:underline">
+            ← Dashboard professeur
+          </a>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-7xl px-6 py-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[.18em] text-[#0d8d78]">Espace professeur</p>
+            <h1 className="mt-1 text-4xl font-bold tracking-tight">Revenus & Retraits</h1>
+            <p className="mt-1 text-sm text-slate-500">Suivez les gains de vos séances de cours et vos demandes de virement.</p>
+          </div>
+
+          <a
+            href="/teacher/dashboard/withdrawals"
+            className="rounded-2xl bg-[#0d8d78] px-5 py-3 font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866]"
+          >
+            Demander un retrait →
+          </a>
+        </div>
+
+        {/* Metrics Grid */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Solde disponible</span>
+            <p className="mt-2 text-3xl font-bold text-[#0d8d78]">
+              {formatTndFromMillimes(availableBalanceMillimes)}
+            </p>
+            <p className="mt-1 text-xs text-slate-400">Prêt pour virement bancaire / D17</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total cumulé gagné</span>
+            <p className="mt-2 text-3xl font-bold text-[#11233f]">
+              {formatTndFromMillimes(totalEarnedMillimes)}
+            </p>
+            <p className="mt-1 text-xs text-slate-400">Depuis vos premières séances</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total déjà retiré</span>
+            <p className="mt-2 text-3xl font-bold text-slate-700">
+              {formatTndFromMillimes(totalWithdrawnMillimes)}
+            </p>
+            <p className="mt-1 text-xs text-slate-400">Virements effectués</p>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+          {/* Earnings from Bookings */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <h2 className="text-xl font-bold">Séances rémunérées</h2>
+            <p className="text-xs text-slate-400">Gains générés par élève</p>
+
+            {loading ? (
+              <div className="py-12 text-center text-slate-400">Chargement...</div>
+            ) : !teacher?.bookings || teacher.bookings.length === 0 ? (
+              <div className="py-12 text-center text-slate-400">Aucune séance rémunérée pour le moment.</div>
+            ) : (
+              <div className="mt-4 divide-y divide-slate-100">
+                {teacher.bookings.map((b) => (
+                  <div key={b.id} className="flex items-center justify-between py-4 text-sm">
+                    <div>
+                      <p className="font-bold">{b.student.firstName} {b.student.lastName}</p>
+                      <p className="text-xs text-slate-400">
+                        {new Date(b.startsAt).toLocaleDateString("fr-TN")} ({b.durationMinutes} min)
+                      </p>
+                    </div>
+                    <span className="font-bold text-[#0d8d78]">
+                      + {formatTndFromMillimes(b.amountMillimes)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Quick Info Box */}
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-slate-200 bg-[#e7f5f1] p-6 sm:p-8">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">Transparence financière</span>
+              <h3 className="mt-2 font-bold text-lg">Comment fonctionnent vos gains ?</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Vous fixez librement votre tarif horaire. Dès qu'une séance est réservée et confirmée, le montant est crédité sur votre compte professeur. Vous pouvez demander un virement dès 10 DT.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

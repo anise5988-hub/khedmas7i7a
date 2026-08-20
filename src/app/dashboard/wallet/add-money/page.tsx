@@ -1,10 +1,184 @@
-/* eslint-disable react/no-unescaped-entities */
+﻿ 
 "use client";
 
 import { useState } from "react";
 
-const methods = [{ id: "D17", title: "D17", subtitle: "Paiement mobile", instructions: "Numéro D17 : 21 000 319\nTitulaire : Ayhem", tone: "bg-[#e8f2f8]" }, { id: "BANK_TRANSFER", title: "Virement bancaire", subtitle: "BTE", instructions: "RIB : 24031147426251110157\nTitulaire : Ayhem", tone: "bg-[#eef0f7]" }, { id: "FLOUCI", title: "Flouci", subtitle: "Paiement mobile", instructions: "Numéro : 21 000 319\nTitulaire : Ayhem", tone: "bg-[#fff0e7]" }, { id: "ZITOUNA", title: "Paiement Zitouna", subtitle: "Paiement mobile", instructions: "Numéro : 21 000 319\nTitulaire : Ayhem", tone: "bg-[#eaf6ef]" }];
+const depositMethods = [
+  { id: "D17", name: "La Poste Tunisienne (D17)", instructions: "Envoyez le montant au numéro D17 Profy : +216 20 000 000 puis saisissez le numéro de transaction reçu par SMS." },
+  { id: "FLOUCI", name: "Flouci Wallet", instructions: "Transférez vers le compte Flouci : @profy_tn puis indiquez l'identifiant de transfert." },
+  { id: "BANK_TRANSFER", name: "Virement Bancaire (RIB)", instructions: "Effectuez un virement vers le RIB : 08 000 1234567890123 45 (Banque de Tunisie) et indiquez votre nom en référence." },
+  { id: "ZITOUNA", name: "Banque Zitouna", instructions: "Versement ou virement sur notre compte Zitouna : 25 000 9876543210123 99." },
+] as const;
 
-export default function AddMoneyPage() { const [method, setMethod] = useState(methods[0]); const [message, setMessage] = useState(""); const [pending, setPending] = useState(false); async function submit(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); setPending(true); setMessage(""); const data = new FormData(event.currentTarget); const response = await fetch("/api/wallet/deposits", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountMillimes: Math.round(Number(data.get("amount")) * 1000), method: method.id, reference: data.get("reference") }) }); const result = await response.json().catch(() => ({})); setPending(false); setMessage(response.ok ? result.message : result.error ?? "Impossible d'envoyer la demande."); if (response.ok) event.currentTarget.reset(); }
- return <main className="min-h-screen bg-[#f4f6fa] text-[#11233f]"><header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6"><div className="mx-auto flex max-w-7xl items-center justify-between"><a href="/dashboard/wallet" className="font-bold">← Wallet</a><a href="/dashboard" className="text-2xl font-bold tracking-[-.06em]">profy<span className="text-[#0d8d78]">.tn</span></a></div></header><section className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12"><p className="text-sm font-bold uppercase tracking-[.16em] text-[#0d8d78]">Recharge wallet</p><h1 className="mt-2 text-3xl font-bold sm:text-4xl">Ajouter de l'argent</h1><p className="mt-3 text-slate-500">Choisis un moyen, effectue le paiement, puis envoie la référence. Ton solde reste inchangé jusqu'à validation.</p><div className="mt-8 grid gap-4">{methods.map((item) => <button type="button" key={item.id} onClick={() => setMethod(item)} className={`rounded-3xl border p-5 text-left transition duration-300 hover:-translate-y-1 hover:shadow-lg ${method.id === item.id ? "border-[#0d8d78] ring-2 ring-[#b9e6dc]" : "border-slate-200 bg-white"}`}><div className="flex items-center gap-4"><div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${item.tone} text-sm font-bold`}>{item.title === "Virement bancaire" ? "BTE" : item.title}</div><div><h2 className="text-lg font-bold">{item.title}</h2><p className="mt-1 text-sm text-slate-500">{item.subtitle}</p></div><span className="ml-auto text-xl">{method.id === item.id ? "●" : "○"}</span></div><div className="mt-5 whitespace-pre-line rounded-xl bg-white/70 p-3 text-sm text-slate-600">{item.instructions}</div></button>)}</div><form onSubmit={submit} className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7"><h2 className="text-xl font-bold">Envoyer une demande de dépôt</h2><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm font-semibold">Montant à déposer (DT)<input name="amount" required min="1" step="0.001" type="number" placeholder="Ex : 50" className="mt-2 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-[#0d8d78]" /></label><label className="text-sm font-semibold">Référence de transaction<input name="reference" required placeholder="Référence affichée après paiement" className="mt-2 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-[#0d8d78]" /></label></div>{message && <p className="mt-4 rounded-xl bg-[#e5f7f2] p-3 text-sm font-semibold text-[#0d8d78]">{message}</p>}<button disabled={pending} className="mt-5 w-full rounded-xl bg-[#11233f] px-4 py-3 font-bold text-white transition hover:bg-[#0d8d78] disabled:opacity-50">{pending ? "Envoi..." : `Envoyer via ${method.title}`}</button></form></section></main>;
+export default function AddMoneyPage() {
+  const [amount, setAmount] = useState(30);
+  const [method, setMethod] = useState<"D17" | "BANK_TRANSFER" | "FLOUCI" | "ZITOUNA">("D17");
+  const [reference, setReference] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const res = await fetch("/api/wallet/deposits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amountMillimes: Math.round(Number(amount) * 1000),
+          method,
+          reference: reference.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({
+          type: "success",
+          text: "Demande de recharge envoyée avec succès ! Notre équipe financière vérifiera votre référence sous 15 minutes et créditera votre solde.",
+        });
+        setReference("");
+      } else {
+        setMessage({ type: "error", text: data.error || "Une erreur est survenue." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Erreur de connexion au serveur." });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const selectedInstructions = depositMethods.find((m) => m.id === method)?.instructions;
+
+  return (
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <div className="flex items-center gap-3">
+            <a href="/dashboard/wallet" className="text-slate-500 hover:text-slate-800">
+              ← Retour au Wallet
+            </a>
+            <span className="text-slate-300">/</span>
+            <span className="font-bold">Recharger mon compte</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
+        <div className="text-center">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Paiement Sécurisé Tunisie</p>
+          <h1 className="mt-2 text-3xl font-bold">Recharger mon solde de cours</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Choisissez votre méthode de paiement locale préférée et indiquez votre référence de paiement.
+          </p>
+        </div>
+
+        {message.text && (
+          <div
+            className={`mt-6 rounded-2xl p-4 text-sm font-semibold ${
+              message.type === "success"
+                ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border border-rose-200 bg-rose-50 text-rose-800"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              1. Montant à recharger (DT) *
+            </label>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {[20, 30, 50, 100].map((val) => (
+                <button
+                  type="button"
+                  key={val}
+                  onClick={() => setAmount(val)}
+                  className={`rounded-xl border py-2.5 text-xs font-bold transition ${
+                    amount === val
+                      ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                  }`}
+                >
+                  {val} DT
+                </button>
+              ))}
+            </div>
+            <input
+              type="number"
+              min="1"
+              max="10000"
+              required
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              placeholder="Montant libre en Dinars"
+              className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              2. Méthode de paiement *
+            </label>
+            <div className="space-y-2">
+              {depositMethods.map((m) => (
+                <label
+                  key={m.id}
+                  className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition ${
+                    method === m.id ? "border-[#0d8d78] bg-[#e5f7f2]" : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="method"
+                      checked={method === m.id}
+                      onChange={() => setMethod(m.id as never)}
+                      className="text-[#0d8d78] focus:ring-[#0d8d78]"
+                    />
+                    <span className="font-bold text-sm">{m.name}</span>
+                  </div>
+                  <span className="text-xs font-bold text-[#0d8d78]">TND</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-900 leading-relaxed">
+            <p className="font-bold mb-1">📌 Instructions de paiement :</p>
+            <p>{selectedInstructions}</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              3. Référence de la transaction / Numéro de reçu *
+            </label>
+            <input
+              type="text"
+              required
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              placeholder="Ex: D17-88992211 ou numéro de virement"
+              className="w-full rounded-xl border border-slate-200 p-3.5 text-sm font-mono outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+            />
+            <p className="mt-1 text-xs text-slate-400">
+              Indiquez la référence fournie par votre application de paiement pour identification instantanée.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-2xl bg-[#0d8d78] py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition duration-300 hover:bg-[#0b7866] hover:shadow-xl disabled:opacity-50"
+          >
+            {loading ? "Validation en cours..." : `Confirmer la recharge de ${amount} DT →`}
+          </button>
+        </form>
+      </div>
+    </main>
+  );
 }
