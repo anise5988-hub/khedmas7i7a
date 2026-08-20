@@ -1,4 +1,4 @@
-﻿ 
+﻿
 "use client";
 
 import Link from "next/link";
@@ -48,9 +48,15 @@ export default function AddMoneyPage() {
     setMessage({ type: "", text: "" });
 
     try {
+      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(userId ? { "x-user-id": userId } : {}),
+      };
+
       const res = await fetch("/api/wallet/deposits", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           amountMillimes: Math.round(Number(amount) * 1000),
           method,

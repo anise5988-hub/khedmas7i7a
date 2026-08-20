@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-location-assign-relative-destination */
+/* eslint-disable @next/next/no-location-assign-relative-destination */
 "use client";
 
 import Link from "next/link";
@@ -13,21 +13,42 @@ type UserSession = {
 };
 
 export function SiteNavbar({ dark = false }: { dark?: boolean }) {
-  const [user, setUser] = useState<UserSession | null>(null);
+  const [user, setUser] = useState<UserSession | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const saved = localStorage.getItem("profyspace_user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
+
+    fetch("/api/auth/me", { headers })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.user) setUser(data.user);
+        if (data?.user) {
+          setUser(data.user);
+          localStorage.setItem("profyspace_user", JSON.stringify(data.user));
+          if (data.user.id) localStorage.setItem("profyspace_user_id", data.user.id);
+        } else {
+          setUser(null);
+          localStorage.removeItem("profyspace_user");
+          localStorage.removeItem("profyspace_user_id");
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
   async function handleLogout() {
+    localStorage.removeItem("profyspace_user");
+    localStorage.removeItem("profyspace_user_id");
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/";
   }

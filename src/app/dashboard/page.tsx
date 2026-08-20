@@ -45,19 +45,34 @@ const links = [
 ];
 
 export default function StudentDashboard() {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const saved = localStorage.getItem("profyspace_user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
+
     Promise.all([
-      fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/wallet").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/bookings").then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/auth/me", { headers }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/wallet", { headers }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/bookings", { headers }).then((r) => (r.ok ? r.json() : null)),
     ])
       .then(([userData, walletData, bookingsData]) => {
-        if (userData?.user) setUser(userData.user);
+        if (userData?.user) {
+          setUser(userData.user);
+          localStorage.setItem("profyspace_user", JSON.stringify(userData.user));
+          if (userData.user.id) localStorage.setItem("profyspace_user_id", userData.user.id);
+        }
         if (walletData?.wallet) setWallet(walletData.wallet);
         if (bookingsData?.bookings) setBookings(bookingsData.bookings);
       })

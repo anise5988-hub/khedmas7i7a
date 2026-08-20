@@ -39,6 +39,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (result.user?.id) {
+      localStorage.setItem("profyspace_user_id", result.user.id);
+      localStorage.setItem("profyspace_user", JSON.stringify(result.user));
+    }
+
     event.currentTarget.reset();
     // Direct redirect to login with confirmation
     window.location.href = "/login?registered=1";

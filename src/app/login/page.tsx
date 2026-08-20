@@ -58,6 +58,11 @@ export default function LoginPage() {
       return;
     }
 
+    if (result.user?.id) {
+      localStorage.setItem("profyspace_user_id", result.user.id);
+      localStorage.setItem("profyspace_user", JSON.stringify(result.user));
+    }
+
     // Redirect to the appropriate dashboard
     const params = new URLSearchParams(window.location.search);
     const redirectUrl = params.get("redirect");

@@ -35,10 +35,26 @@ export async function POST(request: Request) {
               },
             }),
       },
-      select: { id: true, role: true },
+      select: { id: true, firstName: true, lastName: true, email: true, role: true },
     });
 
-    return NextResponse.json({ user }, { status: 201 });
+    const response = NextResponse.json({
+      success: true,
+      user,
+      message: "Compte créé avec succès !",
+    }, { status: 201 });
+
+    const cookieOptions = {
+      path: "/",
+      sameSite: "lax" as const,
+      maxAge: 60 * 60 * 24 * 30,
+    };
+
+    response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
+    response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
+    response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+
+    return response;
   } catch (error) {
     console.error("Registration failed", error);
     return NextResponse.json({ error: "La base de données n'est pas configurée ou est temporairement indisponible." }, { status: 503 });
