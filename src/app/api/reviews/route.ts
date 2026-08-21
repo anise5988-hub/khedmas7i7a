@@ -36,16 +36,21 @@ export async function POST(request: Request) {
   const parsed = createReviewSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Veuillez choisir une note et écrire un commentaire valide." }, { status: 400 });
   const user = await getCurrentUser(request);
+  if (!user) {
+    return NextResponse.json({ error: "Connectez-vous pour publier un avis réel." }, { status: 401 });
+  }
+  if (user.role !== "STUDENT") {
+    return NextResponse.json({ error: "Seuls les élèves peuvent publier un avis." }, { status: 403 });
+  }
   try {
-    const teacher = parsed.data.teacherId ? await prisma.teacherProfile.findUnique({ where: { id: parsed.data.teacherId }, select: { id: true, userId: true, slug: true } }) : await prisma.teacherProfile.findFirst({ where: { verificationStatus: "APPROVED" }, select: { id: true, userId: true, slug: true } });
+    const teacher = parsed.data.teacherId
+      ? await prisma.teacherProfile.findUnique({ where: { id: parsed.data.teacherId }, select: { id: true, userId: true, slug: true } })
+      : await prisma.teacherProfile.findFirst({ where: { verificationStatus: "APPROVED" }, select: { id: true, userId: true, slug: true } });
     if (!teacher) return NextResponse.json({ error: "Aucun professeur disponible." }, { status: 404 });
-    let studentId = user?.id;
-    if (!studentId) {
-      const guest = await prisma.user.upsert({ where: { email: "eleve.satisfait@profyspace.tn" }, update: { firstName: parsed.data.studentName?.split(" ")[0] || "Élève", lastName: parsed.data.studentName?.split(" ").slice(1).join(" ") || "ProfySpace" }, create: { email: "eleve.satisfait@profyspace.tn", firstName: parsed.data.studentName?.split(" ")[0] || "Élève", lastName: parsed.data.studentName?.split(" ").slice(1).join(" ") || "ProfySpace", passwordHash: crypto.randomUUID(), role: "STUDENT" } });
-      studentId = guest.id;
-    }
-    const review = await prisma.review.create({ data: { studentId, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment } });
-    await notifyUser({ userId: teacher.userId, type: "NEW_REVIEW", title: "Nouvel avis reçu ⭐", message: `Nouvel avis ${parsed.data.rating}/5 reçu.`, emailSubject: "Nouvel avis reçu", link: `/teachers/${teacher.slug}`, dedupeKey: `review:${review.id}` });
+    const review = await prisma.review.create({ data: { studentId: user.id, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment } });
+    await notifyUser({ userId: teacher.userId, type: "NEW_REVIEW", title: "Nouvel avis reçu ⭐", message: `Nouvel avis ${parsed.data.rating}/5 reçu.`, emailSubject: "Nouvel avis reçu", link: `/teachers/${teacher.slug}`, dedupeKey: `review:${review.id}` }).catch((notificationError) => {
+      console.warn("Review notification failed", notificationError);
+    });
     return NextResponse.json({ success: true, reviewId: review.id }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Impossible d'enregistrer votre avis." }, { status: 500 });
