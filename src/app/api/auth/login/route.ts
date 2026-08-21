@@ -1,4 +1,4 @@
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { loginSchema } from "@/lib/validation/login";
@@ -6,8 +6,8 @@ import { fallbackStore } from "@/lib/server/fallback-store";
 import { supabaseAuth } from "@/lib/server/supabase-auth";
 import { ensureUserProfile } from "@/lib/server/profile-sync";
 
-async function safeComparePassword(plainPassword: string, hashInDb: string): Promise<boolean> {
-  if (!hashInDb) return false;
+async function safeComparePassword(plainPassword: string, hashInDb?: string | null): Promise<boolean> {
+  if (!hashInDb || hashInDb === "supabase_auth") return false;
   try {
     return await compare(plainPassword, hashInDb);
   } catch {
@@ -22,28 +22,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email ou mot de passe invalide." }, { status: 400 });
   }
 
-  if (supabaseAuth) {
-    const { data, error } = await supabaseAuth.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
-    if (!error && data.user) {
-      if (!data.user.email_confirmed_at) return NextResponse.json({ error: "Veuillez confirmer votre adresse email avant de vous connecter.", requiresEmailConfirmation: true }, { status: 403 });
-      const metadata = (data.user?.user_metadata || {}) as { firstName?: string; lastName?: string; phone?: string; role?: "STUDENT" | "TEACHER" | "ADMIN" };
-      try {
-        const profile = await ensureUserProfile({ id: data.user.id, email: data.user.email || parsed.data.email, firstName: metadata.firstName, lastName: metadata.lastName, phone: metadata.phone, role: metadata.role });
-        const response = NextResponse.json({ success: true, user: { id: profile.id, firstName: profile.firstName, lastName: profile.lastName, email: profile.email, role: profile.role }, role: profile.role });
-        const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 60 * 60 * 24 * 30 };
-        response.cookies.set("profy_supabase_access_token", data.session?.access_token || "", { ...cookieOptions, httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 });
-        response.cookies.set("profy_user_id", profile.id, { ...cookieOptions, httpOnly: true });
-        response.cookies.set("profy_role", profile.role, { ...cookieOptions, httpOnly: true });
-        response.cookies.set("profyspace_user_id", profile.id, { ...cookieOptions, httpOnly: false });
-        return response;
-      } catch (profileError) {
-        console.error("Supabase login profile synchronization failed", profileError);
-        return NextResponse.json({ error: "Connexion réussie, mais votre profil n'est pas encore initialisé. Réessayez." }, { status: 503 });
-      }
-    }
-    // Keep legacy Prisma accounts usable while Supabase migration is in progress.
-    console.warn("Supabase login failed; trying legacy account", { message: error?.message, code: error?.code });
-  }
+  const cleanEmail = parsed.data.email.toLowerCase().trim();
+  const password = parsed.data.password;
 
   const cookieOptions = {
     path: "/",
@@ -51,8 +31,78 @@ export async function POST(request: Request) {
     maxAge: 60 * 60 * 24 * 30, // 30 days
   };
 
+  // 1. Try Supabase Auth if configured
+  if (supabaseAuth) {
+    try {
+      const { data, error } = await supabaseAuth.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (!error && data.user) {
+        if (!data.user.email_confirmed_at && process.env.NODE_ENV === "production") {
+          return NextResponse.json(
+            { error: "Veuillez confirmer votre adresse email avant de vous connecter.", requiresEmailConfirmation: true },
+            { status: 403 }
+          );
+        }
+
+        const metadata = (data.user?.user_metadata || {}) as {
+          firstName?: string;
+          lastName?: string;
+          phone?: string;
+          role?: "STUDENT" | "TEACHER" | "ADMIN";
+        };
+
+        const profile = await ensureUserProfile({
+          id: data.user.id,
+          email: data.user.email || cleanEmail,
+          firstName: metadata.firstName,
+          lastName: metadata.lastName,
+          phone: metadata.phone,
+          role: metadata.role,
+        });
+
+        // Store real bcrypt hash in database to keep local login synchronized
+        try {
+          const freshHash = await hash(password, 12);
+          await prisma.user.update({
+            where: { id: profile.id },
+            data: { passwordHash: freshHash },
+          });
+          fallbackStore.updateUser(profile.id, { passwordHash: freshHash });
+        } catch {}
+
+        const response = NextResponse.json({
+          success: true,
+          user: {
+            id: profile.id,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            email: profile.email,
+            role: profile.role,
+          },
+          role: profile.role,
+        });
+
+        response.cookies.set("profy_supabase_access_token", data.session?.access_token || "", {
+          ...cookieOptions,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60,
+        });
+        response.cookies.set("profy_user_id", profile.id, { ...cookieOptions, httpOnly: true });
+        response.cookies.set("profy_role", profile.role, { ...cookieOptions, httpOnly: true });
+        response.cookies.set("profyspace_user_id", profile.id, { ...cookieOptions, httpOnly: false });
+        return response;
+      }
+    } catch (supabaseErr) {
+      console.warn("Supabase signInWithPassword exception, trying database directly", supabaseErr);
+    }
+  }
+
+  // 2. Direct database authentication via Prisma
   try {
-    const cleanEmail = parsed.data.email.trim();
     const user = await prisma.user.findFirst({
       where: {
         email: {
@@ -67,7 +117,7 @@ export async function POST(request: Request) {
       },
     });
 
-    if (user && (await safeComparePassword(parsed.data.password, user.passwordHash))) {
+    if (user && (await safeComparePassword(password, user.passwordHash))) {
       // Auto-create wallet if missing
       let wallet = user.wallet;
       if (!wallet) {
@@ -103,9 +153,9 @@ export async function POST(request: Request) {
     console.warn("Prisma login query failed, checking fallback store", dbError);
   }
 
-  // Check in-memory store
-  const fallbackUser = fallbackStore.getUserByEmail(parsed.data.email);
-  if (fallbackUser && (await safeComparePassword(parsed.data.password, fallbackUser.passwordHash))) {
+  // 3. Check in-memory fallback store
+  const fallbackUser = fallbackStore.getUserByEmail(cleanEmail);
+  if (fallbackUser && (await safeComparePassword(password, fallbackUser.passwordHash))) {
     const userData = {
       id: fallbackUser.id,
       firstName: fallbackUser.firstName,
@@ -130,3 +180,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ error: "Email ou mot de passe incorrect." }, { status: 401 });
 }
+

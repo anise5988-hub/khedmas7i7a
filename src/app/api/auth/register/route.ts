@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   const parsed = registerSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Vérifie les informations saisies.", issues: parsed.error.flatten() }, { status: 400 });
   const input = parsed.data;
+  const passwordHash = await hash(input.password, 12);
 
   if (supabaseAuth) {
     const { data, error } = await supabaseAuth.auth.signUp({
@@ -29,14 +30,14 @@ export async function POST(request: Request) {
     try {
       const user = await prisma.user.upsert({
         where: { id: data.user.id },
-        update: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null },
+        update: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, passwordHash },
         create: {
           id: data.user.id,
           email: input.email,
           firstName: input.firstName,
           lastName: input.lastName,
           phone: input.phone || null,
-          passwordHash: "supabase_auth",
+          passwordHash,
           role: input.role,
         },
       });
@@ -49,6 +50,15 @@ export async function POST(request: Request) {
         const slug = `${input.firstName}-${input.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 25000, experienceYears: 1, verificationStatus: "PENDING" } });
       }
+
+      // Sync fallback store
+      fallbackStore.updateUser(user.id, {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        passwordHash,
+      });
     } catch (profileError) {
       console.error("Supabase user profile sync failed", profileError);
       return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
@@ -73,8 +83,6 @@ export async function POST(request: Request) {
   }
 
   // Fallback direct DB registration when Supabase Auth is not enabled
-  const passwordHash = await hash(input.password, 12);
-
   try {
     const existingUser = await prisma.user.findUnique({ where: { email: input.email } });
     if (existingUser) return NextResponse.json({ error: "Cette adresse email est déjà utilisée." }, { status: 409 });
