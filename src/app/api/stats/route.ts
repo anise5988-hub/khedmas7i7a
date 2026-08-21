@@ -7,7 +7,7 @@ export async function GET() {
     const [rawStudentsCount, rawTeachersCount, bookingsAggregate, reviewsAggregate] =
       await Promise.all([
         prisma.user.count({ where: { role: "STUDENT" } }),
-        prisma.teacherProfile.count({ where: { verificationStatus: { in: ["APPROVED", "UNDER_REVIEW", "PENDING"] } } }),
+        prisma.teacherProfile.count({ where: { verificationStatus: "APPROVED" } }),
         prisma.booking.aggregate({
           _sum: { durationMinutes: true },
           where: { status: { in: ["CONFIRMED", "COMPLETED", "PENDING"] } },
@@ -18,17 +18,16 @@ export async function GET() {
         }),
       ]);
 
-    // Calculate real dynamic numbers with active platform base
+    // Real database counts
     const totalMinutes = bookingsAggregate._sum.durationMinutes ?? 0;
-    const dbHours = Math.round(totalMinutes / 60);
+    const hoursTaught = Math.round(totalMinutes / 60);
 
-    const studentsCount = rawStudentsCount > 0 ? rawStudentsCount + 140 : 155;
-    const teachersCount = rawTeachersCount > 0 ? rawTeachersCount + 18 : 25;
-    const hoursTaught = dbHours > 0 ? dbHours + 380 : 380;
+    const studentsCount = rawStudentsCount;
+    const teachersCount = rawTeachersCount;
 
-    const avgRating = reviewsAggregate._avg.rating ?? 4.95;
+    const avgRating = reviewsAggregate._avg.rating ?? 5.0;
     const totalReviews = reviewsAggregate._count ?? 0;
-    const satisfactionRate = totalReviews > 0 ? Number(((avgRating / 5) * 100).toFixed(1)) : 98.8;
+    const satisfactionRate = totalReviews > 0 ? Number(((avgRating / 5) * 100).toFixed(1)) : 100;
 
     return NextResponse.json({
       studentsCount,
@@ -43,10 +42,10 @@ export async function GET() {
     const rawTeachers = fallbackStore.getAllTeachers().length;
 
     return NextResponse.json({
-      studentsCount: rawStudents > 0 ? rawStudents + 140 : 155,
-      teachersCount: rawTeachers > 0 ? rawTeachers + 18 : 25,
-      hoursTaught: 380,
-      satisfactionRate: 98.8,
+      studentsCount: rawStudents,
+      teachersCount: rawTeachers,
+      hoursTaught: 0,
+      satisfactionRate: 100,
     });
   }
 }

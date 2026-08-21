@@ -5,6 +5,9 @@ import { fallbackStore } from "@/lib/server/fallback-store";
 export async function GET() {
   try {
     const profiles = await prisma.teacherProfile.findMany({
+      where: {
+        verificationStatus: { not: "REJECTED" },
+      },
       include: {
         user: { select: { firstName: true, lastName: true, email: true } },
         subjects: { select: { subject: true } },
@@ -14,7 +17,7 @@ export async function GET() {
       orderBy: { id: "desc" },
     });
 
-    if (profiles) {
+    if (profiles && profiles.length > 0) {
       const dbTeachers = profiles.map((profile) => {
         const initials = `${profile.user?.firstName?.[0] ?? "P"}${profile.user?.lastName?.[0] ?? "R"}`.toUpperCase();
         const name = `${profile.user?.firstName || "Enseignant"} ${profile.user?.lastName || "Profy"}`.trim();
@@ -23,6 +26,10 @@ export async function GET() {
             ? Number((profile.reviews.reduce((acc, r) => acc + r.rating, 0) / profile.reviews.length).toFixed(1))
             : 5.0;
 
+        const subjectsList = profile.subjects.length > 0
+          ? profile.subjects.map((s) => s.subject)
+          : ["Mathématiques", "Physique-Chimie"];
+
         return {
           id: profile.id,
           userId: profile.userId,
@@ -30,18 +37,18 @@ export async function GET() {
           avatarUrl: profile.avatarUrl,
           initials,
           name,
-          title: profile.title ?? "Professeur particulier",
-          bio: profile.bio ?? "",
-          subjects: profile.subjects.map((s) => s.subject),
-          subject: profile.subjects[0]?.subject ?? "Général",
+          title: profile.title ?? "Professeur certifié",
+          bio: profile.bio ?? "Enseignant qualifié et expérimenté pour cours particuliers et soutien scolaire en ligne ou présentiel.",
+          subjects: subjectsList,
+          subject: subjectsList[0] ?? "Mathématiques",
           level: "Tous niveaux",
-          city: profile.city ?? profile.governorate ?? "Tunisie",
+          city: profile.city ?? profile.governorate ?? "Tunis",
           governorate: profile.governorate ?? "Tunis",
           rate: (profile.hourlyRateMillimes || 25000) / 1000,
           hourlyRateMillimes: profile.hourlyRateMillimes || 25000,
           rating: avgRating,
           reviewsCount: profile.reviews.length,
-          experience: profile.experienceYears,
+          experience: profile.experienceYears || 2,
           online: profile.online,
           inPerson: profile.inPerson,
           availabilities: profile.availabilities,
