@@ -11,169 +11,43 @@ const createReviewSchema = z.object({
   comment: z.string().trim().min(5).max(1000),
 });
 
-/* const FALLBACK_REVIEWS = [
-  {
-    id: "rev_fb_1",
-    name: "Yassine Dridi",
-    role: "Élève en Bac Mathématiques",
-    teacherName: "Prof. Mehdi Ben Amor",
-    rating: 5,
-    text: "Excellente plateforme ! Les cours particuliers en ligne avec tableau blanc interactif et les packs de révision m'ont permis de décrocher une mention Très Bien au Bac.",
-    createdAt: new Date("2026-02-18").toISOString(),
-  },
-  {
-    id: "rev_fb_2",
-    name: "Mariem Sassi",
-    role: "Élève en Bac Sciences Expérimentales",
-    teacherName: "Dr. Sonia Gharbi",
-    rating: 5,
-    text: "Des professeurs très compétents et disponibles. La recharge par D17 et Flouci est super rapide et sécurisée. Je recommande vivement ProfySpace !",
-    createdAt: new Date("2026-02-10").toISOString(),
-  },
-  {
-    id: "rev_fb_3",
-    name: "Farouk Ben Salem",
-    role: "Élève en Bac Informatique",
-    teacherName: "Ing. Youssef Trabelsi",
-    rating: 5,
-    text: "Le pack algorithmique et les leçons vidéo m'ont sauvé pour les devoirs de synthèse. Les exercices types corrigés étape par étape sont géniaux.",
-    createdAt: new Date("2026-01-25").toISOString(),
-  },
-  {
-    id: "rev_fb_4",
-    name: "Salma Trabelsi",
-    role: "Parent d'élève - 9ème Année",
-    teacherName: "Prof. Leila Mansouri",
-    rating: 5,
-    text: "Un suivi pédagogique irréprochable pour ma fille en français et mathématiques. Sa moyenne générale est passée de 12 à 16.5 !",
-    createdAt: new Date("2026-01-12").toISOString(),
-  },
-]; */
-
 export async function GET() {
   try {
     const reviews = await prisma.review.findMany({
-      include: {
-        student: { select: { firstName: true, lastName: true } },
-        teacher: {
-          include: {
-            user: { select: { firstName: true, lastName: true } },
-            subjects: { select: { subject: true }, take: 1 },
+      include: {     student: { select: { firstName: true, lastName: true } },
+          teacher: {
+            include: {
+              user: { select: { firstName: true, lastName: true } },
+              subjects: { select: { subject: true }, take: 1 },
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    });
-
-    if (reviews && reviews.length > 0) {
-      return NextResponse.json({
-        reviews: reviews.map((r) => ({
-          id: r.id,
-          name: `${r.student.firstName} ${r.student.lastName?.[0] ?? ""}.`,
-          role: `Élève en cours de ${r.teacher?.subjects[0]?.subject || "cours particulier"}`,
-          teacherName: `${r.teacher.user.firstName} ${r.teacher.user.lastName}`,
-          rating: r.rating,
-          text: r.comment || "",
-          createdAt: r.createdAt,
-        })),
+        orderBy: { createdAt: "desc" },
+        take: 20,
       });
-    }
+    return NextResponse.json({ reviews: reviews.map((review) => ({ id: review.id, name: `${review.student.firstName} ${review.student.lastName?.[0] ?? ""}.`, role: `Élève en cours de ${review.teacher?.subjects[0]?.subject || "cours particulier"}`, teacherName: `${review.teacher.user.firstName} ${review.teacher.user.lastName}`, rating: review.rating, text: review.comment || "", createdAt: review.createdAt })) });
   } catch (error) {
-    console.warn("Reviews fetch failed, using fallback reviews", error);
+    console.warn("Reviews fetch failed", error);
+    return NextResponse.json({ reviews: [] });
   }
-
-  return NextResponse.json({ reviews: [] });
 }
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-  const parsed = createReviewSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Veuillez choisir une note (1 à 5) et écrire un commentaire d'au moins 5 caractères." },
-      { status: 400 },
-    );
-  }
-
+  const parsed = createReviewSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "Veuillez choisir une note et écrire un commentaire valide." }, { status: 400 });
   const user = await getCurrentUser(request);
-
   try {
-    // Find teacher or pick first approved teacher
-    let teacherId = parsed.data.teacherId;
-    if (!teacherId) {
-      const firstTeacher = await prisma.teacherProfile.findFirst({
-        where: { verificationStatus: "APPROVED" },
-        select: { id: true },
-      });
-      teacherId = firstTeacher?.id;
-    }
-
-    if (!teacherId) {
-      const anyTeacher = await prisma.teacherProfile.findFirst({ select: { id: true } });
-      teacherId = anyTeacher?.id;
-    }
-
-    if (!teacherId) {
-      return NextResponse.json({ error: "Aucun professeur disponible pour ce commentaire." }, { status: 404 });
-    }
-
-    // Determine student ID
+    const teacher = parsed.data.teacherId ? await prisma.teacherProfile.findUnique({ where: { id: parsed.data.teacherId }, select: { id: true, userId: true, slug: true } }) : await prisma.teacherProfile.findFirst({ where: { verificationStatus: "APPROVED" }, select: { id: true, userId: true, slug: true } });
+    if (!teacher) return NextResponse.json({ error: "Aucun professeur disponible." }, { status: 404 });
     let studentId = user?.id;
     if (!studentId) {
-      // Find or create public student user
-      const publicUser = await prisma.user.upsert({
-        where: { email: "eleve.satisfait@profyspace.tn" },
-        update: {
-          firstName: parsed.data.studentName?.split(" ")[0] || "Élève",
-          lastName: parsed.data.studentName?.split(" ")[1] || "ProfySpace",
-        },
-        create: {
-          firstName: parsed.data.studentName?.split(" ")[0] || "Élève",
-          lastName: parsed.data.studentName?.split(" ")[1] || "ProfySpace",
-          email: "eleve.satisfait@profyspace.tn",
-          passwordHash: "publicGuestReview2026!",
-          role: "STUDENT",
-        },
-      });
-      studentId = publicUser.id;
+      const guest = await prisma.user.upsert({ where: { email: "eleve.satisfait@profyspace.tn" }, update: { firstName: parsed.data.studentName?.split(" ")[0] || "Élève", lastName: parsed.data.studentName?.split(" ").slice(1).join(" ") || "ProfySpace" }, create: { email: "eleve.satisfait@profyspace.tn", firstName: parsed.data.studentName?.split(" ")[0] || "Élève", lastName: parsed.data.studentName?.split(" ").slice(1).join(" ") || "ProfySpace", passwordHash: crypto.randomUUID(), role: "STUDENT" } });
+      studentId = guest.id;
     }
-
-    const review = await prisma.review.create({
-      data: {
-        studentId,
-        teacherId,
-        rating: parsed.data.rating,
-        comment: parsed.data.comment,
-      },
-      include: {
-        teacher: { select: { userId: true, slug: true } },
-      },
-    });
-
-    if (review.teacher?.userId) {
-      await notifyUser({
-        userId: review.teacher.userId,
-        type: "NEW_REVIEW",
-        title: "Nouvel avis reçu ⭐",
-        message: `Un élève vous a attribué une note de ${parsed.data.rating}/5 : "${parsed.data.comment.substring(0, 80)}..."`,
-        emailSubject: "Vous avez reçu un nouvel avis sur Profy",
-        link: `/teachers/${review.teacher.slug}`,
-        dedupeKey: `review:${review.id}`,
-      });
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        reviewId: review.id,
-        message: "Merci ! Votre avis a été enregistré et publié avec succès sur ProfySpace.tn.",
-      },
-      { status: 201 },
-    );
-  } catch (error) {
-    console.error("Review creation failed", error);
+    const review = await prisma.review.create({ data: { studentId, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment } });
+    await notifyUser({ userId: teacher.userId, type: "NEW_REVIEW", title: "Nouvel avis reçu ⭐", message: `Nouvel avis ${parsed.data.rating}/5 reçu.`, emailSubject: "Nouvel avis reçu", link: `/teachers/${teacher.slug}`, dedupeKey: `review:${review.id}` });
+    return NextResponse.json({ success: true, reviewId: review.id }, { status: 201 });
+  } catch {
     return NextResponse.json({ error: "Impossible d'enregistrer votre avis." }, { status: 500 });
   }
 }
