@@ -668,10 +668,7 @@ export const coursesStore = {
     const course = this.getCourseById(courseId);
     if (!course) return false;
     if (course.visibility === "PUBLIC" || course.priceTnd === 0) return true;
-
-    return globalCoursesStore.__profy_access!.some(
-      (a) => a.courseId === courseId && a.studentId === studentId
-    );
+    return globalCoursesStore.__profy_access!.some((access) => access.courseId === courseId && access.studentId === studentId);
   },
 
   grantAccess(courseId: string, studentId: string, amountPaidTnd: number): CourseAccess {

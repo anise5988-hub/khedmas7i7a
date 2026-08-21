@@ -35,7 +35,6 @@ export default function TeacherCoursesPage() {
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [videoMode, setVideoMode] = useState<"URL" | "FILE">("URL");
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [uploadingLesson, setUploadingLesson] = useState<{ sectionIndex: number; lessonIndex: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadTarget, setActiveUploadTarget] = useState<{ sectionIndex: number; lessonIndex: number } | null>(null);
 
@@ -79,6 +78,8 @@ export default function TeacherCoursesPage() {
     }));
   };
 
+  // Reserved for the multi-module editor once the dashboard exposes its module controls.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addLesson = (sectionIndex: number) => {
     setSections((current) => current.map((section, index) => index !== sectionIndex ? section : {
       ...section,
@@ -86,10 +87,12 @@ export default function TeacherCoursesPage() {
     }));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addSection = () => {
     setSections((current) => [...current, { title: `Module ${current.length + 1}`, lessons: [{ title: "Leçon 1", durationMinutes: 30, videoUrl: "", isFreePreview: false }] }]);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const removeLesson = (sectionIndex: number, lessonIndex: number) => {
     setSections((current) => current.map((section, index) => index !== sectionIndex ? section : {
       ...section,
@@ -105,22 +108,22 @@ export default function TeacherCoursesPage() {
       return;
     }
     setUploadingFile(true);
-    setUploadingLesson(activeUploadTarget);
     setUploadedFileName(file.name);
     setError("");
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") updateLesson(activeUploadTarget.sectionIndex, activeUploadTarget.lessonIndex, { videoUrl: reader.result });
-      setUploadingFile(false);
-      setUploadingLesson(null);
-      setActiveUploadTarget(null);
-    };
-    reader.onerror = () => {
-      setError("Erreur lors de la lecture du fichier vidéo.");
-      setUploadingFile(false);
-      setUploadingLesson(null);
-    };
-    reader.readAsDataURL(file);
+    const target = activeUploadTarget;
+    const formData = new FormData();
+    formData.append("file", file);
+    fetch("/api/uploads/video", { method: "POST", headers: { "x-user-id": localStorage.getItem("profyspace_user_id") || "" }, body: formData })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Échec de l'upload.");
+        updateLesson(target.sectionIndex, target.lessonIndex, { videoUrl: data.url });
+      })
+      .catch((uploadError: unknown) => setError(uploadError instanceof Error ? uploadError.message : "Erreur lors de l'envoi de la vidéo."))
+      .finally(() => {
+        setUploadingFile(false);
+          setActiveUploadTarget(null);
+      });
   };
 
   const handleCreateCourse = async (e: React.FormEvent) => {
@@ -481,7 +484,10 @@ export default function TeacherCoursesPage() {
                         />
                         <button
                           type="button"
-                          onClick={() => fileInputRef.current?.click()}
+                          onClick={() => {
+                            setActiveUploadTarget({ sectionIndex: 0, lessonIndex: 0 });
+                            fileInputRef.current?.click();
+                          }}
                           className="rounded-xl bg-white border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-xs"
                         >
                           {uploadingFile ? "Lecture du fichier..." : "Choisir une vidéo sur mon appareil"}

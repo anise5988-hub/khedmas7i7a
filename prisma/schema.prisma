@@ -78,6 +78,8 @@ model User {
   reviews   Review[]
   favorites Favorite[]
   notifications Notification[]
+  courseAccesses CourseAccess[]
+  courseProgress CourseProgress[]
 }
 
 model StudentProfile {
@@ -111,6 +113,7 @@ model TeacherProfile {
   withdrawals        WithdrawalRequest[]
   reviews            Review[]
   favorites          Favorite[]
+  courses             Course[]
 }
 
 model TeacherSubject {
@@ -240,6 +243,55 @@ model Notification {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, read, createdAt])
+}
+
+model Course {
+  id              String   @id @default(cuid())
+  teacherId       String
+  title           String
+  description     String
+  subject         String
+  level           String
+  language        String   @default("Français")
+  priceTnd        Float    @default(0)
+  amountMillimes  Int      @default(0)
+  visibility      String   @default("DRAFT")
+  thumbnailUrl    String?
+  sections        Json
+  rating          Float    @default(0)
+  reviewCount     Int      @default(0)
+  studentCount    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  teacher         TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  accesses        CourseAccess[]
+  progress        CourseProgress[]
+  @@index([teacherId, visibility, createdAt])
+  @@index([subject, level, visibility])
+}
+
+model CourseAccess {
+  id             String   @id @default(cuid())
+  courseId       String
+  studentId      String
+  purchasedAt    DateTime @default(now())
+  amountPaidTnd  Float    @default(0)
+  course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student        User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@unique([courseId, studentId])
+  @@index([studentId, purchasedAt])
+}
+
+model CourseProgress {
+  id                  String   @id @default(cuid())
+  courseId            String
+  studentId           String
+  completedLessonIds  Json
+  lastLessonId        String?
+  percentage          Int      @default(0)
+  course              Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student             User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@unique([courseId, studentId])
 }
 
 model News {
