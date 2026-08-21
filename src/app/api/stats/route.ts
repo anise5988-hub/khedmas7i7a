@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
+import { fallbackStore } from "@/lib/server/fallback-store";
 
 export async function GET() {
   try {
-    const [studentsCount, approvedTeachersCount, bookingsAggregate, reviewsAggregate] =
+    const [studentsCount, teachersCount, bookingsAggregate, reviewsAggregate] =
       await Promise.all([
         prisma.user.count({ where: { role: "STUDENT" } }),
-        prisma.teacherProfile.count({ where: { verificationStatus: "APPROVED" } }),
+        prisma.teacherProfile.count(),
         prisma.booking.aggregate({
           _sum: { durationMinutes: true },
           where: { status: { in: ["CONFIRMED", "COMPLETED"] } },
@@ -26,15 +27,19 @@ export async function GET() {
 
     return NextResponse.json({
       studentsCount,
-      teachersCount: approvedTeachersCount,
+      teachersCount,
       hoursTaught,
       satisfactionRate,
     });
   } catch (error) {
     console.warn("Public stats fetch fallback used", error);
+    const fallbackUsers = fallbackStore.getAllUsers();
+    const studentsCount = fallbackUsers.filter((u) => u.role === "STUDENT").length;
+    const teachersCount = fallbackStore.getAllTeachers().length;
+
     return NextResponse.json({
-      studentsCount: 0,
-      teachersCount: 0,
+      studentsCount,
+      teachersCount,
       hoursTaught: 0,
       satisfactionRate: 100,
     });

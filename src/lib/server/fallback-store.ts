@@ -88,6 +88,18 @@ export const fallbackStore = {
     return [];
   },
 
+  getAllUsers(): StoredUser[] {
+    const list: StoredUser[] = [];
+    const seen = new Set<string>();
+    for (const u of globalStore.__profyspace_users!.values()) {
+      if (!seen.has(u.id)) {
+        seen.add(u.id);
+        list.push(u);
+      }
+    }
+    return list;
+  },
+
   getAllTeachers(): StoredUser[] {
     const list: StoredUser[] = [];
     const seen = new Set<string>();

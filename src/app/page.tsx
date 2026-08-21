@@ -296,7 +296,7 @@ export default function Home() {
             </div>
             <div>
               <p className="text-2xl font-bold text-[#11233f]">
-                {stats ? `+${stats.studentsCount}` : "..."}
+                {stats ? (stats.studentsCount > 0 ? `+${stats.studentsCount}` : `${stats.studentsCount}`) : "..."}
               </p>
               <p className="text-xs text-slate-500">Élèves inscrits</p>
             </div>
@@ -308,7 +308,7 @@ export default function Home() {
             </div>
             <div>
               <p className="text-2xl font-bold text-[#11233f]">
-                {stats ? `+${stats.teachersCount}` : "..."}
+                {stats ? (stats.teachersCount > 0 ? `+${stats.teachersCount}` : `${stats.teachersCount}`) : "..."}
               </p>
               <p className="text-xs text-slate-500">Professeurs certifiés</p>
             </div>
@@ -320,7 +320,7 @@ export default function Home() {
             </div>
             <div>
               <p className="text-2xl font-bold text-[#11233f]">
-                {stats ? `+${stats.hoursTaught} h` : "..."}
+                {stats ? (stats.hoursTaught > 0 ? `+${stats.hoursTaught} h` : "0 h") : "..."}
               </p>
               <p className="text-xs text-slate-500">Heures de cours dispensées</p>
             </div>
