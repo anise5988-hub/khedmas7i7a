@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { SiteNavbar } from "@/components/site-navbar";
 import {
   IconVideo,
   IconBookOpen,
   IconCreditCard,
   IconShield,
 } from "@/components/icons";
-
 
 type UserProfile = {
   id: string;
@@ -37,9 +37,10 @@ type BookingItem = {
 const links = [
   ["Vue d'ensemble", "/dashboard"],
   ["💬 Messagerie (Chat)", "/dashboard/messages"],
-  ["Mes cours", "/dashboard/classes"],
-  ["Calendrier", "/dashboard/calendar"],
+  ["Mes cours & packs", "/dashboard/classes"],
+  ["Calendrier & planning", "/dashboard/calendar"],
   ["Portefeuille (Wallet)", "/dashboard/wallet"],
+  ["❤️ Mes favoris", "/dashboard/favorites"],
   ["🔔 Notifications", "/dashboard/notifications"],
   ["Paramètres du compte", "/dashboard/settings"],
   ["Trouver un professeur", "/teachers"],
@@ -57,18 +58,26 @@ export default function StudentDashboard() {
   });
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [bookings, setBookings] = useState<BookingItem[]>([]);
+  const [unlockedCoursesCount, setUnlockedCoursesCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  function getAuthHeaders(): Record<string, string> {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
-    const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
+
+  useEffect(() => {
+    const headers = getAuthHeaders();
 
     Promise.all([
       fetch("/api/auth/me", { headers }).then((r) => (r.ok ? r.json() : null)),
       fetch("/api/wallet", { headers }).then((r) => (r.ok ? r.json() : null)),
       fetch("/api/bookings", { headers }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/courses/my-learning", { headers }).then((r) => (r.ok ? r.json() : null)),
     ])
-      .then(([userData, walletData, bookingsData]) => {
+      .then(([userData, walletData, bookingsData, learningData]) => {
         if (userData?.user) {
           setUser(userData.user);
           localStorage.setItem("profyspace_user", JSON.stringify(userData.user));
@@ -76,6 +85,7 @@ export default function StudentDashboard() {
         }
         if (walletData?.wallet) setWallet(walletData.wallet);
         if (bookingsData?.bookings) setBookings(bookingsData.bookings);
+        if (learningData?.courses) setUnlockedCoursesCount(learningData.courses.length);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -86,29 +96,7 @@ export default function StudentDashboard() {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      {/* Top Header */}
-      <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
-            <span>ProfySpace</span>
-            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-          </Link>
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <Link
-              href="/dashboard/settings"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 sm:text-sm"
-            >
-              Paramètres
-            </Link>
-            <Link
-              href="/teachers"
-              className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
-            >
-              Trouver un professeur
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteNavbar dark={false} />
 
       {/* Main Grid */}
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[230px_1fr] lg:gap-8">
@@ -147,7 +135,7 @@ export default function StudentDashboard() {
                   {user ? `${user.firstName} ${user.lastName}` : "Mon espace élève"}
                 </h1>
                 <p className="mt-1 text-sm text-slate-500">
-                  Gérez vos cours particuliers, votre planning et votre solde d'apprentissage.
+                  Gérez vos cours particuliers, vos packs de révision et votre solde d'apprentissage.
                 </p>
               </div>
 
@@ -168,17 +156,19 @@ export default function StudentDashboard() {
               <p className="mt-2 text-2xl font-bold text-[#11233f]">
                 {upcomingBookings.length}
               </p>
-              <Link href="/dashboard/classes" className="mt-1 block text-xs font-semibold text-slate-500 hover:underline">
+              <Link href="/dashboard/calendar" className="mt-1 block text-xs font-semibold text-slate-500 hover:underline">
                 Voir le planning →
               </Link>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total séances suivies</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Packs & Cours Débloqués</span>
               <p className="mt-2 text-2xl font-bold text-[#11233f]">
-                {bookings.length}
+                {unlockedCoursesCount}
               </p>
-              <span className="mt-1 block text-xs text-slate-400">Depuis l'inscription</span>
+              <Link href="/dashboard/classes" className="mt-1 block text-xs font-semibold text-slate-500 hover:underline">
+                Accéder aux cours →
+              </Link>
             </div>
           </div>
 

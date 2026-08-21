@@ -13,17 +13,18 @@ const createReviewSchema = z.object({
 export async function GET() {
   try {
     const reviews = await prisma.review.findMany({
-      include: {     student: { select: { firstName: true, lastName: true } },
-          teacher: {
-            include: {
-              user: { select: { firstName: true, lastName: true } },
-              subjects: { select: { subject: true }, take: 1 },
-            },
+      include: {
+        student: { select: { firstName: true, lastName: true } },
+        teacher: {
+          include: {
+            user: { select: { firstName: true, lastName: true } },
+            subjects: { select: { subject: true }, take: 1 },
           },
         },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      });
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
     return NextResponse.json({ reviews: reviews.map((review) => ({ id: review.id, name: `${review.student.firstName} ${review.student.lastName?.[0] ?? ""}.`, role: `Élève en cours de ${review.teacher?.subjects[0]?.subject || "cours particulier"}`, teacherName: `${review.teacher.user.firstName} ${review.teacher.user.lastName}`, rating: review.rating, text: review.comment || "", createdAt: review.createdAt })) });
   } catch (error) {
     console.warn("Reviews fetch failed", error);
@@ -44,13 +45,13 @@ export async function POST(request: Request) {
   try {
     const teacher = parsed.data.teacherId
       ? await prisma.teacherProfile.findFirst({
-          where: { id: parsed.data.teacherId, verificationStatus: "APPROVED" },
-          select: { id: true, userId: true, slug: true },
-        })
+        where: { id: parsed.data.teacherId, verificationStatus: "APPROVED" },
+        select: { id: true, userId: true, slug: true },
+      })
       : await prisma.teacherProfile.findFirst({
-          where: { verificationStatus: "APPROVED" },
-          select: { id: true, userId: true, slug: true },
-        });
+        where: { verificationStatus: "APPROVED" },
+        select: { id: true, userId: true, slug: true },
+      });
     if (!teacher) return NextResponse.json({ error: "Aucun professeur disponible." }, { status: 404 });
     const review = await prisma.review.create({ data: { studentId: user.id, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment } });
     await notifyUser({ userId: teacher.userId, type: "NEW_REVIEW", title: "Nouvel avis reçu ⭐", message: `Nouvel avis ${parsed.data.rating}/5 reçu.`, emailSubject: "Nouvel avis reçu", link: `/teachers/${teacher.slug}`, dedupeKey: `review:${review.id}` }).catch((notificationError) => {

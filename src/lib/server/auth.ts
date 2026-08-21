@@ -24,6 +24,13 @@ export async function getCurrentUser(request?: Request) {
     }
 
     if (!userId) {
+      const xUserId = request.headers.get("x-user-id");
+      if (xUserId && xUserId.trim()) {
+        userId = xUserId.trim();
+      }
+    }
+
+    if (!userId) {
       const cookieHeader = request.headers.get("cookie");
       if (cookieHeader) {
         const cookiesMap = Object.fromEntries(
@@ -32,7 +39,7 @@ export async function getCurrentUser(request?: Request) {
             return [k, decodeURIComponent(v.join("="))];
           })
         );
-        userId = cookiesMap["profy_user_id"];
+        userId = cookiesMap["profy_user_id"] || cookiesMap["profyspace_user_id"];
 
         if (!userId && cookiesMap["profy_supabase_access_token"] && supabaseAuth) {
           try {
@@ -63,7 +70,7 @@ export async function getCurrentUser(request?: Request) {
       }
 
       if (!userId) {
-        userId = cookieStore.get("profy_user_id")?.value;
+        userId = cookieStore.get("profy_user_id")?.value || cookieStore.get("profyspace_user_id")?.value;
       }
     } catch {}
   }

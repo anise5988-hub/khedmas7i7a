@@ -19,8 +19,15 @@ export default function StudentCalendarPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
+  function getAuthHeaders(): Record<string, string> {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
+
   useEffect(() => {
-    fetch("/api/bookings")
+    fetch("/api/bookings", { headers: getAuthHeaders() })
       .then((res) => (res.ok ? res.json() : { bookings: [] }))
       .then((data) => setBookings(data.bookings || []))
       .catch(() => {})

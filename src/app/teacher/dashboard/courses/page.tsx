@@ -44,7 +44,13 @@ export default function TeacherCoursesPage() {
   const [error, setError] = useState("");
 
   function getAuthHeaders(): Record<string, string> {
-    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    let userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    if (!userId && typeof window !== "undefined") {
+      try {
+        const u = JSON.parse(localStorage.getItem("profyspace_user") || "null");
+        if (u?.id) userId = u.id;
+      } catch {}
+    }
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (userId) headers["x-user-id"] = userId;
     return headers;
@@ -53,8 +59,14 @@ export default function TeacherCoursesPage() {
   const fetchTeacherCourses = async () => {
     setLoading(true);
     try {
-      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
-      const res = await fetch(`/api/courses?teacherId=${userId}`, { headers: getAuthHeaders() });
+      let userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+      if (!userId && typeof window !== "undefined") {
+        try {
+          const u = JSON.parse(localStorage.getItem("profyspace_user") || "null");
+          if (u?.id) userId = u.id;
+        } catch {}
+      }
+      const res = await fetch(userId ? `/api/courses?teacherId=${userId}` : "/api/courses", { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setCourses(data.courses || []);

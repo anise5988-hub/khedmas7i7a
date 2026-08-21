@@ -1,4 +1,4 @@
-﻿
+
 
 "use client";
 
@@ -34,8 +34,15 @@ export default function StudentWalletPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
 
+  function getAuthHeaders(): Record<string, string> {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
+
   useEffect(() => {
-    fetch("/api/wallet")
+    fetch("/api/wallet", { headers: getAuthHeaders() })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.wallet) setWallet(data.wallet);

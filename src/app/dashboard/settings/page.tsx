@@ -38,8 +38,15 @@ export default function StudentSettingsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
+  function getAuthHeaders(): Record<string, string> {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
+
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { headers: getAuthHeaders() })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.user) {
@@ -62,7 +69,7 @@ export default function StudentSettingsPage() {
     try {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ firstName, lastName, email, phone }),
       });
       const data = await res.json();
@@ -91,7 +98,7 @@ export default function StudentSettingsPage() {
     try {
       const res = await fetch("/api/user/change-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();
@@ -118,7 +125,7 @@ export default function StudentSettingsPage() {
     try {
       const res = await fetch("/api/user/delete-account", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ password: deletePassword }),
       });
       const data = await res.json();
