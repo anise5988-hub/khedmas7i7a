@@ -78,8 +78,6 @@ export default function TeacherCoursesPage() {
     }));
   };
 
-  // Reserved for the multi-module editor once the dashboard exposes its module controls.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addLesson = (sectionIndex: number) => {
     setSections((current) => current.map((section, index) => index !== sectionIndex ? section : {
       ...section,
@@ -87,12 +85,10 @@ export default function TeacherCoursesPage() {
     }));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addSection = () => {
     setSections((current) => [...current, { title: `Module ${current.length + 1}`, lessons: [{ title: "Leçon 1", durationMinutes: 30, videoUrl: "", isFreePreview: false }] }]);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const removeLesson = (sectionIndex: number, lessonIndex: number) => {
     setSections((current) => current.map((section, index) => index !== sectionIndex ? section : {
       ...section,
@@ -421,8 +417,14 @@ export default function TeacherCoursesPage() {
 
               {step === 2 && (
                 <>
+                  <div className="space-y-4 rounded-2xl border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center justify-between gap-3"><div><label className="block font-bold text-slate-700">Programme du cours *</label><p className="mt-1 text-[11px] text-slate-500">Ajoutez plusieurs modules et vidéos dans votre pack.</p></div><button type="button" onClick={addSection} className="shrink-0 rounded-xl bg-[#e5f7f2] px-3 py-2 text-[11px] font-bold text-[#0d8d78] hover:bg-[#d5f1e8]">+ Module</button></div>
+                    {sections.map((section, sectionIndex) => <div key={sectionIndex} className="space-y-3 rounded-xl border-slate-200 bg-white p-3"><div className="flex items-center gap-2"><input value={section.title} onChange={(e) => setSections((current) => current.map((item, index) => index === sectionIndex ? { ...item, title: e.target.value } : item))} className="min-w-0 flex-1 rounded-lg border-slate-200 p-2.5 text-xs font-bold outline-none focus:border-[#0d8d78]" placeholder="Nom du module" />{sections.length > 1 && <button type="button" onClick={() => setSections((current) => current.filter((_, index) => index !== sectionIndex))} className="text-[10px] font-bold text-rose-600">Supprimer</button>}</div>{section.lessons.map((lesson, lessonIndex) => <div key={lessonIndex} className="space-y-2 rounded-xl border-slate-100 bg-slate-50 p-3"><div className="flex items-center justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Vidéo {lessonIndex + 1}</span>{section.lessons.length > 1 && <button type="button" onClick={() => removeLesson(sectionIndex, lessonIndex)} className="text-[10px] font-bold text-rose-600">Supprimer</button>}</div><input required value={lesson.title} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { title: e.target.value })} className="w-full rounded-lg border-slate-200 bg-white p-2.5 text-xs outline-none focus:border-[#0d8d78]" placeholder="Titre de la vidéo" /><div className="grid gap-2 sm:grid-cols-[1fr_100px]"><input required type="url" value={lesson.videoUrl} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { videoUrl: e.target.value })} className="w-full rounded-lg border-slate-200 bg-white p-2.5 text-xs outline-none focus:border-[#0d8d78]" placeholder="Lien YouTube, Vimeo ou MP4" /><input required type="number" min={1} value={lesson.durationMinutes} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { durationMinutes: Number(e.target.value) })} className="w-full rounded-lg border-slate-200 bg-white p-2.5 text-xs outline-none focus:border-[#0d8d78]" aria-label="Durée en minutes" /></div><div className="flex flex-wrap items-center justify-between gap-2"><label className="flex items-center gap-2 text-[11px] font-semibold text-slate-500"><input type="checkbox" checked={lesson.isFreePreview} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { isFreePreview: e.target.checked })} /> Aperçu gratuit</label><button type="button" onClick={() => { setActiveUploadTarget({ sectionIndex, lessonIndex }); fileInputRef.current?.click(); }} className="rounded-lg border-[#0d8d78] px-3 py-1.5 text-[10px] font-bold text-[#0d8d78] hover:bg-[#e5f7f2]">📁 Uploader une vidéo</button></div></div>)}<button type="button" onClick={() => addLesson(sectionIndex)} className="w-full rounded-lg border-dashed border-[#0d8d78] py-2 text-[11px] font-bold text-[#0d8d78] hover:bg-[#e5f7f2]">+ Ajouter une vidéo</button></div>)}
+                    <input type="file" ref={fileInputRef} onChange={handleVideoFileUpload} accept="video/mp4,video/webm,video/ogg,video/quicktime" className="hidden" />
+                    {uploadingFile && <p className="text-[11px] font-bold text-[#0d8d78]">Envoi de la vidéo vers Supabase...</p>}
+                  </div>
                   <div className="hidden">
-                    <label className="block font-bold text-slate-600 mb-1">Titre de la 1ère leçon *</label>
+                     <label className="block font-bold text-slate-600 mb-1">Titre de la 1ère leçon *</label>
                     <input
                       type="text"
                       required
@@ -505,13 +507,13 @@ export default function TeacherCoursesPage() {
                   </div>
 
                   {/* Live Video Preview in Modal */}
-                  {lessonVideo && (
+                  {sections[0]?.lessons[0]?.videoUrl && (
                     <div className="space-y-1.5 pt-1">
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
                         Aperçu du lecteur vidéo :
                       </label>
                       <div className="rounded-2xl overflow-hidden border border-slate-200 max-h-48">
-                        <VideoPlayer src={lessonVideo} title={lessonTitle} className="max-h-48" />
+                        <VideoPlayer src={sections[0].lessons[0].videoUrl} title={sections[0].lessons[0].title} className="max-h-48" />
                       </div>
                     </div>
                   )}
