@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { SiteNavbar } from "@/components/site-navbar";
 import { formatTndFromMillimes } from "@/lib/finance/withdrawal";
 import {
   IconCalendar,
@@ -106,41 +107,10 @@ export default function TeacherDashboardPage() {
   const totalStudents = (teacher?.bookings.length ?? 0) + totalCourseStudents;
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] px-4 py-8 sm:px-6 sm:py-10 text-[#11233f]">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
-              <span>ProfySpace</span>
-              <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-            </Link>
-            <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 px-3 py-1 text-xs font-bold text-[#0d8d78]">
-              Espace Professeur
-            </span>
-          </div>
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+      <SiteNavbar dark={false} />
 
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <Link
-              href="/dashboard/messages"
-              className="rounded-2xl border border-slate-200 bg-[#e5f7f2] px-4 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] sm:text-sm"
-            >
-              💬 Messagerie / Chat
-            </Link>
-            <Link
-              href="/teacher/dashboard/courses"
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300 sm:text-sm"
-            >
-              📚 Mes cours
-            </Link>
-            <Link
-              href="/teacher/dashboard/withdrawals"
-              className="rounded-2xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm sm:text-sm"
-            >
-              Retraits & Revenus
-            </Link>
-          </div>
-        </div>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
 
         {/* Verification Status Banners */}
         {isNewPending && (

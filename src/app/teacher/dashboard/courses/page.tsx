@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
+import { VideoPlayer } from "@/components/video-player";
 import { Course, CourseVisibility } from "@/lib/server/courses-store";
 
 export default function TeacherCoursesPage() {
@@ -21,7 +22,11 @@ export default function TeacherCoursesPage() {
   const [visibility, setVisibility] = useState<CourseVisibility>("LOCKED");
   const [lessonTitle, setLessonTitle] = useState("Leçon 1 : Introduction et rappels");
   const [lessonDuration, setLessonDuration] = useState(30);
-  const [lessonVideo, setLessonVideo] = useState("https://www.w3schools.com/html/mov_bbb.mp4");
+  const [lessonVideo, setLessonVideo] = useState("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+  const [videoMode, setVideoMode] = useState<"URL" | "FILE">("URL");
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -55,6 +60,33 @@ export default function TeacherCoursesPage() {
     Promise.resolve().then(() => fetchTeacherCourses());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("video/")) {
+      setError("Veuillez sélectionner un fichier vidéo valide (MP4, WebM, MOV).");
+      return;
+    }
+
+    setUploadingFile(true);
+    setUploadedFileName(file.name);
+    setError("");
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setLessonVideo(reader.result);
+      }
+      setUploadingFile(false);
+    };
+    reader.onerror = () => {
+      setError("Erreur lors de la lecture du fichier vidéo.");
+      setUploadingFile(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,7 +168,9 @@ export default function TeacherCoursesPage() {
     setVisibility("LOCKED");
     setLessonTitle("Leçon 1 : Introduction et rappels");
     setLessonDuration(30);
-    setLessonVideo("https://www.w3schools.com/html/mov_bbb.mp4");
+    setLessonVideo("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    setVideoMode("URL");
+    setUploadedFileName("");
     setError("");
   };
 
@@ -363,29 +397,99 @@ export default function TeacherCoursesPage() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-600 mb-1">Lien de la vidéo (MP4 / Stream URL) *</label>
-                    <input
-                      type="url"
-                      required
-                      value={lessonVideo}
-                      onChange={(e) => setLessonVideo(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-[#0d8d78]"
-                    />
+                    <label className="block font-bold text-slate-600 mb-1.5">Source de la vidéo *</label>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => setVideoMode("URL")}
+                        className={`rounded-xl border py-2 text-xs font-bold transition ${
+                          videoMode === "URL"
+                            ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        🔗 Lien YouTube / Vimeo / MP4
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVideoMode("FILE")}
+                        className={`rounded-xl border py-2 text-xs font-bold transition ${
+                          videoMode === "FILE"
+                            ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        📁 Uploader un fichier vidéo
+                      </button>
+                    </div>
+
+                    {videoMode === "URL" ? (
+                      <div>
+                        <input
+                          type="text"
+                          required
+                          value={lessonVideo}
+                          onChange={(e) => setLessonVideo(e.target.value)}
+                          placeholder="https://www.youtube.com/watch?v=... ou https://youtu.be/..."
+                          className="w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-[#0d8d78]"
+                        />
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          Supporte les liens YouTube standards, Shorts, partages YouTu.be, Vimeo et fichiers MP4 directs.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 text-center space-y-2">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleVideoFileUpload}
+                          accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="rounded-xl bg-white border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-xs"
+                        >
+                          {uploadingFile ? "Lecture du fichier..." : "Choisir une vidéo sur mon appareil"}
+                        </button>
+                        {uploadedFileName && (
+                          <p className="text-[11px] font-bold text-[#0d8d78]">
+                            ✓ Fichier sélectionné : {uploadedFileName}
+                          </p>
+                        )}
+                        <p className="text-[10px] text-slate-400">
+                          Formats supportés : MP4, WebM, MOV.
+                        </p>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Live Video Preview in Modal */}
+                  {lessonVideo && (
+                    <div className="space-y-1.5 pt-1">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        Aperçu du lecteur vidéo :
+                      </label>
+                      <div className="rounded-2xl overflow-hidden border border-slate-200 max-h-48">
+                        <VideoPlayer src={lessonVideo} title={lessonTitle} className="max-h-48" />
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block font-bold text-slate-600 mb-1">Durée (minutes) *</label>
                     <input
                       type="number"
                       required
-                      min={5}
+                      min={1}
                       value={lessonDuration}
                       onChange={(e) => setLessonDuration(Number(e.target.value))}
                       className="w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-[#0d8d78]"
                     />
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 pt-2">
                     <button
                       type="button"
                       onClick={() => setStep(1)}
@@ -395,7 +499,14 @@ export default function TeacherCoursesPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setStep(3)}
+                      onClick={() => {
+                        if (!lessonTitle.trim() || !lessonVideo.trim()) {
+                          setError("Veuillez renseigner le titre et la vidéo de la leçon.");
+                          return;
+                        }
+                        setError("");
+                        setStep(3);
+                      }}
                       className="flex-1 rounded-2xl bg-[#0d8d78] py-3.5 font-bold text-white shadow-md transition hover:bg-[#0b7866]"
                     >
                       Suivant : Tarif & Visibilité →

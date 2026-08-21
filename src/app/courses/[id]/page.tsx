@@ -5,6 +5,7 @@ import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SiteNavbar } from "@/components/site-navbar";
+import { VideoPlayer } from "@/components/video-player";
 import { Course, Lesson } from "@/lib/server/courses-store";
 
 export default function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -268,15 +269,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
                   {/* Video Screen or Locked Overlay */}
                   {hasAccess || activeLesson.isFreePreview ? (
-                    <div className="relative aspect-video rounded-2xl overflow-hidden bg-black shadow-inner">
-                      {activeLesson.videoUrl ? (
-                        <video controls className="h-full w-full object-contain" src={activeLesson.videoUrl} />
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-white text-xs">
-                          Aucune vidéo associée à cette leçon.
-                        </div>
-                      )}
-                    </div>
+                    <VideoPlayer src={activeLesson.videoUrl} title={activeLesson.title} />
                   ) : (
                     <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center space-y-3">
                       <span className="text-4xl">🔒</span>

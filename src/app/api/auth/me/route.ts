@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ user: null }, { status: 200 });
   }
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     user: {
       id: user.id,
       email: user.email,
@@ -37,4 +37,11 @@ export async function GET(request: Request) {
       wallet: user.wallet,
     },
   });
+
+  const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 60 * 60 * 24 * 30 };
+  response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
+  response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
+  response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+
+  return response;
 }
