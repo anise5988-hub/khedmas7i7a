@@ -306,3 +306,18 @@ model News {
   updatedAt        DateTime @updatedAt
   @@index([published, createdAt])
 }
+
+model PlatformSettings {
+  id                String   @id @default(cuid())
+  commissionRate    Float    @default(10)
+  minWithdrawalTnd  Float    @default(10)
+  d17Enabled        Boolean  @default(true)
+  flouciEnabled     Boolean  @default(true)
+  bankTransferEnabled Boolean @default(true)
+  supportEmail      String   @default("profyspace@gmail.com")
+  supportPhone      String   @default("+216 58 249 938")
+  d17Recipient      String?
+  flouciRecipient   String?
+  bankRib           String?
+  updatedAt         DateTime @updatedAt
+}

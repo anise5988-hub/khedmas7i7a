@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   IconDollarSign,
@@ -9,26 +9,86 @@ import {
   IconShield,
 } from "@/components/icons";
 
+type Settings = {
+  commissionRate: number;
+  minWithdrawalTnd: number;
+  d17Enabled: boolean;
+  flouciEnabled: boolean;
+  bankTransferEnabled: boolean;
+  supportEmail: string;
+  supportPhone: string;
+  d17Recipient: string | null;
+  flouciRecipient: string | null;
+  bankRib: string | null;
+};
+
 export default function AdminSettingsPage() {
-  const [commissionRate, setCommissionRate] = useState(10);
-  const [minWithdrawalTnd, setMinWithdrawalTnd] = useState(10);
-  const [d17Enabled, setD17Enabled] = useState(true);
-  const [flouciEnabled, setFlouciEnabled] = useState(true);
-  const [bankTransferEnabled, setBankTransferEnabled] = useState(true);
-  const [supportEmail, setSupportEmail] = useState("profyspace@gmail.com");
-  const [supportPhone, setSupportPhone] = useState("+216 58 249 938");
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSave(e: React.FormEvent) {
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setSettings(data);
+      })
+      .catch(() => setError("Impossible de charger les paramètres."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!settings) return;
     setSaving(true);
     setSaved(false);
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        setError(data.error || "Impossible d'enregistrer.");
+      }
+    } catch {
+      setError("Erreur de connexion au serveur.");
+    } finally {
       setSaving(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    }, 600);
+    }
+  }
+
+  function update<K extends keyof Settings>(key: K, value: Settings[K]) {
+    setSettings((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#101b2d] px-4 py-8 sm:px-6 sm:py-10 text-white">
+        <div className="mx-auto max-w-5xl">
+          <div className="mt-20 text-center text-sm text-slate-400">Chargement des paramètres...</div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!settings) {
+    return (
+      <main className="min-h-screen bg-[#101b2d] px-4 py-8 sm:px-6 sm:py-10 text-white">
+        <div className="mx-auto max-w-5xl">
+          <div className="mt-20 text-center text-sm text-rose-400">{error || "Impossible de charger les paramètres."}</div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -92,8 +152,8 @@ export default function AdminSettingsPage() {
                   type="number"
                   min={0}
                   max={50}
-                  value={commissionRate}
-                  onChange={(e) => setCommissionRate(Number(e.target.value))}
+                  value={settings.commissionRate}
+                  onChange={(e) => update("commissionRate", Number(e.target.value))}
                   className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white outline-none focus:border-[#72d6bf]"
                 />
                 <p className="mt-1 text-[11px] text-slate-400">Pourcentage standard déduit lors du virement des gains aux professeurs.</p>
@@ -106,8 +166,8 @@ export default function AdminSettingsPage() {
                 <input
                   type="number"
                   min={5}
-                  value={minWithdrawalTnd}
-                  onChange={(e) => setMinWithdrawalTnd(Number(e.target.value))}
+                  value={settings.minWithdrawalTnd}
+                  onChange={(e) => update("minWithdrawalTnd", Number(e.target.value))}
                   className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white outline-none focus:border-[#72d6bf]"
                 />
                 <p className="mt-1 text-[11px] text-slate-400">Montant minimum requis dans le portefeuille du professeur pour demander un virement.</p>
@@ -135,8 +195,8 @@ export default function AdminSettingsPage() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={d17Enabled}
-                  onChange={(e) => setD17Enabled(e.target.checked)}
+                  checked={settings.d17Enabled}
+                  onChange={(e) => update("d17Enabled", e.target.checked)}
                   className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
                 />
               </label>
@@ -148,8 +208,8 @@ export default function AdminSettingsPage() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={flouciEnabled}
-                  onChange={(e) => setFlouciEnabled(e.target.checked)}
+                  checked={settings.flouciEnabled}
+                  onChange={(e) => update("flouciEnabled", e.target.checked)}
                   className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
                 />
               </label>
@@ -161,8 +221,8 @@ export default function AdminSettingsPage() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={bankTransferEnabled}
-                  onChange={(e) => setBankTransferEnabled(e.target.checked)}
+                  checked={settings.bankTransferEnabled}
+                  onChange={(e) => update("bankTransferEnabled", e.target.checked)}
                   className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
                 />
               </label>
@@ -188,8 +248,8 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="email"
-                  value={supportEmail}
-                  onChange={(e) => setSupportEmail(e.target.value)}
+                  value={settings.supportEmail}
+                  onChange={(e) => update("supportEmail", e.target.value)}
                   className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white outline-none focus:border-[#72d6bf]"
                 />
               </div>
@@ -200,8 +260,8 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="text"
-                  value={supportPhone}
-                  onChange={(e) => setSupportPhone(e.target.value)}
+                  value={settings.supportPhone}
+                  onChange={(e) => update("supportPhone", e.target.value)}
                   className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white outline-none focus:border-[#72d6bf]"
                 />
               </div>

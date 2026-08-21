@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
-import { IconShield, IconStar } from "@/components/icons";
+import { IconShield } from "@/components/icons";
 
 export default function StudentSupportPage() {
   const [subject, setSubject] = useState("");
@@ -36,16 +35,25 @@ export default function StudentSupportPage() {
     setStatus({ type: "", text: "" });
 
     try {
-      // Simulate/submit ticket
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setStatus({
-        type: "success",
-        text: "Votre message a été transmis à notre équipe d'assistance. Un conseiller vous répondra sous 24h.",
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Élève ProfySpace", email: "eleve@profyspace.tn", subject, message }),
       });
-      setSubject("");
-      setMessage("");
+
+      const data = await res.json();
+      if (res.ok) {
+        setStatus({
+          type: "success",
+          text: data.message || "Votre message a été transmis à notre équipe d'assistance. Un conseiller vous répondra sous 24h.",
+        });
+        setSubject("");
+        setMessage("");
+      } else {
+        setStatus({ type: "error", text: data.error || "Erreur lors de l'envoi du message." });
+      }
     } catch {
-      setStatus({ type: "error", text: "Erreur lors de l'envoi du message." });
+      setStatus({ type: "error", text: "Erreur de connexion au serveur." });
     } finally {
       setSubmitting(false);
     }

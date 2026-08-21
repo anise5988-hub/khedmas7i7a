@@ -28,10 +28,10 @@ describe("loginSchema", () => {
       }
     });
 
-    it("should accept minimum (1 char) and maximum (128 chars) password lengths", () => {
+    it("should accept minimum (8 chars) and maximum (128 chars) password lengths", () => {
       const minPassInput = {
         email: "user@example.com",
-        password: "x",
+        password: "12345678",
       };
       expect(loginSchema.safeParse(minPassInput).success).toBe(true);
 

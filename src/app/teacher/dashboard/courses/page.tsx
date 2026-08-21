@@ -26,13 +26,13 @@ export default function TeacherCoursesPage() {
   const [sections, setSections] = useState<FormSection[]>([
     {
       title: "Module 1 : Fondamentaux & Exercices",
-      lessons: [{ title: "Leçon 1 : Introduction et rappels", durationMinutes: 30, videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", isFreePreview: true }],
+      lessons: [{ title: "Leçon 1 : Introduction et rappels", durationMinutes: 30, videoUrl: "", isFreePreview: true }],
     },
   ]);
   // Legacy preview fields kept for the existing preview component.
   const [lessonTitle, setLessonTitle] = useState("Leçon 1 : Introduction et rappels");
   const [lessonDuration, setLessonDuration] = useState(30);
-  const [lessonVideo, setLessonVideo] = useState("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+  const [lessonVideo, setLessonVideo] = useState("");
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadKind, setUploadKind] = useState<"video" | "pdf">("video");
   const [videoMode, setVideoMode] = useState<"URL" | "FILE">("URL");
@@ -216,11 +216,11 @@ export default function TeacherCoursesPage() {
     setThumbnailUrl("");
     setSections([{
       title: "Module 1 : Fondamentaux & Exercices",
-      lessons: [{ title: "Leçon 1 : Introduction et rappels", durationMinutes: 30, videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", isFreePreview: true }],
+      lessons: [{ title: "Leçon 1 : Introduction et rappels", durationMinutes: 30, videoUrl: "", isFreePreview: true }],
     }]);
     setLessonTitle("Leçon 1 : Introduction et rappels");
     setLessonDuration(30);
-    setLessonVideo("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    setLessonVideo("");
     setUploadedFileName("");
     setVideoMode("URL");
     setActiveUploadTarget(null);

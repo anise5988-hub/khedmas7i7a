@@ -9,14 +9,37 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("Question générale");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
-    setName("");
-    setEmail("");
-    setMessage("");
+    setSubmitting(true);
+    setSubmitted(false);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setSubmitted(true);
+        setName("");
+        setEmail("");
+        setSubject("Question générale");
+        setMessage("");
+      } else {
+        setError(data.error || "Une erreur est survenue.");
+      }
+    } catch {
+      setError("Erreur de connexion au serveur.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -51,6 +74,12 @@ export default function ContactPage() {
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-900 flex items-center gap-2">
                 <IconCheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>Merci ! Votre message a été transmis avec succès à notre équipe support.</span>
+              </div>
+            )}
+
+            {error && !submitted && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-semibold text-rose-700">
+                {error}
               </div>
             )}
 
@@ -110,9 +139,10 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-2xl bg-[#0d8d78] py-4 text-center text-xs font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866]"
+                disabled={submitting}
+                className="w-full rounded-2xl bg-[#0d8d78] py-4 text-center text-xs font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] disabled:opacity-50"
               >
-                Envoyer le message →
+                {submitting ? "Envoi en cours..." : "Envoyer le message →"}
               </button>
             </form>
           </div>

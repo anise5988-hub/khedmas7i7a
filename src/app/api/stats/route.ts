@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
-import { fallbackStore } from "@/lib/server/fallback-store";
 
 export async function GET() {
   try {
@@ -37,15 +36,11 @@ export async function GET() {
     });
   } catch (error) {
     console.warn("Public stats fetch fallback used", error);
-    const fallbackUsers = fallbackStore.getAllUsers();
-    const rawStudents = fallbackUsers.filter((u) => u.role === "STUDENT").length;
-    const rawTeachers = fallbackStore.getAllTeachers().length;
-
     return NextResponse.json({
-      studentsCount: rawStudents,
-      teachersCount: rawTeachers,
+      studentsCount: 0,
+      teachersCount: 0,
       hoursTaught: 0,
-      satisfactionRate: 100,
+      satisfactionRate: 0,
     });
   }
 }

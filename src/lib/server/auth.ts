@@ -24,13 +24,6 @@ export async function getCurrentUser(request?: Request) {
     }
 
     if (!userId) {
-      const xUserId = request.headers.get("x-user-id");
-      if (xUserId && xUserId.trim()) {
-        userId = xUserId.trim();
-      }
-    }
-
-    if (!userId) {
       const cookieHeader = request.headers.get("cookie");
       if (cookieHeader) {
         const cookiesMap = Object.fromEntries(

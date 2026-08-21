@@ -35,11 +35,10 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       type="button"
       onClick={toggleTheme}
       title={theme === "light" ? "Passer en mode sombre" : "Passer en mode clair"}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition duration-200 border ${
-        theme === "dark"
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition duration-200 border ${theme === "dark"
           ? "bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700 shadow-sm"
           : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 shadow-sm"
-      } ${className}`}
+        } ${className}`}
     >
       <span>{theme === "dark" ? "🌙" : "☀️"}</span>
       <span className="hidden sm:inline">{theme === "dark" ? "Nuit" : "Jour"}</span>

@@ -91,6 +91,8 @@ export default function Home() {
     hoursTaught: number;
     satisfactionRate: number;
   } | null>(null);
+  const [statsError, setStatsError] = useState("");
+  const [teachersError, setTeachersError] = useState("");
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -109,7 +111,7 @@ export default function Home() {
           setFeaturedTeachers(data.slice(0, 6));
         }
       })
-      .catch(() => {});
+      .catch(() => setTeachersError("Impossible de charger les professeurs."));
 
     fetch("/api/courses")
       .then((res) => (res.ok ? res.json() : { courses: [] }))
@@ -123,8 +125,9 @@ export default function Home() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) setStats(data);
+        else setStatsError("Impossible de charger les statistiques.");
       })
-      .catch(() => {});
+      .catch(() => setStatsError("Impossible de charger les statistiques."));
 
     loadReviews();
   }, []);
@@ -289,6 +292,13 @@ export default function Home() {
 
       {/* Real Live Database Stats Bar */}
       <section className="border-b border-slate-200 bg-white">
+        {statsError && (
+          <div className="mx-auto max-w-7xl px-6 pt-4 lg:px-10">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800">
+              {statsError}
+            </div>
+          </div>
+        )}
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-6 py-8 sm:grid-cols-4 lg:px-10">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
@@ -355,7 +365,30 @@ export default function Home() {
             </Link>
           </div>
 
-          {featuredTeachers.length === 0 ? (
+          {featuredTeachers.length === 0 && teachersError ? (
+            <div className="mt-10 rounded-3xl border border-white/10 bg-white/[.04] p-12 text-center">
+              <span className="text-4xl">⚠️</span>
+              <h3 className="mt-3 text-lg font-bold">Impossible de charger les professeurs.</h3>
+              <p className="mt-1 text-sm text-slate-400">
+                Veuillez réessayer ultérieurement.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setTeachersError("");
+                  fetch("/api/teachers")
+                    .then((res) => (res.ok ? res.json() : []))
+                    .then((data: ApprovedTeacher[]) => {
+                      if (Array.isArray(data)) setFeaturedTeachers(data.slice(0, 6));
+                    })
+                    .catch(() => setTeachersError("Impossible de charger les professeurs."));
+                }}
+                className="mt-5 inline-block rounded-full bg-[#72d6bf] px-6 py-3 text-xs font-bold text-[#11233f] transition hover:bg-[#5ec4ad]"
+              >
+                Réessayer
+              </button>
+            </div>
+          ) : featuredTeachers.length === 0 ? (
             <div className="mt-10 rounded-3xl border border-white/10 bg-white/[.04] p-12 text-center">
               <span className="text-4xl">👨‍🏫</span>
               <h3 className="mt-3 text-lg font-bold">Rejoignez notre communauté d'enseignants.</h3>

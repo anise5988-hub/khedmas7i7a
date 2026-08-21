@@ -2,45 +2,47 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CopyButton } from "@/components/copy-button";
 import { IconCreditCard, IconShield, IconCheck } from "@/components/icons";
 
-const depositMethods = [
-  {
-    id: "D17",
-    name: "La Poste Tunisienne (D17)",
-    recipientTitle: "Numéro D17",
-    copyValue: "21000319",
-    displayValue: "21000319",
-    instructions: "Effectuez le transfert depuis votre application D17 vers ce numéro, puis saisissez le numéro de transaction reçu par SMS.",
-  },
-  {
-    id: "FLOUCI",
-    name: "Flouci Wallet",
-    recipientTitle: "Numéro Flouci",
-    copyValue: "21000319",
-    displayValue: "21000319",
-    instructions: "Transférez le montant vers ce numéro sur Flouci puis collez la référence de transfert.",
-  },
-  {
-    id: "BANK_TRANSFER",
-    name: "Virement Bancaire (RIB)",
-    recipientTitle: "RIB Bancaire",
-    copyValue: "08001000123456789012",
-    displayValue: "08001000123456789012",
-    instructions: "Effectuez votre virement vers ce RIB et mentionnez votre Nom & Prénom en libellé.",
-  },
-] as const;
+type DepositMethod = {
+  id: string;
+  name: string;
+  recipientTitle: string;
+  copyValue: string;
+  displayValue: string;
+  instructions: string;
+  enabled: boolean;
+};
 
 export default function AddMoneyPage() {
   const [amount, setAmount] = useState(30);
-  const [method, setMethod] = useState<"D17" | "BANK_TRANSFER" | "FLOUCI">("D17");
+  const [method, setMethod] = useState<string>("D17");
   const [reference, setReference] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [depositMethods, setDepositMethods] = useState<DepositMethod[]>([]);
+  const [methodsLoading, setMethodsLoading] = useState(true);
+  const [methodsError, setMethodsError] = useState("");
 
   const activeMethodConfig = depositMethods.find((m) => m.id === method) || depositMethods[0];
+
+  useEffect(() => {
+    fetch("/api/deposit-methods")
+      .then((res) => (res.ok ? res.json() : { methods: [] }))
+      .then((data) => {
+        if (Array.isArray(data.methods)) {
+          setDepositMethods(data.methods);
+          if (data.methods.length > 0 && !data.methods.find((m: DepositMethod) => m.id === method)) {
+            setMethod(data.methods[0].id);
+          }
+        }
+      })
+      .catch(() => setMethodsError("Impossible de charger les modes de paiement."))
+      .finally(() => setMethodsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,15 +50,9 @@ export default function AddMoneyPage() {
     setMessage({ type: "", text: "" });
 
     try {
-      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        ...(userId ? { "x-user-id": userId } : {}),
-      };
-
       const res = await fetch("/api/wallet/deposits", {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amountMillimes: Math.round(Number(amount) * 1000),
           method,
@@ -167,57 +163,69 @@ export default function AddMoneyPage() {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
               2. Choisissez le mode de paiement *
             </label>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {depositMethods.map((m) => (
-                <label
-                  key={m.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition duration-200 ${
-                    method === m.id
-                      ? "border-[#0d8d78] bg-[#e5f7f2] shadow-sm ring-2 ring-[#0d8d78]"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="method"
-                      checked={method === m.id}
-                      onChange={() => setMethod(m.id as never)}
-                      className="text-[#0d8d78] focus:ring-[#0d8d78]"
-                    />
-                    <div>
-                      <span className="font-bold text-sm block text-[#11233f]">{m.name}</span>
-                      <span className="text-[11px] text-slate-500">{m.recipientTitle}</span>
+            {methodsLoading ? (
+              <div className="text-xs text-slate-400">Chargement des modes de paiement...</div>
+            ) : methodsError ? (
+              <div className="text-xs text-rose-600">{methodsError}</div>
+            ) : depositMethods.length === 0 ? (
+              <div className="text-xs text-slate-500">Aucun mode de paiement disponible pour le moment.</div>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {depositMethods.map((m) => (
+                  <label
+                    key={m.id}
+                    className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition duration-200 ${
+                      method === m.id
+                        ? "border-[#0d8d78] bg-[#e5f7f2] shadow-sm ring-2 ring-[#0d8d78]"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="method"
+                        checked={method === m.id}
+                        onChange={() => setMethod(m.id)}
+                        className="text-[#0d8d78] focus:ring-[#0d8d78]"
+                      />
+                      <div>
+                        <span className="font-bold text-sm block text-[#11233f]">{m.name}</span>
+                        <span className="text-[11px] text-slate-500">{m.recipientTitle}</span>
+                      </div>
                     </div>
-                  </div>
-                </label>
-              ))}
-            </div>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Copyable Payment Recipient Card */}
-          <div className="rounded-2xl border border-[#72d6bf]/40 bg-[#f0faf7] p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
-                  {activeMethodConfig.recipientTitle}
-                </p>
-                <p className="mt-1 font-mono text-lg font-bold text-[#11233f] select-all tracking-wide">
-                  {activeMethodConfig.displayValue}
-                </p>
+          {activeMethodConfig && (
+            <div className="rounded-2xl border border-[#72d6bf]/40 bg-[#f0faf7] p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
+                    {activeMethodConfig.recipientTitle}
+                  </p>
+                  <p className="mt-1 font-mono text-lg font-bold text-[#11233f] select-all tracking-wide">
+                    {activeMethodConfig.displayValue || "Non configuré"}
+                  </p>
+                </div>
+
+                {activeMethodConfig.copyValue && (
+                  <CopyButton
+                    text={activeMethodConfig.copyValue}
+                    label="Copier le numéro / RIB"
+                    className="self-start sm:self-center py-2 px-3 text-xs shadow-sm bg-white"
+                  />
+                )}
               </div>
 
-              <CopyButton
-                text={activeMethodConfig.copyValue}
-                label="Copier le numéro / RIB"
-                className="self-start sm:self-center py-2 px-3 text-xs shadow-sm bg-white"
-              />
+              <div className="mt-3 border-t border-[#72d6bf]/20 pt-3 text-xs text-slate-600 leading-relaxed">
+                <strong>Instructions :</strong> {activeMethodConfig.instructions}
+              </div>
             </div>
-
-            <div className="mt-3 border-t border-[#72d6bf]/20 pt-3 text-xs text-slate-600 leading-relaxed">
-              <strong>Instructions :</strong> {activeMethodConfig.instructions}
-            </div>
-          </div>
+          )}
 
           {/* Transaction Reference Input */}
           <div>
