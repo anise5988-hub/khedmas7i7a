@@ -15,9 +15,10 @@ export function middleware(request: NextRequest) {
   // 2. Read authenticated session cookies
   const userId =
     request.cookies.get("profy_user_id")?.value ||
+    request.cookies.get("profyspace_user_id")?.value ||
+    request.cookies.get("user_id")?.value ||
     request.cookies.get("profy_supabase_access_token")?.value;
   const role = request.cookies.get("profy_role")?.value;
-
   // 3. Unauthenticated access check
   if (!userId) {
     const loginUrl = new URL("/login", request.url);

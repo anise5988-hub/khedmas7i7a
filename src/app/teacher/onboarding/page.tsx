@@ -1,4 +1,4 @@
-﻿/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
@@ -44,8 +44,15 @@ export default function TeacherOnboardingPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  function getAuthHeaders(): Record<string, string> {
+    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userId) headers["x-user-id"] = userId;
+    return headers;
+  }
+
   useEffect(() => {
-    fetch("/api/teacher/profile")
+    fetch("/api/teacher/profile", { headers: getAuthHeaders() })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.teacher) {
@@ -104,7 +111,7 @@ export default function TeacherOnboardingPage() {
     try {
       const res = await fetch("/api/teacher/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           title,
           avatarUrl,

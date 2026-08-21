@@ -157,12 +157,12 @@ export default function TeacherDashboardPage() {
                   </p>
                 </div>
               </div>
-              <a
-                href="/teacher/onboarding"
+              <Link
+                href="/teacher/dashboard/profile"
                 className="shrink-0 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm"
               >
                 Compléter mon profil & Envoyer →
-              </a>
+              </Link>
             </div>
           </div>
         )}
@@ -200,12 +200,12 @@ export default function TeacherDashboardPage() {
                 <p className="mt-1 text-sm text-rose-800 max-w-2xl">
                   Certaines informations ou pièces justificatives sont manquantes. Veuillez mettre à jour votre profil pour demander une nouvelle revue.
                 </p>
-                <a
-                  href="/teacher/onboarding"
-                  className="mt-4 inline-block rounded-xl bg-rose-900 px-4 py-2 text-xs font-bold text-white"
+                <Link
+                  href="/teacher/dashboard/profile"
+                  className="mt-4 inline-block rounded-xl bg-rose-900 px-4 py-2 text-xs font-bold text-white hover:bg-rose-800"
                 >
                   Mettre à jour et renvoyer
-                </a>
+                </Link>
               </div>
             </div>
           </div>

@@ -12,8 +12,11 @@ export async function GET(request: Request) {
   const user = await getCurrentUser(request);
 
   // Private teacher listings must be scoped to the authenticated teacher (or admin).
+  let effectiveTeacherId = teacherId;
   if (teacherId) {
-    if (!user || (user.id !== teacherId && user.id !== `teach_${teacherId}` && user.role !== "ADMIN")) {
+    if (user && user.role === "TEACHER") {
+      effectiveTeacherId = user.id;
+    } else if (!user || (user.id !== teacherId && user.role !== "ADMIN")) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
   }
@@ -22,7 +25,7 @@ export async function GET(request: Request) {
     subject,
     level,
     search,
-    teacherId,
+    teacherId: effectiveTeacherId,
   });
 
   return NextResponse.json({ courses });

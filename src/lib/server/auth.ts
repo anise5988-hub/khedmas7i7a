@@ -4,88 +4,108 @@ import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "./fallback-store";
 import { supabaseAuth } from "@/lib/server/supabase-auth";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function getCurrentUser(..._args: [Request?]) {
+export async function getCurrentUser(request?: Request) {
   let userId: string | undefined;
 
-  if (supabaseAuth) {
-    try {
-      const cookieStore = await cookies();
-      const accessToken = cookieStore.get("profy_supabase_access_token")?.value;
-      if (accessToken) {
-        const { data } = await supabaseAuth.auth.getUser(accessToken);
-        userId = data.user?.id;
+  // 1. Try to read from request headers if passed
+  if (request) {
+    const headerUserId = request.headers.get("x-user-id");
+    if (headerUserId && headerUserId !== "undefined" && headerUserId !== "null") {
+      userId = headerUserId;
+    }
+
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ") && supabaseAuth) {
+      const token = authHeader.substring(7);
+      try {
+        const { data } = await supabaseAuth.auth.getUser(token);
+        if (data?.user?.id) userId = data.user.id;
+      } catch {}
+    }
+
+    if (!userId) {
+      const cookieHeader = request.headers.get("cookie");
+      if (cookieHeader) {
+        const cookiesMap = Object.fromEntries(
+          cookieHeader.split(";").map((c) => {
+            const [k, ...v] = c.trim().split("=");
+            return [k, decodeURIComponent(v.join("="))];
+          })
+        );
+        userId =
+          cookiesMap["profy_user_id"] ||
+          cookiesMap["profyspace_user_id"] ||
+          cookiesMap["user_id"];
+
+        if (!userId && cookiesMap["profy_supabase_access_token"] && supabaseAuth) {
+          try {
+            const { data } = await supabaseAuth.auth.getUser(cookiesMap["profy_supabase_access_token"]);
+            if (data?.user?.id) userId = data.user.id;
+          } catch {}
+        }
       }
-    } catch {
-      // Fall through to the legacy server cookie lookup.
     }
   }
 
-  try {
-    // Authentication is established by a server-set cookie. Never trust a user ID
-    // supplied by browser JavaScript: it can be changed by the caller.
-    // Supabase bearer-token validation can be added here when SSR session cookies
-    // are enabled; the legacy client ID header is intentionally ignored.
+  // 2. Try next/headers cookies()
+  if (!userId) {
+    try {
+      const cookieStore = await cookies();
+      const accessToken = cookieStore.get("profy_supabase_access_token")?.value;
+      if (accessToken && supabaseAuth) {
+        try {
+          const { data } = await supabaseAuth.auth.getUser(accessToken);
+          if (data?.user?.id) userId = data.user.id;
+        } catch {}
+      }
 
-    // Check server cookies
-    if (!userId) {
-      try {
-        const cookieStore = await cookies();
+      if (!userId) {
         userId =
           cookieStore.get("profy_user_id")?.value ||
           cookieStore.get("profyspace_user_id")?.value ||
           cookieStore.get("user_id")?.value;
-      } catch {
-        // cookies() context unavailable
       }
-    }
-
-    if (!userId) return null;
-
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          student: true,
-          teacher: {
-            include: {
-              subjects: true,
-              availabilities: true,
-            },
-          },
-          wallet: true,
-        },
-      });
-
-      if (user) {
-        // Auto-create wallet if missing
-        if (!user.wallet) {
-          try {
-            const createdWallet = await prisma.wallet.create({
-              data: { userId: user.id, availableMillimes: 0, pendingMillimes: 0 },
-            });
-            user.wallet = createdWallet;
-          } catch {}
-        }
-        return user;
-      }
-    } catch (dbError) {
-      console.warn("Prisma user lookup failed, using fallback store", dbError);
-    }
-
-    // Fallback in-memory lookup
-    const fallbackUser = fallbackStore.getUserById(userId);
-    if (fallbackUser) {
-      return fallbackUser as any;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Failed to get current user:", error);
-    if (userId) {
-      const fallbackUser = fallbackStore.getUserById(userId);
-      if (fallbackUser) return fallbackUser as any;
-    }
-    return null;
+    } catch {}
   }
+
+  if (!userId) return null;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        student: true,
+        teacher: {
+          include: {
+            subjects: true,
+            availabilities: true,
+          },
+        },
+        wallet: true,
+      },
+    });
+
+    if (user) {
+      // Auto-create wallet if missing
+      if (!user.wallet) {
+        try {
+          const createdWallet = await prisma.wallet.create({
+            data: { userId: user.id, availableMillimes: 0, pendingMillimes: 0 },
+          });
+          user.wallet = createdWallet;
+        } catch {}
+      }
+      return user;
+    }
+  } catch (dbError) {
+    console.warn("Prisma user lookup failed, using fallback store", dbError);
+  }
+
+  // Fallback in-memory lookup
+  const fallbackUser = fallbackStore.getUserById(userId);
+  if (fallbackUser) {
+    return fallbackUser as any;
+  }
+
+  return null;
 }

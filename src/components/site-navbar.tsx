@@ -52,10 +52,6 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
           setUser(data.user);
           localStorage.setItem("profyspace_user", JSON.stringify(data.user));
           if (data.user.id) localStorage.setItem("profyspace_user_id", data.user.id);
-        } else {
-          setUser(null);
-          localStorage.removeItem("profyspace_user");
-          localStorage.removeItem("profyspace_user_id");
         }
       })
       .catch(() => {})
