@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
 import { Course } from "@/lib/server/courses-store";
+import { subjects as allCatalogSubjects } from "@/lib/domain/catalog";
 
 export default function CoursesCatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -72,10 +73,11 @@ export default function CoursesCatalogPage() {
               className="rounded-2xl bg-white/10 border border-white/20 p-4 text-xs font-bold text-white outline-none focus:bg-white focus:text-slate-800 transition"
             >
               <option value="" className="text-slate-800">Toutes les matières</option>
-              <option value="Mathématiques" className="text-slate-800">Mathématiques</option>
-              <option value="Physique-Chimie" className="text-slate-800">Physique-Chimie</option>
-              <option value="Français" className="text-slate-800">Français / Langues</option>
-              <option value="Informatique" className="text-slate-800">Informatique / Algo</option>
+              {allCatalogSubjects.map((s) => (
+                <option key={s} value={s} className="text-slate-800">
+                  {s}
+                </option>
+              ))}
             </select>
           </div>
         </div>

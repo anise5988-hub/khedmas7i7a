@@ -80,17 +80,20 @@ export const coursesStore = {
     level?: string;
     search?: string;
     teacherId?: string;
-    visibility?: CourseVisibility;
+    visibility?: CourseVisibility | "ALL";
   }): Course[] {
     let courses = [...globalCoursesStore.__profy_courses!];
 
     if (filters?.teacherId) {
-      courses = courses.filter((c) => c.teacherId === filters.teacherId || c.teacherId === `teach_${filters.teacherId}`);
-    } else if (filters?.visibility) {
+      const targetId = filters.teacherId;
+      courses = courses.filter((c) => c.teacherId === targetId || c.teacherId === `teach_${targetId}` || c.teacherId.includes(targetId));
+    } else if (filters?.visibility && filters.visibility !== "ALL") {
       courses = courses.filter((c) => c.visibility === filters.visibility);
+    } else if (filters?.visibility === "ALL") {
+      // return all
     } else {
-      // By default for public directory, return PUBLIC and LOCKED (exclude DRAFT/PRIVATE unless specified)
-      courses = courses.filter((c) => c.visibility === "PUBLIC" || c.visibility === "LOCKED");
+      // By default for public directory, return all published courses (PUBLIC, LOCKED, and anything not DRAFT)
+      courses = courses.filter((c) => c.visibility !== "DRAFT");
     }
     if (filters?.subject) {
       courses = courses.filter((c) => c.subject.toLowerCase().includes(filters.subject!.toLowerCase()));

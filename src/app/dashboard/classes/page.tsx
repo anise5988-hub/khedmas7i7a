@@ -35,16 +35,11 @@ export default function StudentClassesPage() {
   useEffect(() => {
     Promise.all([
       fetch("/api/bookings", { headers: getAuthHeaders() }).then((res) => (res.ok ? res.json() : { bookings: [] })),
-      fetch("/api/courses?visibility=LOCKED", { headers: getAuthHeaders() }).then((res) => (res.ok ? res.json() : { courses: [] })),
+      fetch("/api/courses/my-learning", { headers: getAuthHeaders() }).then((res) => (res.ok ? res.json() : { courses: [] })),
     ])
       .then(([bookingsData, coursesData]) => {
         setBookings(bookingsData.bookings || []);
-        // Get unlocked courses
-        const cList = (coursesData.courses || []).map((c: Course) => ({
-          course: c,
-          access: { purchasedAt: c.createdAt },
-        }));
-        setPurchasedCourses(cList);
+        setPurchasedCourses(coursesData.courses || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
