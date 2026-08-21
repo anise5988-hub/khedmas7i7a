@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { coursesStore } from "@/lib/server/courses-store";
+import { prisma } from "@/lib/server/prisma";
 
 export async function POST(
   request: Request,
@@ -18,7 +18,19 @@ export async function POST(
       return NextResponse.json({ error: "lessonId requis" }, { status: 400 });
     }
 
-    const progress = coursesStore.markLessonComplete(courseId, user.id, lessonId);
+    const course = await prisma.course.findUnique({ where: { id: courseId }, select: { sections: true } });
+    const sections = (Array.isArray(course?.sections) ? course.sections : []) as Array<{ lessons?: Array<{ id: string }> }>;
+    const totalLessons = sections.reduce((count, section) => count + (section.lessons?.length || 0), 0);
+    const existing = await prisma.courseProgress.findUnique({
+      where: { courseId_studentId: { courseId, studentId: user.id } },
+    });
+    const completed = Array.isArray(existing?.completedLessonIds) ? existing.completedLessonIds as string[] : [];
+    const completedLessonIds = completed.includes(String(lessonId)) ? completed : [...completed, String(lessonId)];
+    const progress = await prisma.courseProgress.upsert({
+      where: { courseId_studentId: { courseId, studentId: user.id } },
+      update: { completedLessonIds, lastLessonId: String(lessonId), percentage: totalLessons ? Math.min(100, Math.round((completedLessonIds.length / totalLessons) * 100)) : 0 },
+      create: { courseId, studentId: user.id, completedLessonIds, lastLessonId: String(lessonId), percentage: totalLessons ? Math.min(100, Math.round((completedLessonIds.length / totalLessons) * 100)) : 0 },
+    });
     return NextResponse.json({ success: true, progress });
   } catch {
     return NextResponse.json({ error: "Données invalides" }, { status: 400 });

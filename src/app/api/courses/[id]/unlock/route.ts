@@ -14,13 +14,28 @@ export async function POST(
   }
 
   const { id: courseId } = await params;
-  const course = coursesStore.getCourseById(courseId);
+  let course = coursesStore.getCourseById(courseId);
+  try {
+    const dbCourse = await prisma.course.findUnique({ where: { id: courseId } });
+    if (dbCourse && course) {
+      course = { ...course, ...dbCourse, visibility: dbCourse.visibility as typeof course.visibility, thumbnailUrl: dbCourse.thumbnailUrl || course.thumbnailUrl, createdAt: dbCourse.createdAt.toISOString(), updatedAt: dbCourse.updatedAt.toISOString(), sections: Array.isArray(dbCourse.sections) ? dbCourse.sections as typeof course.sections : course.sections };
+    }
+  } catch {}
 
   if (!course) {
     return NextResponse.json({ error: "Cours introuvable" }, { status: 404 });
   }
 
-  if (coursesStore.hasAccess(courseId, user.id)) {
+  let alreadyHasAccess = false;
+  try {
+    const access = await prisma.courseAccess.findUnique({
+      where: { courseId_studentId: { courseId, studentId: user.id } },
+    });
+    alreadyHasAccess = Boolean(access);
+  } catch {
+    alreadyHasAccess = coursesStore.hasAccess(courseId, user.id);
+  }
+  if (alreadyHasAccess) {
     return NextResponse.json({ success: true, message: "Vous possédez déjà l'accès à ce cours", alreadyOwned: true });
   }
 
@@ -28,7 +43,7 @@ export async function POST(
 
   // Free course access
   if (requiredMillimes === 0 || course.priceTnd === 0) {
-    coursesStore.grantAccess(courseId, user.id, 0);
+    await prisma.courseAccess.upsert({ where: { courseId_studentId: { courseId, studentId: user.id } }, update: {}, create: { courseId, studentId: user.id, amountPaidTnd: 0 } }).catch(() => coursesStore.grantAccess(courseId, user.id, 0));
     return NextResponse.json({ success: true, message: "Cours débloqué gratuitement !" });
   }
 
@@ -85,7 +100,7 @@ export async function POST(
   }
 
   // Grant course access
-  coursesStore.grantAccess(courseId, user.id, course.priceTnd);
+  await prisma.courseAccess.upsert({ where: { courseId_studentId: { courseId, studentId: user.id } }, update: {}, create: { courseId, studentId: user.id, amountPaidTnd: course.priceTnd } }).catch(() => coursesStore.grantAccess(courseId, user.id, course.priceTnd));
 
   // Send notifications & emails to teacher and student
   await Promise.all([
