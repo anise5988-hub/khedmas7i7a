@@ -13,11 +13,7 @@ export function middleware(request: NextRequest) {
   }
 
   // 2. Read authenticated session cookies
-  const userId =
-    request.cookies.get("profy_user_id")?.value ||
-    request.cookies.get("profyspace_user_id")?.value ||
-    request.cookies.get("user_id")?.value ||
-    request.cookies.get("profy_supabase_access_token")?.value;
+  const userId = request.cookies.get("profy_user_id")?.value;
   const role = request.cookies.get("profy_role")?.value;
   // 3. Unauthenticated access check
   if (!userId) {
@@ -35,11 +31,8 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (isTeacherRoute) {
-    if (role === "STUDENT") {
-      // Students cannot access teacher dashboard
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+  if (isTeacherRoute && role !== "TEACHER" && role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

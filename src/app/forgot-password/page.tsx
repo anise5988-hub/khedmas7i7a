@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-location-assign-relative-destination */
 "use client";
 
 import Link from "next/link";
@@ -9,11 +8,6 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState(() => {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("email") || "";
-  });
-  const [newPassword, setNewPassword] = useState("");
-  const [step, setStep] = useState<1 | 2>(() => {
-    if (typeof window === "undefined") return 1;
-    return new URLSearchParams(window.location.search).get("email") ? 2 : 1;
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -27,29 +21,12 @@ export default function ForgotPasswordPage() {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          ...(step === 2 ? { newPassword } : {}),
-        }),
+        body: JSON.stringify({ email: email.trim() }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        if (step === 1) {
-          setStep(2);
-          setMessage({
-            type: "success",
-            text: "Compte identifié ! Vous pouvez maintenant saisir votre nouveau mot de passe ci-dessous.",
-          });
-        } else {
-          setMessage({
-            type: "success",
-            text: data.message || "Mot de passe réinitialisé ! Redirection vers la page de connexion...",
-          });
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 1500);
-        }
+        setMessage({ type: "success", text: data.message || "Un email de réinitialisation a été envoyé." });
       } else {
         setMessage({ type: "error", text: data.error || "Une erreur est survenue." });
       }
@@ -72,9 +49,7 @@ export default function ForgotPasswordPage() {
           Mot de passe oublié ?
         </h1>
         <p className="mt-2 text-xs sm:text-sm text-slate-500">
-          {step === 1
-            ? "Indiquez l'adresse email associée à votre compte pour réinitialiser votre accès."
-            : "Saisissez votre nouveau mot de passe sécurisé (8 caractères minimum)."}
+          Indiquez l'adresse email associée à votre compte pour recevoir un lien sécurisé de réinitialisation.
         </p>
 
         {message.text && (
@@ -98,7 +73,6 @@ export default function ForgotPasswordPage() {
             <input
               type="email"
               required
-              disabled={step === 2}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nom@exemple.tn"
@@ -106,7 +80,8 @@ export default function ForgotPasswordPage() {
             />
           </div>
 
-          {step === 2 && (
+          {/* Password changes happen on the secure reset-password page. */}
+          {false && (
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                 Nouveau mot de passe *
@@ -115,8 +90,8 @@ export default function ForgotPasswordPage() {
                 type="password"
                 required
                 minLength={8}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                value=""
+                onChange={() => undefined}
                 placeholder="••••••••"
                 className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
               />
@@ -128,11 +103,7 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full rounded-2xl bg-[#0d8d78] py-3.5 font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] disabled:opacity-50"
           >
-            {loading
-              ? "Traitement..."
-              : step === 1
-              ? "Continuer →"
-              : "Valider le nouveau mot de passe →"}
+            {loading ? "Envoi en cours..." : "Envoyer le lien →"}
           </button>
         </form>
 

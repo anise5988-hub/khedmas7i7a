@@ -83,6 +83,7 @@ export default function Home() {
   const [featuredTeachers, setFeaturedTeachers] = useState<ApprovedTeacher[]>([]);
   const [courses, setCourses] = useState<HomeCourse[]>([]);
   const [selectedCourseSubject, setSelectedCourseSubject] = useState("ALL");
+  const [coursesLoading, setCoursesLoading] = useState(true);
   const [reviews, setReviews] = useState<RealReview[]>([]);
   const [stats, setStats] = useState<{
     studentsCount: number;
@@ -114,11 +115,10 @@ export default function Home() {
     fetch("/api/courses")
       .then((res) => (res.ok ? res.json() : { courses: [] }))
       .then((data) => {
-        if (Array.isArray(data.courses)) {
-          setCourses(data.courses);
-        }
+        if (Array.isArray(data.courses)) setCourses(data.courses);
       })
-      .catch(() => {});
+      .catch(() => setCourses([]))
+      .finally(() => setCoursesLoading(false));
 
     fetch("/api/stats")
       .then((res) => (res.ok ? res.json() : null))
@@ -467,7 +467,9 @@ export default function Home() {
             ))}
           </div>
 
-          {courses.length === 0 ? (
+          {coursesLoading ? (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-96 animate-pulse rounded-3xl bg-slate-100" />)}</div>
+          ) : courses.length === 0 ? (
             <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-12 text-center">
               <span className="text-4xl">📚</span>
               <h3 className="mt-3 text-lg font-bold">Nouveaux cours et packs en cours de publication.</h3>

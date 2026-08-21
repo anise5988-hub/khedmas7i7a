@@ -7,13 +7,10 @@ import { supabaseAuth } from "@/lib/server/supabase-auth";
 export async function getCurrentUser(request?: Request) {
   let userId: string | undefined;
 
-  // 1. Try to read from request headers if passed
+  // 1. Resolve identity from server-controlled session material only.
+  // Never trust a client-supplied user id header: it would allow account
+  // impersonation for every endpoint that calls getCurrentUser().
   if (request) {
-    const headerUserId = request.headers.get("x-user-id");
-    if (headerUserId && headerUserId !== "undefined" && headerUserId !== "null") {
-      userId = headerUserId;
-    }
-
     const authHeader = request.headers.get("authorization");
     if (authHeader && authHeader.startsWith("Bearer ") && supabaseAuth) {
       const token = authHeader.substring(7);
@@ -32,10 +29,7 @@ export async function getCurrentUser(request?: Request) {
             return [k, decodeURIComponent(v.join("="))];
           })
         );
-        userId =
-          cookiesMap["profy_user_id"] ||
-          cookiesMap["profyspace_user_id"] ||
-          cookiesMap["user_id"];
+        userId = cookiesMap["profy_user_id"];
 
         if (!userId && cookiesMap["profy_supabase_access_token"] && supabaseAuth) {
           try {
@@ -60,10 +54,7 @@ export async function getCurrentUser(request?: Request) {
       }
 
       if (!userId) {
-        userId =
-          cookieStore.get("profy_user_id")?.value ||
-          cookieStore.get("profyspace_user_id")?.value ||
-          cookieStore.get("user_id")?.value;
+        userId = cookieStore.get("profy_user_id")?.value;
       }
     } catch {}
   }

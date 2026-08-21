@@ -6,7 +6,6 @@ import { z } from "zod";
 
 const createReviewSchema = z.object({
   teacherId: z.string().min(1).optional(),
-  studentName: z.string().trim().min(2).max(80).optional(),
   rating: z.number().int().min(1).max(5),
   comment: z.string().trim().min(5).max(1000),
 });
@@ -37,15 +36,21 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Veuillez choisir une note et écrire un commentaire valide." }, { status: 400 });
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: "Connectez-vous pour publier un avis réel." }, { status: 401 });
+    return NextResponse.json({ error: "Connectez-vous pour publier un avis." }, { status: 401 });
   }
   if (user.role !== "STUDENT") {
     return NextResponse.json({ error: "Seuls les élèves peuvent publier un avis." }, { status: 403 });
   }
   try {
     const teacher = parsed.data.teacherId
-      ? await prisma.teacherProfile.findUnique({ where: { id: parsed.data.teacherId }, select: { id: true, userId: true, slug: true } })
-      : await prisma.teacherProfile.findFirst({ where: { verificationStatus: "APPROVED" }, select: { id: true, userId: true, slug: true } });
+      ? await prisma.teacherProfile.findFirst({
+          where: { id: parsed.data.teacherId, verificationStatus: "APPROVED" },
+          select: { id: true, userId: true, slug: true },
+        })
+      : await prisma.teacherProfile.findFirst({
+          where: { verificationStatus: "APPROVED" },
+          select: { id: true, userId: true, slug: true },
+        });
     if (!teacher) return NextResponse.json({ error: "Aucun professeur disponible." }, { status: 404 });
     const review = await prisma.review.create({ data: { studentId: user.id, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment } });
     await notifyUser({ userId: teacher.userId, type: "NEW_REVIEW", title: "Nouvel avis reçu ⭐", message: `Nouvel avis ${parsed.data.rating}/5 reçu.`, emailSubject: "Nouvel avis reçu", link: `/teachers/${teacher.slug}`, dedupeKey: `review:${review.id}` }).catch((notificationError) => {

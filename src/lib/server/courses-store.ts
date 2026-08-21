@@ -536,8 +536,8 @@ const globalCoursesStore = globalThis as unknown as {
   __profy_progress?: Map<string, CourseProgress>;
 };
 
-if (!globalCoursesStore.__profy_courses || globalCoursesStore.__profy_courses.length === 0) {
-  globalCoursesStore.__profy_courses = [...SEED_COURSES];
+if (!globalCoursesStore.__profy_courses) {
+  globalCoursesStore.__profy_courses = [];
 }
 if (!globalCoursesStore.__profy_access) {
   globalCoursesStore.__profy_access = [];

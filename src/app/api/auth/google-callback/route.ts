@@ -41,7 +41,6 @@ export async function POST(request: Request) {
   };
 
   try {
-    let isNewUser = false;
     let user = await prisma.user.findUnique({
       where: { email },
       include: {
@@ -52,14 +51,13 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      isNewUser = true;
       // Create user if does not exist
       user = await prisma.user.create({
         data: {
           email,
           firstName,
           lastName,
-          passwordHash: "google_oauth_user",
+          passwordHash: "supabase_auth",
           role: requestedRole,
           student: requestedRole === "STUDENT" ? { create: {} } : undefined,
           teacher:
@@ -103,7 +101,7 @@ export async function POST(request: Request) {
       availableTnd: (wallet?.availableMillimes ?? 0) / 1000,
     };
 
-    const needsPasswordSetup = isNewUser || user.passwordHash === "google_oauth_user";
+    const needsPasswordSetup = false;
 
     const response = NextResponse.json({
       success: true,
@@ -122,15 +120,13 @@ export async function POST(request: Request) {
   }
 
   // Fallback Store support
-  let isFallbackNewUser = false;
   let fallbackUser = fallbackStore.getUserByEmail(email);
   if (!fallbackUser) {
-    isFallbackNewUser = true;
     fallbackUser = await fallbackStore.createUser({
       firstName,
       lastName,
       email,
-      passwordHash: "google_oauth_user",
+      passwordHash: "supabase_auth",
       role: requestedRole,
     });
   }
@@ -144,7 +140,7 @@ export async function POST(request: Request) {
     availableTnd: 0,
   };
 
-  const needsPasswordSetup = isFallbackNewUser || fallbackUser.passwordHash === "google_oauth_user";
+  const needsPasswordSetup = false;
 
   const response = NextResponse.json({
     success: true,
