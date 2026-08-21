@@ -11,21 +11,15 @@ export async function GET(request: Request) {
   const teacherId = searchParams.get("teacherId") || undefined;
   const user = await getCurrentUser(request);
 
-  // Private teacher listings must be scoped to the authenticated teacher (or admin).
-  let effectiveTeacherId = teacherId;
-  if (teacherId) {
-    if (user && user.role === "TEACHER") {
-      effectiveTeacherId = user.id;
-    } else if (!user || (user.id !== teacherId && user.role !== "ADMIN")) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
-    }
-  }
+  // If teacher requests their own dashboard courses
+  const isOwnerTeacher = user && teacherId && (user.id === teacherId || user.role === "ADMIN");
 
   const courses = coursesStore.getAllCourses({
     subject,
     level,
     search,
-    teacherId: effectiveTeacherId,
+    teacherId,
+    visibility: isOwnerTeacher ? "ALL" : undefined,
   });
 
   return NextResponse.json({ courses });

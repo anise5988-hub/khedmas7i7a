@@ -20,13 +20,24 @@ export default function TeacherCoursesPage() {
   const [language] = useState("Français / Arabe");
   const [priceTnd, setPriceTnd] = useState(30);
   const [visibility, setVisibility] = useState<CourseVisibility>("LOCKED");
+  type FormLesson = { title: string; durationMinutes: number; videoUrl: string; isFreePreview: boolean };
+  type FormSection = { title: string; lessons: FormLesson[] };
+  const [sections, setSections] = useState<FormSection[]>([
+    {
+      title: "Module 1 : Fondamentaux & Exercices",
+      lessons: [{ title: "Leçon 1 : Introduction et rappels", durationMinutes: 30, videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", isFreePreview: true }],
+    },
+  ]);
+  // Legacy preview fields kept for the existing preview component.
   const [lessonTitle, setLessonTitle] = useState("Leçon 1 : Introduction et rappels");
   const [lessonDuration, setLessonDuration] = useState(30);
   const [lessonVideo, setLessonVideo] = useState("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-  const [videoMode, setVideoMode] = useState<"URL" | "FILE">("URL");
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [videoMode, setVideoMode] = useState<"URL" | "FILE">("URL");
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadingLesson, setUploadingLesson] = useState<{ sectionIndex: number; lessonIndex: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeUploadTarget, setActiveUploadTarget] = useState<{ sectionIndex: number; lessonIndex: number } | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -61,29 +72,53 @@ export default function TeacherCoursesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const updateLesson = (sectionIndex: number, lessonIndex: number, updates: Partial<FormLesson>) => {
+    setSections((current) => current.map((section, sIndex) => sIndex !== sectionIndex ? section : {
+      ...section,
+      lessons: section.lessons.map((lesson, lIndex) => lIndex !== lessonIndex ? lesson : { ...lesson, ...updates }),
+    }));
+  };
+
+  const addLesson = (sectionIndex: number) => {
+    setSections((current) => current.map((section, index) => index !== sectionIndex ? section : {
+      ...section,
+      lessons: [...section.lessons, { title: `Leçon ${section.lessons.length + 1}`, durationMinutes: 30, videoUrl: "", isFreePreview: false }],
+    }));
+  };
+
+  const addSection = () => {
+    setSections((current) => [...current, { title: `Module ${current.length + 1}`, lessons: [{ title: "Leçon 1", durationMinutes: 30, videoUrl: "", isFreePreview: false }] }]);
+  };
+
+  const removeLesson = (sectionIndex: number, lessonIndex: number) => {
+    setSections((current) => current.map((section, index) => index !== sectionIndex ? section : {
+      ...section,
+      lessons: section.lessons.filter((_, lIndex) => lIndex !== lessonIndex),
+    }).filter((section) => section.lessons.length > 0));
+  };
+
   const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
+    if (!file || !activeUploadTarget) return;
     if (!file.type.startsWith("video/")) {
       setError("Veuillez sélectionner un fichier vidéo valide (MP4, WebM, MOV).");
       return;
     }
-
     setUploadingFile(true);
+    setUploadingLesson(activeUploadTarget);
     setUploadedFileName(file.name);
     setError("");
-
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setLessonVideo(reader.result);
-      }
+      if (typeof reader.result === "string") updateLesson(activeUploadTarget.sectionIndex, activeUploadTarget.lessonIndex, { videoUrl: reader.result });
       setUploadingFile(false);
+      setUploadingLesson(null);
+      setActiveUploadTarget(null);
     };
     reader.onerror = () => {
       setError("Erreur lors de la lecture du fichier vidéo.");
       setUploadingFile(false);
+      setUploadingLesson(null);
     };
     reader.readAsDataURL(file);
   };
@@ -106,20 +141,13 @@ export default function TeacherCoursesPage() {
           priceTnd,
           visibility: priceTnd === 0 && visibility === "LOCKED" ? "PUBLIC" : visibility,
           thumbnailUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
-          sections: [
-            {
-              title: "Module 1 : Fondamentaux & Exercices",
-              lessons: [
-                {
-                  title: lessonTitle,
-                  durationMinutes: lessonDuration,
-                  videoUrl: lessonVideo,
-                  description: "Introduction pratique au module avec exemples corrigés.",
-                  isFreePreview: true,
-                },
-              ],
-            },
-          ],
+          sections: sections.map((section) => ({
+            ...section,
+            lessons: section.lessons.map((lesson) => ({
+              ...lesson,
+              description: "Introduction pratique au module avec exemples corrigés.",
+            })),
+          })),
         }),
       });
 
@@ -166,11 +194,16 @@ export default function TeacherCoursesPage() {
     setLevel("4ème Année Secondaire (Bac)");
     setPriceTnd(30);
     setVisibility("LOCKED");
+    setSections([{
+      title: "Module 1 : Fondamentaux & Exercices",
+      lessons: [{ title: "Leçon 1 : Introduction et rappels", durationMinutes: 30, videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", isFreePreview: true }],
+    }]);
     setLessonTitle("Leçon 1 : Introduction et rappels");
     setLessonDuration(30);
     setLessonVideo("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-    setVideoMode("URL");
     setUploadedFileName("");
+    setVideoMode("URL");
+    setActiveUploadTarget(null);
     setError("");
   };
 
@@ -385,7 +418,7 @@ export default function TeacherCoursesPage() {
 
               {step === 2 && (
                 <>
-                  <div>
+                  <div className="hidden">
                     <label className="block font-bold text-slate-600 mb-1">Titre de la 1ère leçon *</label>
                     <input
                       type="text"
@@ -396,7 +429,7 @@ export default function TeacherCoursesPage() {
                     />
                   </div>
 
-                  <div>
+                  <div className="hidden">
                     <label className="block font-bold text-slate-600 mb-1.5">Source de la vidéo *</label>
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <button
@@ -477,7 +510,7 @@ export default function TeacherCoursesPage() {
                     </div>
                   )}
 
-                  <div>
+                  <div className="hidden">
                     <label className="block font-bold text-slate-600 mb-1">Durée (minutes) *</label>
                     <input
                       type="number"
@@ -500,8 +533,8 @@ export default function TeacherCoursesPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!lessonTitle.trim() || !lessonVideo.trim()) {
-                          setError("Veuillez renseigner le titre et la vidéo de la leçon.");
+                        if (sections.length === 0 || sections.some((section) => !section.title.trim() || section.lessons.length === 0 || section.lessons.some((lesson) => !lesson.title.trim() || !lesson.videoUrl.trim() || lesson.durationMinutes < 1))) {
+                          setError("Veuillez renseigner chaque module, titre de vidéo, lien et durée.");
                           return;
                         }
                         setError("");
