@@ -29,8 +29,12 @@ export async function ensureUserProfile(input: {
     });
 
     if (existingUser) {
-      // User already exists! NEVER overwrite their role.
-      const preservedRole = existingUser.role;
+      const preservedRole =
+        existingUser.role === "ADMIN"
+          ? "ADMIN"
+          : existingUser.teacher || input.role === "TEACHER"
+          ? "TEACHER"
+          : existingUser.role;
 
       const updatedUser = await prisma.user.update({
         where: { id: existingUser.id },
@@ -39,7 +43,7 @@ export async function ensureUserProfile(input: {
           firstName: input.firstName || existingUser.firstName,
           lastName: input.lastName || existingUser.lastName,
           phone: phone || existingUser.phone,
-          // role remains untouched!
+          role: preservedRole,
         },
         include: {
           teacher: true,
@@ -54,7 +58,7 @@ export async function ensureUserProfile(input: {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "");
-        await prisma.teacherProfile.create({
+        const teacherProfile = await prisma.teacherProfile.create({
           data: {
             userId: updatedUser.id,
             slug,
@@ -64,10 +68,12 @@ export async function ensureUserProfile(input: {
             online: true,
           },
         });
+        updatedUser.teacher = teacherProfile as any;
       } else if (preservedRole === "STUDENT" && !updatedUser.student) {
-        await prisma.studentProfile.create({
+        const studentProfile = await prisma.studentProfile.create({
           data: { userId: updatedUser.id },
         });
+        updatedUser.student = studentProfile as any;
       }
 
       if (!updatedUser.wallet) {

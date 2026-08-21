@@ -6,7 +6,7 @@ import { subjects } from "@/lib/domain/catalog";
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
-  if (user.role !== "TEACHER" && user.role !== "ADMIN") {
+  if (user.role !== "TEACHER" && user.role !== "ADMIN" && !user.teacher) {
     return NextResponse.json({ error: "Accès réservé aux professeurs." }, { status: 403 });
   }
 

@@ -14,7 +14,7 @@ export async function GET() {
       orderBy: { id: "desc" },
     });
 
-    if (profiles && profiles.length > 0) {
+    if (profiles) {
       const dbTeachers = profiles.map((profile) => {
         const initials = `${profile.user?.firstName?.[0] ?? "P"}${profile.user?.lastName?.[0] ?? "R"}`.toUpperCase();
         const name = `${profile.user?.firstName || "Enseignant"} ${profile.user?.lastName || "Profy"}`.trim();

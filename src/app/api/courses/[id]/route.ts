@@ -14,7 +14,7 @@ export async function GET(
     return NextResponse.json({ error: "Cours introuvable" }, { status: 404 });
   }
 
-  const isTeacher = user?.id === course.teacherId || user?.role === "ADMIN";
+  const isTeacher = Boolean(user && (user.id === course.teacherId || user.teacher?.id === course.teacherId || user.role === "ADMIN"));
   const hasAccess = isTeacher || (user ? coursesStore.hasAccess(id, user.id) : course.priceTnd === 0);
 
   // Filter content if user does not have full access
@@ -62,7 +62,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Cours introuvable" }, { status: 404 });
   }
 
-  if (user?.id !== course.teacherId && user?.role !== "ADMIN") {
+  const isOwner = Boolean(user && (user.id === course.teacherId || user.teacher?.id === course.teacherId || user.role === "ADMIN"));
+  if (!isOwner) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
 
@@ -97,7 +98,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Cours introuvable" }, { status: 404 });
   }
 
-  if (user?.id !== course.teacherId && user?.role !== "ADMIN") {
+  const isOwner = Boolean(user && (user.id === course.teacherId || user.teacher?.id === course.teacherId || user.role === "ADMIN"));
+  if (!isOwner) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
 

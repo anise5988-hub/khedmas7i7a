@@ -96,7 +96,6 @@ export default function Home() {
 
   // Review submission modal state
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [reviewStudentName, setReviewStudentName] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
@@ -151,7 +150,6 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentName: reviewStudentName.trim() || "Élève Satisfait",
           rating: reviewRating,
           comment: reviewComment.trim(),
         }),
@@ -161,7 +159,7 @@ export default function Home() {
       if (res.ok) {
         setReviewStatus({
           type: "success",
-          text: "Merci ! Votre avis a été publié en direct avec succès !",
+          text: "Merci ! Votre avis a été publié avec succès !",
         });
         setReviewComment("");
         loadReviews();
@@ -779,20 +777,6 @@ export default function Home() {
             )}
 
             <form onSubmit={handleReviewSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                  Votre Prénom & Nom *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={reviewStudentName}
-                  onChange={(e) => setReviewStudentName(e.target.value)}
-                  placeholder="Ex: Yassine Trabelsi"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78]"
-                />
-              </div>
-
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                   Votre Note d'évaluation (1 à 5 étoiles) *

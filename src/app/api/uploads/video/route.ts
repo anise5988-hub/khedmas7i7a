@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser(request);
-  if (!user || (user.role !== "TEACHER" && user.role !== "ADMIN")) {
+  if (!user || (user.role !== "TEACHER" && user.role !== "ADMIN" && !user.teacher)) {
     return NextResponse.json({ error: "Réservé aux enseignants" }, { status: 403 });
   }
 

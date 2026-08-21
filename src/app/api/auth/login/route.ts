@@ -26,9 +26,9 @@ export async function POST(request: Request) {
     const { data, error } = await supabaseAuth.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
     if (!error && data.user) {
       if (!data.user.email_confirmed_at) return NextResponse.json({ error: "Veuillez confirmer votre adresse email avant de vous connecter.", requiresEmailConfirmation: true }, { status: 403 });
-      const metadata = (data.user?.user_metadata || {}) as { firstName?: string; lastName?: string; phone?: string; role?: string };
+      const metadata = (data.user?.user_metadata || {}) as { firstName?: string; lastName?: string; phone?: string; role?: "STUDENT" | "TEACHER" | "ADMIN" };
       try {
-        const profile = await ensureUserProfile({ id: data.user.id, email: data.user.email || parsed.data.email, firstName: metadata.firstName, lastName: metadata.lastName, phone: metadata.phone });
+        const profile = await ensureUserProfile({ id: data.user.id, email: data.user.email || parsed.data.email, firstName: metadata.firstName, lastName: metadata.lastName, phone: metadata.phone, role: metadata.role });
         const response = NextResponse.json({ success: true, user: { id: profile.id, firstName: profile.firstName, lastName: profile.lastName, email: profile.email, role: profile.role }, role: profile.role });
         const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 60 * 60 * 24 * 30 };
         response.cookies.set("profy_supabase_access_token", data.session?.access_token || "", { ...cookieOptions, httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 });
