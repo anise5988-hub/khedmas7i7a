@@ -1,7 +1,8 @@
-﻿
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { SiteNavbar } from "@/components/site-navbar";
 import { calculateTeacherWithdrawal, formatTndFromMillimes } from "@/lib/finance/withdrawal";
 
 type Withdrawal = {
@@ -24,10 +25,6 @@ export default function TeacherWithdrawalsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  useEffect(() => {
-    loadWithdrawals();
-  }, []);
-
   function loadWithdrawals() {
     fetch("/api/withdrawals")
       .then((res) => (res.ok ? res.json() : { withdrawals: [] }))
@@ -35,6 +32,10 @@ export default function TeacherWithdrawalsPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }
+
+  useEffect(() => {
+    loadWithdrawals();
+  }, []);
 
   const calculation = (() => {
     try {
@@ -80,17 +81,7 @@ export default function TeacherWithdrawalsPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/teacher/dashboard" className="text-slate-500 hover:text-slate-800">
-              ← Dashboard Professeur
-            </a>
-            <span className="text-slate-300">/</span>
-            <span className="font-bold">Revenus & Demande de Retrait</span>
-          </div>
-        </div>
-      </header>
+      <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="text-3xl font-bold">Retraits & Revenus</h1>

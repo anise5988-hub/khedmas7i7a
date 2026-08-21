@@ -178,9 +178,11 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-2xl sm:text-3xl font-bold">{teacher.name}</h1>
-                    <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-xs font-bold text-emerald-800">
-                      ✓ Vérifié Admin
-                    </span>
+                    {teacher.verificationStatus === "APPROVED" && (
+                      <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-xs font-bold text-emerald-800">
+                        ✓ Professeur Vérifié
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 text-base text-[#0d8d78] font-semibold">{teacher.title}</p>
                   <p className="mt-1 text-xs text-slate-400">

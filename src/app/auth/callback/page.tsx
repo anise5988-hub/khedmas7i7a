@@ -68,7 +68,7 @@ export default function AuthCallbackPage() {
         if (data.needsPasswordSetup) {
           window.location.replace("/set-password");
         } else {
-          const targetUrl = data.role === "TEACHER" ? "/teacher/dashboard" : "/dashboard";
+          const targetUrl = data.role === "TEACHER" ? "/teacher/dashboard" : data.role === "ADMIN" ? "/admin" : "/dashboard";
           window.location.replace(targetUrl);
         }
       } catch (err) {

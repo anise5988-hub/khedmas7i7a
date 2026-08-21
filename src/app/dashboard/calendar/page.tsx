@@ -1,7 +1,8 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { SiteNavbar } from "@/components/site-navbar";
 import { IconCalendar } from "@/components/icons";
 
 type Booking = {
@@ -28,22 +29,7 @@ export default function StudentCalendarPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/dashboard" className="text-sm font-semibold text-slate-500 hover:text-slate-800">
-              ← Dashboard
-            </a>
-            <span className="text-slate-300">/</span>
-            <span className="font-bold text-sm">Calendrier des Séances</span>
-          </div>
-
-          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight">
-            <span>ProfySpace</span>
-            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-          </a>
-        </div>
-      </header>
+      <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="text-3xl font-bold">Mon Planning & Séances</h1>
@@ -60,12 +46,12 @@ export default function StudentCalendarPage() {
             </div>
             <h2 className="mt-3 text-lg font-bold">Aucune séance dans votre calendrier.</h2>
             <p className="mt-1 text-xs text-slate-500">Choisissez un professeur et réservez un créneau horaire.</p>
-            <a
+            <Link
               href="/teachers"
               className="mt-4 inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white"
             >
               Rechercher un professeur →
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="mt-8 space-y-4">

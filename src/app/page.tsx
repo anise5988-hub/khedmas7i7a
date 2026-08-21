@@ -1,9 +1,10 @@
-﻿/* eslint-disable @next/next/no-location-assign-relative-destination, @next/next/no-img-element */
+/* eslint-disable @next/next/no-location-assign-relative-destination, @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
+import { HomepageNews } from "@/components/homepage-news";
 import { educationLevels, subjects } from "@/lib/domain/catalog";
 import {
   IconSearch,
@@ -23,6 +24,7 @@ type ApprovedTeacher = {
   rating: number;
   rate: number;
   city: string;
+  verificationStatus?: string;
 };
 
 type RealReview = {
@@ -156,6 +158,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#f8fafc] text-[#11233f]">
+      {/* Animated Homepage News Banner (Admin Controlled) */}
+      <HomepageNews />
+
       {/* Hero Section */}
       <section className="relative bg-[#11233f] text-white">
         <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:48px_48px]" />
@@ -355,7 +360,11 @@ export default function Home() {
                       <div className="flex-1">
                         <div className="flex items-center gap-1.5">
                           <h3 className="font-bold text-base">{teacher.name}</h3>
-                          <span className="text-[#72d6bf] text-xs">✓</span>
+                          {teacher.verificationStatus === "APPROVED" && (
+                            <span className="rounded-full bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 px-1.5 py-0.2 text-[10px] font-bold">
+                              ✓ Vérifié
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-slate-300">{teacher.subject}</p>
                       </div>

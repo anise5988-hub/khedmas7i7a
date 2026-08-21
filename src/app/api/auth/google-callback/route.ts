@@ -22,7 +22,11 @@ export async function POST(request: Request) {
       const metadata = ((authData as unknown as { user_metadata?: unknown }).user_metadata || {}) as { firstName?: string; lastName?: string; phone?: string; role?: string };
       const syncedUser = await ensureUserProfile({ id: authData.user.id, email, firstName: String(metadata.firstName || firstName), lastName: String(metadata.lastName || lastName), phone: String(metadata.phone || ""), role: metadata.role === "TEACHER" ? "TEACHER" : requestedRole });
       const response = NextResponse.json({ success: true, role: syncedUser.role, user: { id: syncedUser.id, firstName: syncedUser.firstName, lastName: syncedUser.lastName, email: syncedUser.email, role: syncedUser.role }, needsPasswordSetup: false });
-      response.cookies.set("profy_supabase_access_token", String(body.accessToken), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 });
+      const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 60 * 60 * 24 * 30 };
+      response.cookies.set("profy_supabase_access_token", String(body.accessToken), { ...cookieOptions, httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 });
+      response.cookies.set("profy_user_id", syncedUser.id, { ...cookieOptions, httpOnly: true });
+      response.cookies.set("profy_role", syncedUser.role, { ...cookieOptions, httpOnly: true });
+      response.cookies.set("profyspace_user_id", syncedUser.id, { ...cookieOptions, httpOnly: false });
       return response;
     } catch (error) {
       console.error("Google profile synchronization failed", error);

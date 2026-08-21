@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SiteNavbar } from "@/components/site-navbar";
 import { NotificationItem } from "@/components/notification-center";
 
 export default function TeacherNotificationsPage() {
@@ -50,8 +51,11 @@ export default function TeacherNotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      {/* Header */}
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+      <SiteNavbar dark={false} />
+
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 space-y-6">
+        {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-6 sm:p-8 border border-slate-200 shadow-sm">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
@@ -181,7 +185,8 @@ export default function TeacherNotificationsPage() {
             </div>
           ))
         )}
-      </div>
-    </div>
-  );
+            </div>
+          </div>
+        </main>
+      );
 }

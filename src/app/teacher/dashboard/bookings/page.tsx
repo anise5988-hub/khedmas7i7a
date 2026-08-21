@@ -1,8 +1,9 @@
-﻿
+
 
 "use client";
 
 import { useEffect, useState } from "react";
+import { SiteNavbar } from "@/components/site-navbar";
 import { IconCalendar } from "@/components/icons";
 
 
@@ -31,17 +32,7 @@ export default function TeacherBookingsPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/teacher/dashboard" className="text-slate-500 hover:text-slate-800">
-              ← Dashboard Professeur
-            </a>
-            <span className="text-slate-300">/</span>
-            <span className="font-bold">Mes Séances & Élèves</span>
-          </div>
-        </div>
-      </header>
+      <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="text-3xl font-bold">Séances & Réservations ({bookings.length})</h1>

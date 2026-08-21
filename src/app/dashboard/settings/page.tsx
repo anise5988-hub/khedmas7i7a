@@ -1,8 +1,9 @@
-﻿/* eslint-disable @next/next/no-location-assign-relative-destination, @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-location-assign-relative-destination, @typescript-eslint/no-unused-vars */
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { SiteNavbar } from "@/components/site-navbar";
 import { IconCheck, IconShield, IconUser } from "@/components/icons";
 
 export default function StudentSettingsPage() {
@@ -135,23 +136,7 @@ export default function StudentSettingsPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      {/* Top Header */}
-      <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="text-sm font-semibold text-slate-500 hover:text-slate-800">
-              ← Dashboard
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="font-bold text-sm">Paramètres du compte</span>
-          </div>
-
-          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight">
-            <span>ProfySpace</span>
-            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-          </Link>
-        </div>
-      </header>
+      <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
         <div>

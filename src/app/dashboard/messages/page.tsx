@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SiteNavbar } from "@/components/site-navbar";
 import { Conversation, CustomOffer } from "@/lib/server/chat-store";
 
 export default function MessagesPage() {
@@ -223,8 +224,11 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      {/* Header */}
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+      <SiteNavbar dark={false} />
+
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 space-y-6">
+        {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-6 border border-slate-200 shadow-sm">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
@@ -293,9 +297,11 @@ export default function MessagesPage() {
                     isActive ? "bg-[#11233f] text-white shadow-md" : "hover:bg-slate-50 text-slate-700"
                   }`}
                 >
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl font-bold text-sm ${
-                    isActive ? "bg-[#0d8d78] text-white" : "bg-slate-100 text-slate-700"
-                  }`}>
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl font-bold text-sm ${
+                      isActive ? "bg-[#0d8d78] text-white" : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
                     {otherName.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -539,6 +545,7 @@ export default function MessagesPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </main>
   );
 }

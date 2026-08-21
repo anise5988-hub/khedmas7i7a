@@ -1,4 +1,5 @@
-﻿ 
+
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,10 +33,6 @@ export default function AdminTeacherVerificationsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<string>("");
 
-  useEffect(() => {
-    loadTeachers();
-  }, []);
-
   function loadTeachers() {
     setLoading(true);
     fetch("/api/admin/teachers")
@@ -46,6 +43,10 @@ export default function AdminTeacherVerificationsPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }
+
+  useEffect(() => {
+    loadTeachers();
+  }, []);
 
   async function updateStatus(teacherId: string, status: string) {
     setActionLoading(teacherId);

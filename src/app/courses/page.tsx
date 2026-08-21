@@ -108,9 +108,9 @@ export default function CoursesCatalogPage() {
             ))}
           </div>
         ) : courses.length === 0 ? (
-          <div className="py-20 text-center rounded-3xl bg-white border border-slate-200 p-8 space-y-3">
-            <p className="text-base font-bold text-[#11233f]">Aucun cours ne correspond à votre recherche.</p>
-            <p className="text-xs text-slate-500">Essayez de modifier vos mots-clés ou de réinitialiser les filtres.</p>
+          <div className="py-20 text-center rounded-3xl bg-white border border-slate-200 p-8 space-y-3 shadow-sm">
+            <p className="text-base font-bold text-[#11233f]">Aucun cours disponible pour le moment.</p>
+            <p className="text-xs text-slate-500">Les cours et packs publiés par les enseignants apparaîtront ici.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">

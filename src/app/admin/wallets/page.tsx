@@ -1,4 +1,5 @@
-﻿ 
+
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,10 +25,6 @@ export default function AdminWalletsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    loadDeposits();
-  }, []);
-
   function loadDeposits() {
     setLoading(true);
     fetch("/api/admin/deposits")
@@ -36,6 +33,10 @@ export default function AdminWalletsPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }
+
+  useEffect(() => {
+    loadDeposits();
+  }, []);
 
   async function verifyDeposit(depositId: string, status: "PAID" | "FAILED") {
     setActionLoading(depositId);

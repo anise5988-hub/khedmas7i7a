@@ -241,3 +241,16 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, read, createdAt])
 }
+
+model News {
+  id               String   @id @default(cuid())
+  title            String
+  shortDescription String
+  content          String
+  imageUrl         String?
+  published        Boolean  @default(false)
+  authorId         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@index([published, createdAt])
+}

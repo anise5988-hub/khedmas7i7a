@@ -28,19 +28,20 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
+      let accessToken: string | undefined;
       if (supabase) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        accessToken = sessionData?.session?.access_token;
         const { error } = await supabase.auth.updateUser({ password });
         if (error) {
-          setMessage({ type: "error", text: error.message || "Impossible de réinitialiser le mot de passe." });
-          setLoading(false);
-          return;
+          console.warn("Supabase updateUser warning:", error.message);
         }
       }
 
-      const res = await fetch("/api/auth/set-password", {
+      const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, accessToken }),
       });
 
       if (res.ok) {
@@ -80,11 +81,10 @@ export default function ResetPasswordPage() {
 
         {message && (
           <div
-            className={`rounded-2xl p-4 text-xs font-semibold ${
-              message.type === "success"
+            className={`rounded-2xl p-4 text-xs font-semibold ${message.type === "success"
                 ? "border border-emerald-200 bg-emerald-50 text-emerald-900 flex items-center gap-2"
                 : "border border-rose-200 bg-rose-50 text-rose-900"
-            }`}
+              }`}
           >
             {message.type === "success" && <IconCheck className="h-4 w-4 text-emerald-600 shrink-0" />}
             <p>{message.text}</p>

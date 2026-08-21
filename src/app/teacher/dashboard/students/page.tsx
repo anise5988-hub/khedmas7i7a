@@ -1,7 +1,8 @@
-﻿/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
+import { SiteNavbar } from "@/components/site-navbar";
 import { IconUser } from "@/components/icons";
 
 type StudentInfo = {
@@ -48,17 +49,7 @@ export default function TeacherStudentsPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      <header className="border-b border-slate-200 bg-white px-6 py-5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <a href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
-            <span>ProfySpace</span>
-            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
-          </a>
-          <a href="/teacher/dashboard" className="text-sm font-bold text-[#0d8d78] hover:underline">
-            ← Dashboard professeur
-          </a>
-        </div>
-      </header>
+      <SiteNavbar dark={false} />
 
       <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
         <h1 className="text-3xl font-bold">Mes Élèves ({students.length})</h1>

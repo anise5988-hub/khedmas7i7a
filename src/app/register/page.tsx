@@ -239,8 +239,8 @@ export default function RegisterPage() {
                 required
                 minLength={8}
                 autoComplete="new-password"
-                placeholder="••"
-                className="w-full rounded-xl border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                placeholder="••••••••"
+                className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
               />
             </div>
 

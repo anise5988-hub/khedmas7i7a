@@ -1,7 +1,7 @@
-﻿/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/immutability */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 
 type Teacher = {
@@ -32,10 +32,6 @@ export default function AdminTeachersPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTeachers();
-  }, []);
-
   function loadTeachers() {
     setLoading(true);
     fetch("/api/admin/teachers")
@@ -44,6 +40,10 @@ export default function AdminTeachersPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }
+
+  useEffect(() => {
+    loadTeachers();
+  }, []);
 
   async function updateStatus(teacherId: string, status: string) {
     setActionLoading(teacherId);

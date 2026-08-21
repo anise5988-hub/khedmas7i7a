@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { SiteNavbar } from "@/components/site-navbar";
 import { Course, CourseVisibility } from "@/lib/server/courses-store";
 
 export default function TeacherCoursesPage() {
@@ -146,8 +147,11 @@ export default function TeacherCoursesPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-8">
-      {/* Header */}
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+      <SiteNavbar dark={false} />
+
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 space-y-6">
+        {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-6 sm:p-8 border border-slate-200 shadow-sm">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
@@ -453,6 +457,7 @@ export default function TeacherCoursesPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </main>
   );
 }

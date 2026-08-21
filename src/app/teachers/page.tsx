@@ -25,6 +25,7 @@ type Teacher = {
   experience: number;
   online: boolean;
   inPerson: boolean;
+  verificationStatus?: string;
 };
 
 const selectClass =
@@ -239,9 +240,11 @@ export default function TeachersPage() {
                           <div>
                             <div className="flex items-center gap-1.5">
                               <h3 className="font-bold text-base text-[#11233f]">{t.name}</h3>
-                              <span className="text-[#0d8d78] text-xs" title="Professeur vérifié par l'administration">
-                                ✓
-                              </span>
+                              {t.verificationStatus === "APPROVED" && (
+                                <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-800" title="Professeur vérifié par l'administration">
+                                  ✓ Vérifié
+                                </span>
+                              )}
                             </div>
                             <p className="text-xs text-slate-500 line-clamp-1">{t.title}</p>
                           </div>

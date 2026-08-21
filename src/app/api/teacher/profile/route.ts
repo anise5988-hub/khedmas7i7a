@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       city: teacher?.city || fallbackTeacher?.city || "Tunis",
       online: teacher?.online ?? fallbackTeacher?.online ?? true,
       inPerson: teacher?.inPerson ?? fallbackTeacher?.inPerson ?? false,
-      verificationStatus: teacher?.verificationStatus || fallbackTeacher?.verificationStatus || "APPROVED",
+      verificationStatus: teacher?.verificationStatus || fallbackTeacher?.verificationStatus || "PENDING",
       subjects: subjectsList,
       availabilities: teacher?.availabilities || fallbackTeacher?.availabilities || [],
       bookings: teacher?.bookings || [],

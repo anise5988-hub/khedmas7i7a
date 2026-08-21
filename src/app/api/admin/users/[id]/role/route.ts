@@ -26,6 +26,33 @@ export async function PATCH(
         where: { id },
         data: { role: newRole },
       });
+
+      if (newRole === "TEACHER") {
+        const existingTeacher = await prisma.teacherProfile.findUnique({ where: { userId: id } });
+        if (!existingTeacher) {
+          const slug = `${updatedUser.firstName}-${updatedUser.lastName}-${Date.now()}`
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "");
+          await prisma.teacherProfile.create({
+            data: {
+              userId: id,
+              slug,
+              hourlyRateMillimes: 25000,
+              experienceYears: 1,
+              verificationStatus: "PENDING",
+            },
+          });
+        }
+      } else if (newRole === "STUDENT") {
+        const existingStudent = await prisma.studentProfile.findUnique({ where: { userId: id } });
+        if (!existingStudent) {
+          await prisma.studentProfile.create({
+            data: { userId: id },
+          });
+        }
+      }
+
       return NextResponse.json({ success: true, user: updatedUser });
     } catch (dbError) {
       console.warn("Prisma user role update failed, using fallback store", dbError);
