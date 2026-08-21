@@ -11,7 +11,7 @@ const createReviewSchema = z.object({
   comment: z.string().trim().min(5).max(1000),
 });
 
-const FALLBACK_REVIEWS = [
+/* const FALLBACK_REVIEWS = [
   {
     id: "rev_fb_1",
     name: "Yassine Dridi",
@@ -48,7 +48,7 @@ const FALLBACK_REVIEWS = [
     text: "Un suivi pédagogique irréprochable pour ma fille en français et mathématiques. Sa moyenne générale est passée de 12 à 16.5 !",
     createdAt: new Date("2026-01-12").toISOString(),
   },
-];
+]; */
 
 export async function GET() {
   try {
@@ -83,7 +83,7 @@ export async function GET() {
     console.warn("Reviews fetch failed, using fallback reviews", error);
   }
 
-  return NextResponse.json({ reviews: FALLBACK_REVIEWS });
+  return NextResponse.json({ reviews: [] });
 }
 
 export async function POST(request: Request) {

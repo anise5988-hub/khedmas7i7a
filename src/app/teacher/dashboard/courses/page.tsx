@@ -20,7 +20,8 @@ export default function TeacherCoursesPage() {
   const [language] = useState("Français / Arabe");
   const [priceTnd, setPriceTnd] = useState(30);
   const [visibility, setVisibility] = useState<CourseVisibility>("LOCKED");
-  type FormLesson = { title: string; durationMinutes: number; videoUrl: string; isFreePreview: boolean };
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  type FormLesson = { title: string; durationMinutes: number; videoUrl: string; isFreePreview: boolean; resources?: { name: string; url: string }[] };
   type FormSection = { title: string; lessons: FormLesson[] };
   const [sections, setSections] = useState<FormSection[]>([
     {
@@ -33,6 +34,7 @@ export default function TeacherCoursesPage() {
   const [lessonDuration, setLessonDuration] = useState(30);
   const [lessonVideo, setLessonVideo] = useState("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [uploadKind, setUploadKind] = useState<"video" | "pdf">("video");
   const [videoMode, setVideoMode] = useState<"URL" | "FILE">("URL");
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,11 +111,17 @@ export default function TeacherCoursesPage() {
     const target = activeUploadTarget;
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("kind", uploadKind);
     fetch("/api/uploads/video", { method: "POST", headers: { "x-user-id": localStorage.getItem("profyspace_user_id") || "" }, body: formData })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Échec de l'upload.");
-        updateLesson(target.sectionIndex, target.lessonIndex, { videoUrl: data.url });
+        if (uploadKind === "pdf") {
+          const current = sections[target.sectionIndex]?.lessons[target.lessonIndex];
+          updateLesson(target.sectionIndex, target.lessonIndex, { resources: [...(current?.resources || []), { name: data.name, url: data.url }] });
+        } else {
+          updateLesson(target.sectionIndex, target.lessonIndex, { videoUrl: data.url });
+        }
       })
       .catch((uploadError: unknown) => setError(uploadError instanceof Error ? uploadError.message : "Erreur lors de l'envoi de la vidéo."))
       .finally(() => {
@@ -139,7 +147,7 @@ export default function TeacherCoursesPage() {
           language,
           priceTnd,
           visibility: priceTnd === 0 && visibility === "LOCKED" ? "PUBLIC" : visibility,
-          thumbnailUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+          thumbnailUrl: thumbnailUrl || null,
           sections: sections.map((section) => ({
             ...section,
             lessons: section.lessons.map((lesson) => ({
@@ -193,6 +201,7 @@ export default function TeacherCoursesPage() {
     setLevel("4ème Année Secondaire (Bac)");
     setPriceTnd(30);
     setVisibility("LOCKED");
+    setThumbnailUrl("");
     setSections([{
       title: "Module 1 : Fondamentaux & Exercices",
       lessons: [{ title: "Leçon 1 : Introduction et rappels", durationMinutes: 30, videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", isFreePreview: true }],
@@ -368,6 +377,12 @@ export default function TeacherCoursesPage() {
                     />
                   </div>
 
+                  <div className="rounded-2xl border-slate-200 bg-slate-50 p-4">
+                    <label className="block font-bold text-slate-600 mb-1">Image du cours / pack (optionnel)</label>
+                    <input type="url" value={thumbnailUrl} onChange={(e) => setThumbnailUrl(e.target.value)} placeholder="Lien image JPG/PNG/WebP" className="w-full rounded-xl border-slate-200 bg-white p-3 outline-none focus:border-[#0d8d78]" />
+                    <p className="mt-1 text-[10px] text-slate-400">L'image sera affichée dans le catalogue et sur la page d'aperçu.</p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block font-bold text-slate-600 mb-1">Matière *</label>
@@ -420,8 +435,12 @@ export default function TeacherCoursesPage() {
                   <div className="space-y-4 rounded-2xl border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center justify-between gap-3"><div><label className="block font-bold text-slate-700">Programme du cours *</label><p className="mt-1 text-[11px] text-slate-500">Ajoutez plusieurs modules et vidéos dans votre pack.</p></div><button type="button" onClick={addSection} className="shrink-0 rounded-xl bg-[#e5f7f2] px-3 py-2 text-[11px] font-bold text-[#0d8d78] hover:bg-[#d5f1e8]">+ Module</button></div>
                     {sections.map((section, sectionIndex) => <div key={sectionIndex} className="space-y-3 rounded-xl border-slate-200 bg-white p-3"><div className="flex items-center gap-2"><input value={section.title} onChange={(e) => setSections((current) => current.map((item, index) => index === sectionIndex ? { ...item, title: e.target.value } : item))} className="min-w-0 flex-1 rounded-lg border-slate-200 p-2.5 text-xs font-bold outline-none focus:border-[#0d8d78]" placeholder="Nom du module" />{sections.length > 1 && <button type="button" onClick={() => setSections((current) => current.filter((_, index) => index !== sectionIndex))} className="text-[10px] font-bold text-rose-600">Supprimer</button>}</div>{section.lessons.map((lesson, lessonIndex) => <div key={lessonIndex} className="space-y-2 rounded-xl border-slate-100 bg-slate-50 p-3"><div className="flex items-center justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Vidéo {lessonIndex + 1}</span>{section.lessons.length > 1 && <button type="button" onClick={() => removeLesson(sectionIndex, lessonIndex)} className="text-[10px] font-bold text-rose-600">Supprimer</button>}</div><input required value={lesson.title} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { title: e.target.value })} className="w-full rounded-lg border-slate-200 bg-white p-2.5 text-xs outline-none focus:border-[#0d8d78]" placeholder="Titre de la vidéo" /><div className="grid gap-2 sm:grid-cols-[1fr_100px]"><input required type="url" value={lesson.videoUrl} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { videoUrl: e.target.value })} className="w-full rounded-lg border-slate-200 bg-white p-2.5 text-xs outline-none focus:border-[#0d8d78]" placeholder="Lien YouTube, Vimeo ou MP4" /><input required type="number" min={1} value={lesson.durationMinutes} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { durationMinutes: Number(e.target.value) })} className="w-full rounded-lg border-slate-200 bg-white p-2.5 text-xs outline-none focus:border-[#0d8d78]" aria-label="Durée en minutes" /></div><div className="flex flex-wrap items-center justify-between gap-2"><label className="flex items-center gap-2 text-[11px] font-semibold text-slate-500"><input type="checkbox" checked={lesson.isFreePreview} onChange={(e) => updateLesson(sectionIndex, lessonIndex, { isFreePreview: e.target.checked })} /> Aperçu gratuit</label><button type="button" onClick={() => { setActiveUploadTarget({ sectionIndex, lessonIndex }); fileInputRef.current?.click(); }} className="rounded-lg border-[#0d8d78] px-3 py-1.5 text-[10px] font-bold text-[#0d8d78] hover:bg-[#e5f7f2]">📁 Uploader une vidéo</button></div></div>)}<button type="button" onClick={() => addLesson(sectionIndex)} className="w-full rounded-lg border-dashed border-[#0d8d78] py-2 text-[11px] font-bold text-[#0d8d78] hover:bg-[#e5f7f2]">+ Ajouter une vidéo</button></div>)}
-                    <input type="file" ref={fileInputRef} onChange={handleVideoFileUpload} accept="video/mp4,video/webm,video/ogg,video/quicktime" className="hidden" />
-                    {uploadingFile && <p className="text-[11px] font-bold text-[#0d8d78]">Envoi de la vidéo vers Supabase...</p>}
+                    <input type="file" ref={fileInputRef} onChange={handleVideoFileUpload} accept={uploadKind === "pdf" ? "application/pdf" : "video/mp4,video/webm,video/ogg,video/quicktime"} className="hidden" />
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => { setUploadKind("video"); setActiveUploadTarget({ sectionIndex: 0, lessonIndex: 0 }); fileInputRef.current?.click(); }} className="rounded-lg border-[#0d8d78] px-3 py-1.5 text-[10px] font-bold text-[#0d8d78]">📹 Ajouter vidéo</button>
+                      <button type="button" onClick={() => { setUploadKind("pdf"); setActiveUploadTarget({ sectionIndex: 0, lessonIndex: 0 }); fileInputRef.current?.click(); }} className="rounded-lg border-[#0d8d78] px-3 py-1.5 text-[10px] font-bold text-[#0d8d78]">📄 Ajouter PDF</button>
+                    </div>
+                    {uploadingFile && <p className="text-[11px] font-bold text-[#0d8d78]">Envoi du fichier vers Supabase...</p>}
                   </div>
                   <div className="hidden">
                      <label className="block font-bold text-slate-600 mb-1">Titre de la 1ère leçon *</label>

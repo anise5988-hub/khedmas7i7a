@@ -55,7 +55,7 @@ export async function GET() {
     console.warn("Prisma teachers fetch failed, querying fallback store", error);
   }
 
-  // Fallback to in-memory verified teachers
+  // Only use in-memory teachers when the database is unavailable.
   const fallbackUsers = fallbackStore.getAllTeachers();
   const fallbackTeachers = fallbackUsers
     .filter((u) => u.teacher)

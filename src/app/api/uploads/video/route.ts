@@ -22,15 +22,18 @@ export async function POST(request: Request) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Fichier vidéo manquant." }, { status: 400 });
   }
-  if (!file.type.startsWith("video/")) {
-    return NextResponse.json({ error: "Le fichier doit être une vidéo." }, { status: 400 });
+  const kind = String(formData.get("kind") || "video");
+  const allowed = kind === "pdf" ? file.type === "application/pdf" : kind === "image" ? file.type.startsWith("image/") : file.type.startsWith("video/");
+  if (!allowed) {
+    return NextResponse.json({ error: kind === "pdf" ? "Le fichier doit être un PDF." : kind === "image" ? "Le fichier doit être une image." : "Le fichier doit être une vidéo." }, { status: 400 });
   }
-  if (file.size > 500 * 1024 * 1024) {
-    return NextResponse.json({ error: "La vidéo ne doit pas dépasser 500 MB." }, { status: 413 });
+  const maxSize = kind === "video" ? 500 * 1024 * 1024 : kind === "pdf" ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    return NextResponse.json({ error: `Le fichier ne doit pas dépasser ${kind === "video" ? "500" : kind === "pdf" ? "25" : "10"} MB.` }, { status: 413 });
   }
 
-  const extension = file.name.split(".").pop()?.toLowerCase() || "mp4";
-  const path = `${user.id}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+  const extension = file.name.split(".").pop()?.toLowerCase() || (kind === "pdf" ? "pdf" : kind === "image" ? "jpg" : "mp4");
+  const path = `${user.id}/${kind}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
   const supabase = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const result = await supabase.storage.from(bucket).upload(path, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
   if (result.error) {
@@ -39,5 +42,5 @@ export async function POST(request: Request) {
   }
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-  return NextResponse.json({ url: data.publicUrl, path, name: file.name });
+  return NextResponse.json({ url: data.publicUrl, path, name: file.name, kind });
 }

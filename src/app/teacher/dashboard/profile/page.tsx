@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -35,6 +36,8 @@ export default function TeacherProfilePage() {
   const [online, setOnline] = useState(true);
   const [inPerson, setInPerson] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState("PENDING");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(["Mathématiques"]);
   const [availabilities, setAvailabilities] = useState<AvailabilitySlot[]>([
     { dayOfWeek: 0, startTime: "17:00", endTime: "20:00" },
@@ -58,6 +61,7 @@ export default function TeacherProfilePage() {
           setOnline(t.online !== false);
           setInPerson(Boolean(t.inPerson));
           setVerificationStatus(t.verificationStatus || "PENDING");
+          setAvatarUrl(t.avatarUrl || "");
           if (Array.isArray(t.subjects) && t.subjects.length > 0) {
             setSelectedSubjects(t.subjects);
           }
@@ -94,12 +98,31 @@ export default function TeacherProfilePage() {
     setAvailabilities(updated);
   }
 
+  async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setMessage({ type: "error", text: "Veuillez choisir une image." }); return; }
+    setAvatarUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", "image");
+    try {
+      const response = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Upload impossible.");
+      setAvatarUrl(data.url);
+      setMessage({ type: "success", text: "Photo téléchargée. Cliquez sur enregistrer pour la sauvegarder." });
+    } catch (error) { setMessage({ type: "error", text: error instanceof Error ? error.message : "Upload impossible." }); }
+    finally { setAvatarUploading(false); }
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
 
     const payload = {
+      avatarUrl: avatarUrl || null,
       title: title.trim(),
       bio: bio.trim(),
       experienceYears: Number(experienceYears),
@@ -201,6 +224,16 @@ export default function TeacherProfilePage() {
           </div>
         ) : (
           <form onSubmit={handleSave} className="mt-8 space-y-8">
+            {/* Photo de profil */}
+            <div className="rounded-3xl border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+              <h2 className="text-lg font-bold">Photo de profil</h2>
+              <p className="mt-1 text-xs text-slate-500">Ajoutez une photo professionnelle à votre fiche publique.</p>
+              <div className="mt-4 flex-wrap items-center gap-4">
+                <div className="h-20 w-20 overflow-hidden rounded-2xl bg-[#e5f7f2] text-2xl font-bold text-[#0d8d78] flex items-center justify-center">{avatarUrl ? <img src={avatarUrl} alt="Votre photo" className="h-full w-full object-cover" /> : "👤"}</div>
+                <label className="cursor-pointer rounded-xl border-[#0d8d78] px-4 py-2 text-xs font-bold text-[#0d8d78] hover:bg-[#e5f7f2]">{avatarUploading ? "Upload..." : "Choisir une photo"}<input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" /></label>
+              </div>
+            </div>
+
             {/* 1. Titre & Présentation */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
               <h2 className="text-lg font-bold">1. Titre & Biographie Pédagogique</h2>
