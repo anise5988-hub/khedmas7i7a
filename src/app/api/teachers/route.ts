@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const profiles = await prisma.teacherProfile.findMany({
       where: {
-        verificationStatus: { not: "REJECTED" },
+        verificationStatus: { notIn: ["REJECTED", "SUSPENDED"] },
       },
       include: {
         user: { select: { firstName: true, lastName: true, email: true } },

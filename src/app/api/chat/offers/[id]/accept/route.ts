@@ -23,6 +23,18 @@ export async function POST(
     return NextResponse.json({ error: "Vous n'êtes pas autorisé à accepter cette offre." }, { status: 403 });
   }
 
+  // A suspended/rejected teacher must not be able to get paid just
+  // because the offer flow doesn't share the same status check as direct
+  // booking — verify before touching the offer or the student's wallet.
+  const teacherProfile = await prisma.teacherProfile.findFirst({
+    where: { OR: [{ id: existingOffer.teacherId }, { userId: existingOffer.teacherId }] },
+  });
+  if (!teacherProfile || teacherProfile.verificationStatus !== "APPROVED") {
+    return NextResponse.json({
+      error: "Ce professeur n'est plus disponible pour accepter des réservations.",
+    }, { status: 409 });
+  }
+
   const updateRes = chatStore.updateOfferStatus(offerId, "ACCEPTED");
 
   if (!updateRes.success || !updateRes.offer) {
@@ -55,10 +67,6 @@ export async function POST(
     // teacher's earnings atomically so partial failures never leave the
     // student charged without a confirmed booking (or vice versa).
     try {
-      const teacherProfile = await prisma.teacherProfile.findFirst({
-        where: { OR: [{ id: offer.teacherId }, { userId: offer.teacherId }] },
-      });
-
       await prisma.$transaction(async (tx) => {
         const deduction = await tx.wallet.updateMany({
           where: { userId: user.id, availableMillimes: { gte: requiredMillimes } },
