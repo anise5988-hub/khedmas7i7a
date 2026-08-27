@@ -755,7 +755,7 @@ export default function Home() {
                           )}
                           {course.visibility === "PUBLIC" && (
                             <span className="rounded-xl bg-emerald-600/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold text-white shadow-sm flex items-center gap-1">
-                              🌐 Gratuit
+                              Gratuit
                             </span>
                           )}
                         </div>
@@ -768,7 +768,7 @@ export default function Home() {
                       {/* Content Details */}
                       <div className="p-6 space-y-3">
                         <span className="text-[11px] font-semibold text-slate-400 block">
-                          🎓 {course.level}
+                          {course.level}
                         </span>
 
                         <h3 className="text-base font-bold text-[#11233f] group-hover:text-[#0d8d78] transition duration-200 line-clamp-2 leading-snug">
@@ -791,7 +791,7 @@ export default function Home() {
                           </div>
 
                           <span className="text-[11px] text-slate-400 font-medium">
-                            📹 {course.totalLessons} vidéos · {course.durationMinutes} min
+                            {course.totalLessons} vidéos · {course.durationMinutes} min
                           </span>
                         </div>
                       </div>
