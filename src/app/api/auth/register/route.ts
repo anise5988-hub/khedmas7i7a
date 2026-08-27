@@ -1,4 +1,5 @@
 import { hash } from "bcryptjs";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { registerSchema } from "@/lib/validation/auth";
@@ -22,67 +23,94 @@ export async function POST(request: Request) {
       },
     });
 
-    if (error || !data.user) {
+    // Supabase's own confirmation email is a separate, independently
+    // flaky service (rate limits, SMTP config) from the rest of account
+    // creation. When it's the ONLY thing that failed, don't block signup
+    // entirely — fall through to the direct-DB path below, the same one
+    // used when Supabase Auth isn't configured at all. A genuine
+    // validation failure (email taken, weak password, etc.) still stops
+    // registration here.
+    const isEmailDeliveryFailure = /error sending confirmation email/i.test(error?.message || "");
+
+    if (error && !isEmailDeliveryFailure) {
       console.error("Supabase sign-up failed", { message: error?.message, status: error?.status, code: error?.code });
       return NextResponse.json({ error: error?.message || "Inscription impossible." }, { status: 400 });
     }
 
-    try {
-      const user = await prisma.user.upsert({
-        where: { id: data.user.id },
-        update: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, passwordHash },
-        create: {
-          id: data.user.id,
-          email: input.email,
-          firstName: input.firstName,
-          lastName: input.lastName,
-          phone: input.phone || null,
+    if (data.user && !isEmailDeliveryFailure) {
+      try {
+        const user = await prisma.user.upsert({
+          where: { id: data.user.id },
+          update: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, passwordHash },
+          create: {
+            id: data.user.id,
+            email: input.email,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone || null,
+            passwordHash,
+            role: input.role,
+          },
+        });
+
+        await prisma.wallet.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
+
+        if (input.role === "STUDENT") {
+          await prisma.studentProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
+        } else {
+          const slug = `${input.firstName}-${input.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 25000, experienceYears: 1, verificationStatus: "APPROVED" } });
+        }
+
+        // Sync fallback store
+        fallbackStore.updateUser(user.id, {
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
           passwordHash,
-          role: input.role,
-        },
-      });
-
-      await prisma.wallet.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
-
-      if (input.role === "STUDENT") {
-        await prisma.studentProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
-      } else {
-        const slug = `${input.firstName}-${input.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-        await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 25000, experienceYears: 1, verificationStatus: "APPROVED" } });
+        });
+      } catch (profileError) {
+        console.error("Supabase user profile sync failed", profileError);
+        return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
       }
 
-      // Sync fallback store
-      fallbackStore.updateUser(user.id, {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        passwordHash,
+      // Also send welcome / confirmation email via Brevo transactional email
+      await sendTransactionalEmail({
+        to: input.email,
+        name: input.firstName,
+        subject: "Bienvenue sur Profy ! Confirmez votre adresse email",
+        title: "Bienvenue sur ProfySpace.tn",
+        message: `Bonjour ${input.firstName}, votre compte ${input.role === "TEACHER" ? "Professeur" : "Élève"} a été créé avec succès. Veuillez confirmer votre adresse email pour profiter de toutes les fonctionnalités.`,
+        link: "/login",
       });
-    } catch (profileError) {
-      console.error("Supabase user profile sync failed", profileError);
-      return NextResponse.json({ error: "Votre compte email existe, mais l'initialisation du profil a échoué. Cliquez sur Réessayer ou contactez le support.", retryProfileSync: true }, { status: 503 });
+
+      return NextResponse.json({
+        success: true,
+        user: data.user,
+        requiresEmailConfirmation: !data.session,
+        message: "Compte créé. Consultez votre email pour confirmer votre adresse.",
+      }, { status: 201 });
     }
 
-    // Also send welcome / confirmation email via Brevo transactional email
-    await sendTransactionalEmail({
-      to: input.email,
-      name: input.firstName,
-      subject: "Bienvenue sur Profy ! Confirmez votre adresse email",
-      title: "Bienvenue sur ProfySpace.tn",
-      message: `Bonjour ${input.firstName}, votre compte ${input.role === "TEACHER" ? "Professeur" : "Élève"} a été créé avec succès. Veuillez confirmer votre adresse email pour profiter de toutes les fonctionnalités.`,
-      link: "/login",
-    });
-
-    return NextResponse.json({
-      success: true,
-      user: data.user,
-      requiresEmailConfirmation: !data.session,
-      message: "Compte créé. Consultez votre email pour confirmer votre adresse.",
-    }, { status: 201 });
+    console.warn("Supabase sign-up email delivery failed — falling back to direct registration", error?.message);
+    if (data.user) {
+      // Supabase already created an auth user before the email step
+      // failed; clean it up (needs the service-role key — the anon
+      // client used for signUp can't do admin operations) so the
+      // direct-DB path below doesn't leave an orphaned, duplicate auth
+      // identity sitting alongside the real account.
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (serviceRoleKey && supabaseUrl) {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+        await adminClient.auth.admin.deleteUser(data.user.id).catch(() => {});
+      }
+    }
   }
 
-  // Fallback direct DB registration when Supabase Auth is not enabled
+  // Fallback direct DB registration when Supabase Auth is not enabled,
+  // or when it's configured but its confirmation email delivery failed.
   try {
     const existingUser = await prisma.user.findUnique({ where: { email: input.email } });
     if (existingUser) return NextResponse.json({ error: "Cette adresse email est déjà utilisée." }, { status: 409 });
