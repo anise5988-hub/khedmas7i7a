@@ -378,7 +378,7 @@ export default function Home() {
                           : "border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
-                      🌐 En ligne
+                      En ligne
                     </button>
                     <button
                       type="button"
@@ -389,7 +389,7 @@ export default function Home() {
                           : "border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
-                      🏠 Présentiel
+                      Présentiel
                     </button>
                   </div>
                 </div>
