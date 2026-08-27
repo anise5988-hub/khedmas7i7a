@@ -21,6 +21,16 @@ import {
   IconUsers,
   IconClock,
 } from "@/components/icons";
+import { AnalyticsCharts } from "./analytics-charts";
+
+type Analytics = {
+  registrationsByDay: { date: string; value: number }[];
+  bookingsByDay: { date: string; value: number }[];
+  revenueTndByDay: { date: string; value: number }[];
+  popularSubjects: { subject: string; count: number }[];
+  bookingStatusDistribution: { status: string; count: number }[];
+  teachersByGovernorate: { governorate: string; count: number }[];
+};
 
 type AdminStats = {
   totalUsers: number;
@@ -261,6 +271,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/stats")
@@ -277,6 +288,13 @@ export default function AdminPage() {
         setError(true);
       })
       .finally(() => setLoading(false));
+
+    fetch("/api/admin/analytics")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && !data.error) setAnalytics(data);
+      })
+      .catch(() => {});
   }, []);
 
   const pendingTeachers = stats?.pendingTeachersCount ?? 0;
@@ -461,6 +479,17 @@ export default function AdminPage() {
                 />
               </div>
             </div>
+
+            {analytics && (
+              <AnalyticsCharts
+                registrationsByDay={analytics.registrationsByDay}
+                bookingsByDay={analytics.bookingsByDay}
+                revenueTndByDay={analytics.revenueTndByDay}
+                popularSubjects={analytics.popularSubjects}
+                bookingStatusDistribution={analytics.bookingStatusDistribution}
+                teachersByGovernorate={analytics.teachersByGovernorate}
+              />
+            )}
 
             {/* Admin Modules */}
             <div className="mt-8 rounded-3xl border border-white/10 bg-white/[.04] p-6 sm:p-8">
