@@ -298,7 +298,6 @@ export default function Home() {
                 <p className="text-[11px] font-bold uppercase tracking-[.18em] text-[#0d8d78]">Recherche guidée</p>
                 <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">Affinez votre recherche</h2>
               </div>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e5f7f2] text-base">🔎</span>
             </div>
 
             <div className="space-y-4">
