@@ -16,6 +16,7 @@ type ReviewItem = {
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
     fetch("/api/reviews")
@@ -23,7 +24,7 @@ export default function AdminReviewsPage() {
       .then((data) => {
         setReviews(data.reviews || []);
       })
-      .catch(() => {})
+      .catch(() => setFetchError("Impossible de charger les avis."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -55,6 +56,12 @@ export default function AdminReviewsPage() {
             Consultez les avis publiés par les élèves et parents sur la plateforme.
           </p>
         </div>
+
+        {fetchError && !loading && (
+          <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">
+            {fetchError}
+          </div>
+        )}
 
         {loading ? (
           <div className="py-20 text-center text-slate-400">Chargement des avis...</div>

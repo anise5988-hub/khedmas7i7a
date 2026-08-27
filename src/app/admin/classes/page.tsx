@@ -9,17 +9,19 @@ import { IconBookOpen, IconSearch, IconTrash } from "@/components/icons";
 export default function AdminClassesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [fetchError, setFetchError] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   function loadCourses() {
     setLoading(true);
+    setFetchError("");
     fetch("/api/courses")
       .then((res) => (res.ok ? res.json() : { courses: [] }))
       .then((data) => {
         setCourses(data.courses || []);
       })
-      .catch(() => {})
+      .catch(() => setFetchError("Impossible de charger les cours."))
       .finally(() => setLoading(false));
   }
 
@@ -99,6 +101,12 @@ export default function AdminClassesPage() {
             </button>
           </div>
         </div>
+
+        {fetchError && !loading && (
+          <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">
+            {fetchError}
+          </div>
+        )}
 
         {/* Table */}
         <div className="mt-8 overflow-x-auto rounded-3xl border border-white/10 bg-white/[.04] p-2 shadow-xl">

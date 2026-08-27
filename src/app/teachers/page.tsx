@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PageDataState } from "@/components/page-data-state";
 import { SiteNavbar } from "@/components/site-navbar";
 import {
   governorates,
@@ -16,9 +17,7 @@ import {
   IconClock,
   IconFilter,
   IconX,
-  IconChevronDown,
   IconSparkles,
-  IconSearch,
   IconVideo,
 } from "@/components/icons";
 
@@ -84,48 +83,10 @@ function VerifiedBadge() {
   );
 }
 
-function SkeletonCard() {
-  return (
-    <div className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="h-14 w-14 shrink-0 rounded-2xl bg-slate-200 animate-pulse" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 w-32 rounded-lg bg-slate-200 animate-pulse" />
-            <div className="h-3 w-24 rounded-lg bg-slate-200 animate-pulse" />
-          </div>
-          <div className="h-8 w-16 rounded-lg bg-slate-200 animate-pulse" />
-        </div>
-        <div className="flex gap-2">
-          <div className="h-6 w-20 rounded-lg bg-slate-200 animate-pulse" />
-          <div className="h-6 w-24 rounded-lg bg-slate-200 animate-pulse" />
-          <div className="h-6 w-16 rounded-lg bg-slate-200 animate-pulse" />
-        </div>
-        <div className="space-y-2">
-          <div className="h-3 w-full rounded bg-slate-200 animate-pulse" />
-          <div className="h-3 w-3/4 rounded bg-slate-200 animate-pulse" />
-        </div>
-        <div className="flex gap-4">
-          <div className="h-3 w-24 rounded bg-slate-200 animate-pulse" />
-          <div className="h-3 w-28 rounded bg-slate-200 animate-pulse" />
-        </div>
-      </div>
-      <div className="mt-6 border-t border-slate-100 pt-4">
-        <div className="flex items-center justify-between">
-          <div className="h-8 w-20 rounded-lg bg-slate-200 animate-pulse" />
-          <div className="flex gap-2">
-            <div className="h-9 w-20 rounded-xl bg-slate-200 animate-pulse" />
-            <div className="h-9 w-24 rounded-xl bg-slate-200 animate-pulse" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeFilterCount, setActiveFilterCount] = useState(0);
 
@@ -155,7 +116,7 @@ export default function TeachersPage() {
       .then((data: Teacher[]) => {
         setTeachers(Array.isArray(data) ? data : []);
       })
-      .catch(() => {})
+      .catch(() => setFetchError("Impossible de charger les professeurs."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -592,40 +553,26 @@ function FilterSidebar({
             </div>
           )}
 
-          {/* Results List */}
-          <section>
-            {/* Mobile result count */}
-            <div className="lg:hidden pb-4 mb-4 border-b border-slate-200">
-              <p className="text-sm font-semibold text-slate-600">
-                <strong className="text-[#11233f]">{sorted.length}</strong> professeur{sorted.length > 1 ? "s" : ""}
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <SkeletonCard key={i} />
-                ))}
-              </div>
-            ) : sorted.length === 0 ? (
-              <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-                <div className="mx-auto w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                  <IconSearch className="h-8 w-8 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-bold text-[#11233f]">Aucun professeur ne correspond à ces critères</h3>
-                <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">
-                  Essayez d&apos;élargir vos filtres de recherche ou modifiez vos critères de sélection.
+            {/* Results List */}
+            <section>
+              {/* Mobile result count */}
+              <div className="lg:hidden pb-4 mb-4 border-b border-slate-200">
+                <p className="text-sm font-semibold text-slate-600">
+                  <strong className="text-[#11233f]">{sorted.length}</strong> professeur{sorted.length > 1 ? "s" : ""}
                 </p>
-                  <button
-                  onClick={resetFilters}
-                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0d8d78] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#0b7866]"
-                >
-                  Afficher tous les professeurs
-                </button>
               </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {sorted.map((t) => (
+
+              <PageDataState
+                loading={loading}
+                error={fetchError || undefined}
+                empty={!loading && !fetchError && sorted.length === 0}
+                emptyTitle="Aucun professeur ne correspond à ces critères"
+                emptyDescription="Essayez d'élargir vos filtres de recherche ou modifiez vos critères de sélection."
+                onRetry={() => window.location.reload()}
+                loadingText="Chargement des professeurs..."
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {sorted.map((t) => (
                   <div
                     key={t.id}
                     className="group flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#72d6bf] hover:shadow-xl"
@@ -733,7 +680,7 @@ function FilterSidebar({
                   </div>
                 ))}
               </div>
-            )}
+            </PageDataState>
           </section>
         </div>
       </div>

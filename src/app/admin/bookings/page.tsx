@@ -23,6 +23,7 @@ type BookingItem = {
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -30,7 +31,7 @@ export default function AdminBookingsPage() {
     fetch("/api/admin/bookings")
       .then((res) => (res.ok ? res.json() : { bookings: [] }))
       .then((data) => setBookings(data.bookings || []))
-      .catch(() => {})
+      .catch(() => setFetchError("Impossible de charger les réservations."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -94,6 +95,12 @@ export default function AdminBookingsPage() {
             </select>
           </div>
         </div>
+
+        {fetchError && !loading && (
+          <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">
+            {fetchError}
+          </div>
+        )}
 
         {/* Bookings Table */}
         <div className="mt-6 overflow-x-auto rounded-3xl border border-white/10 bg-white/[.04] p-2">

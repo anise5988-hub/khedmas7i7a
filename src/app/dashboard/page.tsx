@@ -108,6 +108,7 @@ export default function StudentDashboard() {
   const [favorites, setFavorites] = useState<FavoriteTeacher[]>([]);
   const [recommendedTeachers, setRecommendedTeachers] = useState<RecommendedTeacher[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
   function getAuthHeaders(): Record<string, string> {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
@@ -139,7 +140,7 @@ export default function StudentDashboard() {
         if (favoritesData?.favorites) setFavorites(favoritesData.favorites);
         if (teachersData) setRecommendedTeachers(teachersData.slice(0, 4));
       })
-      .catch(() => {})
+      .catch(() => setFetchError("Impossible de charger votre espace. Veuillez réessayer."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -174,6 +175,17 @@ export default function StudentDashboard() {
             <div className="py-20 text-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>
               <p className="mt-3 text-sm text-slate-500">Chargement de votre espace...</p>
+            </div>
+          ) : fetchError ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
+              <p className="text-sm font-semibold text-rose-800">Erreur de chargement</p>
+              <p className="mt-1 text-sm text-rose-600">{fetchError}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-rose-700"
+              >
+                Réessayer
+              </button>
             </div>
           ) : (
             <div className="space-y-6">
