@@ -20,6 +20,7 @@ import {
   IconChevronRight,
   IconUsers,
   IconClock,
+  IconMessageSquare,
 } from "@/components/icons";
 import { AnalyticsCharts } from "./analytics-charts";
 
@@ -584,6 +585,39 @@ export default function AdminPage() {
                   <h3 className="mt-3 font-bold text-base">Paramètres Plateforme</h3>
                   <p className="mt-1 text-xs text-slate-400">
                     Commissions (10%), paiements et sécurité.
+                  </p>
+                </a>
+
+                <a
+                  href="/admin/coupons"
+                  className="rounded-2xl border border-white/10 bg-white/[.05] p-5 transition hover:border-[#72d6bf] hover:bg-white/[.08]"
+                >
+                  <IconDollarSign className="h-6 w-6 text-[#72d6bf]" />
+                  <h3 className="mt-3 font-bold text-base">Coupons</h3>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Codes de réduction pour les recharges de portefeuille.
+                  </p>
+                </a>
+
+                <a
+                  href="/admin/support"
+                  className="rounded-2xl border border-white/10 bg-white/[.05] p-5 transition hover:border-[#72d6bf] hover:bg-white/[.08]"
+                >
+                  <IconMessageSquare className="h-6 w-6 text-[#72d6bf]" />
+                  <h3 className="mt-3 font-bold text-base">Support</h3>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Tickets d'assistance des élèves et professeurs.
+                  </p>
+                </a>
+
+                <a
+                  href="/admin/logs"
+                  className="rounded-2xl border border-white/10 bg-white/[.05] p-5 transition hover:border-[#72d6bf] hover:bg-white/[.08]"
+                >
+                  <IconClock className="h-6 w-6 text-[#72d6bf]" />
+                  <h3 className="mt-3 font-bold text-base">Journal d&apos;activité</h3>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Historique des actions administratives.
                   </p>
                 </a>
               </div>

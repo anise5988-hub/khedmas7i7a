@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { PaymentStatus } from "@prisma/client";
 import { notifyUser } from "@/lib/server/notification-service";
+import { logAdminAction } from "@/lib/server/audit-log";
 
 export async function POST(
   request: Request,
@@ -22,7 +23,10 @@ export async function POST(
   }
 
   try {
-    const deposit = await prisma.walletDeposit.findUnique({ where: { id } });
+    const deposit = await prisma.walletDeposit.findUnique({
+      where: { id },
+      include: { wallet: { select: { userId: true } } },
+    });
     if (!deposit) return NextResponse.json({ error: "Dépôt introuvable." }, { status: 404 });
 
     await prisma.$transaction(async (tx) => {
@@ -32,23 +36,64 @@ export async function POST(
       });
 
       if (status === "PAID" && deposit.status !== "PAID") {
+        // Re-validate the coupon fresh (not the request-time snapshot) —
+        // it's the only point that's actually authoritative, since a user
+        // could have multiple pending deposits queued on the same code and
+        // only one may ever redeem it.
+        let bonusMillimes = 0;
+        if (deposit.couponCode) {
+          const coupon = await tx.coupon.findUnique({ where: { code: deposit.couponCode } });
+          const alreadyRedeemed = coupon
+            ? await tx.couponRedemption.findUnique({
+                where: { couponId_userId_context: { couponId: coupon.id, userId: deposit.wallet.userId, context: "WALLET_DEPOSIT" } },
+              })
+            : null;
+          const stillValid =
+            coupon &&
+            coupon.active &&
+            (!coupon.expiresAt || coupon.expiresAt >= new Date()) &&
+            (coupon.maxUses === null || coupon.usedCount < coupon.maxUses) &&
+            (coupon.minAmountMillimes === null || deposit.amountMillimes >= coupon.minAmountMillimes) &&
+            !alreadyRedeemed;
+
+          if (stillValid && coupon) {
+            bonusMillimes =
+              coupon.discountType === "PERCENT"
+                ? Math.round((deposit.amountMillimes * coupon.discountValue) / 100)
+                : Math.min(coupon.discountValue, deposit.amountMillimes);
+
+            await tx.couponRedemption.create({
+              data: {
+                couponId: coupon.id,
+                userId: deposit.wallet.userId,
+                context: "WALLET_DEPOSIT",
+                amountOffMillimes: bonusMillimes,
+              },
+            });
+            await tx.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+            await tx.walletDeposit.update({ where: { id }, data: { bonusMillimes } });
+          }
+        }
+
+        const totalCredit = deposit.amountMillimes + bonusMillimes;
+
         await tx.wallet.update({
           where: { id: deposit.walletId },
-          data: { availableMillimes: { increment: deposit.amountMillimes } },
+          data: { availableMillimes: { increment: totalCredit } },
         });
 
         await tx.walletTransaction.create({
           data: {
             walletId: deposit.walletId,
             type: "DEPOSIT",
-            amountMillimes: deposit.amountMillimes,
+            amountMillimes: totalCredit,
             reference: `DEP-${deposit.reference}`,
           },
         });
       }
     });
 
-    const depositWallet = await prisma.wallet.findUnique({ where: { id: deposit.walletId }, select: { userId: true } });
+    const depositWallet = deposit.wallet;
     if (depositWallet?.userId) {
       if (status === "PAID") {
         await notifyUser({
@@ -72,6 +117,14 @@ export async function POST(
         });
       }
     }
+
+    await logAdminAction({
+      actor: user,
+      action: "DEPOSIT_STATUS_CHANGED",
+      targetType: "WalletDeposit",
+      targetId: deposit.id,
+      metadata: { status, amountMillimes: deposit.amountMillimes, method: deposit.method },
+    });
 
     return NextResponse.json({
       success: true,

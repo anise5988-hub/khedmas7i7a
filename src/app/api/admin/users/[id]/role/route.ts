@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
+import { logAdminAction } from "@/lib/server/audit-log";
 
 export async function PATCH(
   request: Request,
@@ -52,6 +53,14 @@ export async function PATCH(
           });
         }
       }
+
+      await logAdminAction({
+        actor: currentUser,
+        action: "USER_ROLE_CHANGED",
+        targetType: "User",
+        targetId: id,
+        metadata: { newRole, targetEmail: updatedUser.email },
+      });
 
       return NextResponse.json({ success: true, user: updatedUser });
     } catch (dbError) {

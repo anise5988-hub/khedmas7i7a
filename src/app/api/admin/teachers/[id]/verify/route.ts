@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { notifyUser } from "@/lib/server/notification-service";
+import { logAdminAction } from "@/lib/server/audit-log";
 import { VerificationStatus } from "@prisma/client";
 
 export async function POST(
@@ -36,6 +37,14 @@ export async function POST(
       include: {
         user: { select: { firstName: true, lastName: true, email: true } },
       },
+    });
+
+    await logAdminAction({
+      actor: user,
+      action: "TEACHER_VERIFICATION_CHANGED",
+      targetType: "TeacherProfile",
+      targetId: updatedTeacher.id,
+      metadata: { status, teacherEmail: updatedTeacher.user.email },
     });
 
     if (updatedTeacher.userId) {

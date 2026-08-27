@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { depositSchema } from "@/lib/validation/deposit";
 import { fallbackStore } from "@/lib/server/fallback-store";
+import { validateCoupon } from "@/lib/server/coupons";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -29,9 +30,23 @@ export async function POST(request: Request) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
 
-  const parsed = depositSchema.safeParse(await request.json().catch(() => null));
+  const rawBody = await request.json().catch(() => null);
+  const parsed = depositSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json({ error: "Montant, méthode ou référence invalide." }, { status: 400 });
+  }
+
+  const couponCode = typeof rawBody?.couponCode === "string" ? rawBody.couponCode.trim().toUpperCase() : null;
+  if (couponCode) {
+    const validation = await validateCoupon({
+      code: couponCode,
+      userId: user.id,
+      context: "WALLET_DEPOSIT",
+      amountMillimes: parsed.data.amountMillimes,
+    });
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
   }
 
   try {
@@ -49,6 +64,7 @@ export async function POST(request: Request) {
         amountMillimes: parsed.data.amountMillimes,
         reference: parsed.data.reference,
         status: "PENDING",
+        couponCode,
       },
     });
 

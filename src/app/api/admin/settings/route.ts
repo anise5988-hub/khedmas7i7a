@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
+import { logAdminAction } from "@/lib/server/audit-log";
 
 export async function PATCH(request: Request) {
   const user = await getCurrentUser(request);
@@ -50,6 +51,14 @@ export async function PATCH(request: Request) {
         flouciRecipient: typeof flouciRecipient === "string" ? flouciRecipient : null,
         bankRib: typeof bankRib === "string" ? bankRib : null,
       },
+    });
+
+    await logAdminAction({
+      actor: user,
+      action: "PLATFORM_SETTINGS_UPDATED",
+      targetType: "PlatformSettings",
+      targetId: settings.id,
+      metadata: { changedFields: Object.keys(body) },
     });
 
     return NextResponse.json({ success: true, settings });

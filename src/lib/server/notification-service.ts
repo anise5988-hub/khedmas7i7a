@@ -21,6 +21,8 @@ export const notificationTypes = {
   OFFER_REJECTED: "OFFER_REJECTED",
   WALLET_DEPOSIT_PAID: "WALLET_DEPOSIT_PAID",
   ADMIN_ANNOUNCEMENT: "ADMIN_ANNOUNCEMENT",
+  SUPPORT_TICKET_CREATED: "SUPPORT_TICKET_CREATED",
+  SUPPORT_TICKET_REPLY: "SUPPORT_TICKET_REPLY",
 } as const;
 
 export type NotificationEvent = keyof typeof notificationTypes;

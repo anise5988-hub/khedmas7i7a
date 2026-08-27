@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { WithdrawalStatus } from "@prisma/client";
+import { logAdminAction } from "@/lib/server/audit-log";
 
 export async function POST(
   request: Request,
@@ -58,6 +59,14 @@ export async function POST(
           },
         },
       });
+    });
+
+    await logAdminAction({
+      actor: user,
+      action: "WITHDRAWAL_STATUS_CHANGED",
+      targetType: "WithdrawalRequest",
+      targetId: withdrawal.id,
+      metadata: { status, payoutMillimes: withdrawal.payoutMillimes, teacherEmail: withdrawal.teacher.user.email },
     });
 
     return NextResponse.json({

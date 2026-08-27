@@ -81,6 +81,9 @@ model User {
   notifications Notification[]
   courseAccesses CourseAccess[]
   courseProgress CourseProgress[]
+  couponRedemptions CouponRedemption[]
+  auditLogs      AuditLog[]
+  supportTickets SupportTicket[]
 }
 
 model StudentProfile {
@@ -213,11 +216,104 @@ model WalletDeposit {
   reference      String
   proofUrl       String?
   status         PaymentStatus @default(PENDING)
+  couponCode     String?
+  bonusMillimes  Int @default(0)
   wallet         Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   @@unique([method, reference])
   @@index([walletId, status, createdAt])
+}
+
+enum CouponDiscountType {
+  PERCENT
+  FIXED_AMOUNT
+}
+
+model Coupon {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  discountType      CouponDiscountType
+  discountValue     Int
+  maxUses           Int?
+  usedCount         Int      @default(0)
+  minAmountMillimes Int?
+  expiresAt         DateTime?
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  redemptions       CouponRedemption[]
+}
+
+model CouponRedemption {
+  id                String   @id @default(cuid())
+  couponId          String
+  userId            String
+  context           String
+  amountOffMillimes Int
+  createdAt         DateTime @default(now())
+  coupon            Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([couponId, userId, context])
+  @@index([couponId])
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorName  String?
+  actorRole  String?
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model SupportTicket {
+  id        String         @id @default(cuid())
+  userId    String
+  subject   String
+  status    TicketStatus   @default(OPEN)
+  priority  TicketPriority @default(NORMAL)
+  category  String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  SupportMessage[]
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+}
+
+model SupportMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  senderId   String
+  senderName String
+  senderRole String
+  text       String
+  createdAt  DateTime @default(now())
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  @@index([ticketId, createdAt])
 }
 
 model WalletTransaction {

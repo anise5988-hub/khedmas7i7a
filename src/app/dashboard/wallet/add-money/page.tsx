@@ -25,6 +25,9 @@ export default function AddMoneyPage() {
   const [depositMethods, setDepositMethods] = useState<DepositMethod[]>([]);
   const [methodsLoading, setMethodsLoading] = useState(true);
   const [methodsError, setMethodsError] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponChecking, setCouponChecking] = useState(false);
+  const [couponResult, setCouponResult] = useState<{ valid: boolean; text: string; discountTnd?: number } | null>(null);
 
   const activeMethodConfig = depositMethods.find((m) => m.id === method) || depositMethods[0];
 
@@ -44,6 +47,32 @@ export default function AddMoneyPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function checkCoupon() {
+    if (!couponCode.trim()) {
+      setCouponResult(null);
+      return;
+    }
+    setCouponChecking(true);
+    setCouponResult(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode.trim(), context: "WALLET_DEPOSIT", amountMillimes: Math.round(Number(amount) * 1000) }),
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setCouponResult({ valid: true, text: `Bonus de ${data.discountTnd.toFixed(1)} DT sera crédité à la validation !`, discountTnd: data.discountTnd });
+      } else {
+        setCouponResult({ valid: false, text: data.error || "Code invalide." });
+      }
+    } catch {
+      setCouponResult({ valid: false, text: "Impossible de vérifier le code." });
+    } finally {
+      setCouponChecking(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -57,6 +86,7 @@ export default function AddMoneyPage() {
           amountMillimes: Math.round(Number(amount) * 1000),
           method,
           reference: reference.trim(),
+          couponCode: couponResult?.valid ? couponCode.trim() : undefined,
         }),
       });
 
@@ -243,6 +273,38 @@ export default function AddMoneyPage() {
             <p className="mt-1 text-xs text-slate-400">
               Collez la référence reçue par SMS ou affichée sur votre reçu de transfert pour validation immédiate.
             </p>
+          </div>
+
+          {/* Coupon Code */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              Code promo (optionnel)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value.toUpperCase());
+                  setCouponResult(null);
+                }}
+                placeholder="Ex: RENTREE2026"
+                className="flex-1 rounded-2xl border border-slate-200 p-3.5 font-mono text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+              />
+              <button
+                type="button"
+                onClick={checkCoupon}
+                disabled={couponChecking || !couponCode.trim()}
+                className="rounded-2xl border border-slate-200 px-5 text-sm font-bold text-[#0d8d78] transition hover:border-[#0d8d78] disabled:opacity-50"
+              >
+                {couponChecking ? "..." : "Appliquer"}
+              </button>
+            </div>
+            {couponResult && (
+              <p className={`mt-1.5 text-xs font-semibold ${couponResult.valid ? "text-emerald-600" : "text-rose-600"}`}>
+                {couponResult.text}
+              </p>
+            )}
           </div>
 
           <button
