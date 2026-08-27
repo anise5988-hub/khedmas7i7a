@@ -5,13 +5,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
 import { HomepageNews } from "@/components/homepage-news";
-import { educationLevels, subjects } from "@/lib/domain/catalog";
+import { educationLevels, subjects, academicSections, governorates } from "@/lib/domain/catalog";
 import {
   IconSearch,
   IconStar,
   IconUser,
   IconTeacher,
   IconClock,
+  IconBookOpen,
+  IconCheck,
+  IconAlertCircle,
 } from "@/components/icons";
 
 type ApprovedTeacher = {
@@ -76,10 +79,19 @@ const faqs = [
   },
 ];
 
+function formatStat(value: number): string {
+  return value.toLocaleString("fr-TN");
+}
+
 export default function Home() {
-  const [subject, setSubject] = useState("Mathématiques");
-  const [level, setLevel] = useState("bac");
-  const [mode, setMode] = useState("ONLINE");
+  const [subject, setSubject] = useState("");
+  const [level, setLevel] = useState("");
+  const [bacSection, setBacSection] = useState("");
+  const [mode, setMode] = useState("");
+  const [governorate, setGovernorate] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [minRating, setMinRating] = useState("");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [featuredTeachers, setFeaturedTeachers] = useState<ApprovedTeacher[]>([]);
   const [courses, setCourses] = useState<HomeCourse[]>([]);
   const [selectedCourseSubject, setSelectedCourseSubject] = useState("ALL");
@@ -185,7 +197,16 @@ export default function Home() {
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    window.location.href = `/teachers?subject=${encodeURIComponent(subject)}&level=${encodeURIComponent(level)}&mode=${mode}`;
+    const params = new URLSearchParams();
+    if (subject) params.set("subject", subject);
+    if (level) params.set("level", level);
+    if (bacSection) params.set("bacSection", bacSection);
+    if (mode) params.set("mode", mode);
+    if (governorate) params.set("governorate", governorate);
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    if (minRating) params.set("minRating", minRating);
+    if (verifiedOnly) params.set("verified", "1");
+    window.location.href = `/teachers?${params.toString()}`;
   }
 
   return (
@@ -194,67 +215,95 @@ export default function Home() {
       <HomepageNews />
 
       {/* Hero Section */}
-      <section className="relative bg-[#11233f] text-white">
+      <section className="relative overflow-hidden bg-[#11233f] text-white">
         <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <div className="absolute -top-32 -right-24 h-96 w-96 rounded-full bg-[#0d8d78]/30 blur-3xl" />
+        <div className="absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-[#72d6bf]/20 blur-3xl" />
 
         {/* Auth-Aware Navbar */}
         <SiteNavbar dark={true} />
 
-        <div id="top" className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-10 lg:grid-cols-[1.05fr_.95fr] lg:px-10 lg:pb-28 lg:pt-16">
+        <div id="top" className="relative mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.05fr_.95fr] lg:gap-14 lg:px-10 lg:pb-24 lg:pt-16">
           <div className="max-w-2xl self-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#72d6bf] backdrop-blur-md mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#72d6bf] backdrop-blur-md mb-6">
               <span className="h-2 w-2 rounded-full bg-[#72d6bf] animate-pulse"></span>
-              Plateforme Tunisienne Certifiée
+              Plateforme tunisienne certifiée
             </div>
 
-            <h1 className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold leading-[1.08] tracking-[-.04em] sm:text-6xl lg:text-[70px]">
-              Trouvez le professeur qui <span className="text-[#72d6bf]">vous correspond.</span>
+            <h1 className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold leading-[1.05] tracking-[-.03em] sm:text-5xl lg:text-[62px]">
+              Trouvez votre prof particulier <span className="text-[#72d6bf]">idéal.</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-slate-300">
-              Des enseignants particuliers qualifiés et validés par notre équipe. Cours en ligne par classe virtuelle HD ou en présentiel en Tunisie.
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
+              Cours particuliers en ligne par classe virtuelle HD ou en présentiel partout en Tunisie. Des professeurs vérifiés par notre équipe, du primaire au Baccalauréat, pour réussir vos examens et booster vos moyennes.
             </p>
+
+            <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-300">
+              <li className="inline-flex items-center gap-2">
+                <IconCheck className="h-4 w-4 text-[#72d6bf]" />
+                Réservation en 1 clic
+              </li>
+              <li className="inline-flex items-center gap-2">
+                <IconCheck className="h-4 w-4 text-[#72d6bf]" />
+                Paiement D17 &amp; Flouci
+              </li>
+              <li className="inline-flex items-center gap-2">
+                <IconCheck className="h-4 w-4 text-[#72d6bf]" />
+                Profils vérifiés ✓
+              </li>
+            </ul>
+
+            <Link
+              href="/teachers"
+              className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#72d6bf] px-6 py-3.5 text-sm font-bold text-[#11233f] shadow-lg shadow-[#72d6bf]/20 transition hover:bg-[#5ec4ad]"
+            >
+              <IconUser className="h-5 w-5" />
+              Explorer tous les professeurs
+            </Link>
           </div>
 
-          <form onSubmit={submitSearch} className="rounded-3xl bg-white p-6 text-[#11233f] shadow-2xl sm:p-8">
-            <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+          <form onSubmit={submitSearch} className="rounded-3xl bg-white p-5 text-[#11233f] shadow-2xl shadow-black/30 sm:p-7">
+            <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Recherche Immédiate</p>
-                <h2 className="mt-1 text-2xl font-bold tracking-tight">Réservez votre séance</h2>
+                <p className="text-[11px] font-bold uppercase tracking-[.18em] text-[#0d8d78]">Recherche guidée</p>
+                <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">Affinez votre recherche</h2>
               </div>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e5f7f2] text-xs font-bold text-[#0d8d78]">
-                01
-              </span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e5f7f2] text-base">🔎</span>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                  Matière souhaitée
-                </label>
-                <select
-                  value={subject}
-                  onChange={(event) => setSubject(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
-                >
-                  {subjects.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Matière
+                  </label>
+                  <select
+                    value={subject}
+                    onChange={(event) => setSubject(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
+                  >
+                    <option value="">Toutes les matières</option>
+                    {subjects.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                     Niveau scolaire
                   </label>
                   <select
                     value={level}
-                    onChange={(event) => setLevel(event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
+                    onChange={(event) => {
+                      setLevel(event.target.value);
+                      setBacSection("");
+                    }}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
                   >
+                    <option value="">Tous les niveaux</option>
                     {educationLevels.map((item) => (
                       <option key={item.slug} value={item.slug}>
                         {item.name}
@@ -262,92 +311,226 @@ export default function Home() {
                     ))}
                   </select>
                 </div>
+              </div>
 
+              {level === "bac" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Format
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Section Bac
                   </label>
                   <select
-                    value={mode}
-                    onChange={(event) => setMode(event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
+                    value={bacSection}
+                    onChange={(event) => setBacSection(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
                   >
-                    <option value="ONLINE">🌐 En ligne (WebRTC)</option>
-                    <option value="IN_PERSON">🏠 Présentiel</option>
+                    <option value="">Toutes les sections</option>
+                    {academicSections.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Format
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMode("ONLINE")}
+                      className={`flex items-center justify-center gap-1.5 rounded-2xl border p-3 text-xs font-bold transition ${
+                        mode === "ONLINE"
+                          ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
+                          : "border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      🌐 En ligne
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode("IN_PERSON")}
+                      className={`flex items-center justify-center gap-1.5 rounded-2xl border p-3 text-xs font-bold transition ${
+                        mode === "IN_PERSON"
+                          ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
+                          : "border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      🏠 Présentiel
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Gouvernorat
+                  </label>
+                  <select
+                    value={governorate}
+                    onChange={(event) => setGovernorate(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
+                  >
+                    <option value="">Toute la Tunisie</option>
+                    {governorates.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Tarif max / heure
+                  </label>
+                  <select
+                    value={maxPrice}
+                    onChange={(event) => setMaxPrice(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
+                  >
+                    <option value="">Tous les tarifs</option>
+                    <option value="20">≤ 20 DT</option>
+                    <option value="30">≤ 30 DT</option>
+                    <option value="50">≤ 50 DT</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Note minimale
+                  </label>
+                  <select
+                    value={minRating}
+                    onChange={(event) => setMinRating(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
+                  >
+                    <option value="">Toutes les notes</option>
+                    <option value="4">★ 4.0 et plus</option>
+                    <option value="4.5">★ 4.5 et plus</option>
+                    <option value="5">★ 5.0 (Excellent)</option>
+                  </select>
+                </div>
+              </div>
+
+              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 transition hover:bg-slate-100">
+                <input
+                  type="checkbox"
+                  checked={verifiedOnly}
+                  onChange={(event) => setVerifiedOnly(event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-[#0d8d78] accent-[#0d8d78] focus:ring-[#0d8d78]"
+                />
+                <span className="text-sm font-semibold text-slate-700">
+                  Afficher uniquement les profs vérifiés ✓
+                </span>
+              </label>
 
               <button
                 type="submit"
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition duration-300 hover:bg-[#0b7866] hover:shadow-xl"
               >
                 <IconSearch className="h-5 w-5" />
-                <span>Rechercher les professeurs disponibles →</span>
+                <span>Trouver un prof</span>
               </button>
+
+              <Link
+                href="/courses"
+                className="block text-center text-xs font-bold text-[#0d8d78] transition hover:text-[#0b7866] hover:underline"
+              >
+                Ou explorer les cours &amp; packs de révision →
+              </Link>
             </div>
           </form>
         </div>
       </section>
 
       {/* Real Live Database Stats Bar */}
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
         {statsError && (
-          <div className="mx-auto max-w-7xl px-6 pt-4 lg:px-10">
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800">
+          <div className="mx-auto max-w-7xl px-5 pt-4 sm:px-8 lg:px-10">
+            <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800">
+              <IconAlertCircle className="h-4 w-4 shrink-0" />
               {statsError}
             </div>
           </div>
         )}
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-6 py-8 sm:grid-cols-4 lg:px-10">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconUser className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-[#11233f]">
-                {stats ? (stats.studentsCount > 0 ? `+${stats.studentsCount}` : `${stats.studentsCount}`) : "..."}
-              </p>
-              <p className="text-xs text-slate-500">Élèves inscrits</p>
-            </div>
+        {stats === null && !statsError ? (
+          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 px-5 py-9 sm:grid-cols-3 lg:grid-cols-5 lg:px-10">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div key={item} className="flex items-center gap-3">
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-slate-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 w-16 animate-pulse rounded bg-slate-200" />
+                  <div className="h-3 w-20 animate-pulse rounded bg-slate-100" />
+                </div>
+              </div>
+            ))}
           </div>
+        ) : (
+          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 px-5 py-9 sm:grid-cols-3 lg:grid-cols-5 lg:px-10">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+                <IconUser className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-[#11233f]">
+                  {stats ? formatStat(stats.studentsCount) : "0"}
+                </p>
+                <p className="text-xs text-slate-500">Élèves inscrits</p>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconTeacher className="h-6 w-6" />
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+                <IconTeacher className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-[#11233f]">
+                  {stats ? formatStat(stats.teachersCount) : "0"}
+                </p>
+                <p className="text-xs text-slate-500">Professeurs certifiés</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-[#11233f]">
-                {stats ? (stats.teachersCount > 0 ? `+${stats.teachersCount}` : `${stats.teachersCount}`) : "..."}
-              </p>
-              <p className="text-xs text-slate-500">Professeurs certifiés</p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconClock className="h-6 w-6" />
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+                <IconClock className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-[#11233f]">
+                  {stats ? `${formatStat(stats.hoursTaught)} h` : "0 h"}
+                </p>
+                <p className="text-xs text-slate-500">Heures de cours</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-[#11233f]">
-                {stats ? (stats.hoursTaught > 0 ? `+${stats.hoursTaught} h` : "0 h") : "..."}
-              </p>
-              <p className="text-xs text-slate-500">Heures de cours dispensées</p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-              <IconStar className="h-6 w-6 fill-[#0d8d78]" />
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+                <IconBookOpen className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-[#11233f]">{courses.length}</p>
+                <p className="text-xs text-slate-500">Cours &amp; packs</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-[#11233f]">
-                {stats ? `${stats.satisfactionRate}%` : "..."}
-              </p>
-              <p className="text-xs text-slate-500">Taux de satisfaction</p>
+
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fff7e6] text-amber-500">
+                <IconStar className="h-6 w-6 fill-amber-400 text-amber-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-[#11233f]">
+                  {stats ? `${stats.satisfactionRate}%` : "0%"}
+                </p>
+                <p className="text-xs text-slate-500">Taux de satisfaction</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* Featured Teachers */}
