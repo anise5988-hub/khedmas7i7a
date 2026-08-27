@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { bookingRequestSchema } from "@/lib/validation/booking";
 import { notifyUser } from "@/lib/server/notification-service";
+import { creditTeacherEarning } from "@/lib/server/earnings";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -145,6 +146,12 @@ export async function POST(request: Request) {
             status: "PAID",
             idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
           },
+        });
+
+        await creditTeacherEarning(tx, {
+          teacherUserId: teacher.userId,
+          grossAmountMillimes: amountToUse,
+          reference: `EARN-BOOK-${newBooking.id}`,
         });
       } else {
         await tx.payment.create({

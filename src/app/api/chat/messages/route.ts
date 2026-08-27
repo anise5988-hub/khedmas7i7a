@@ -18,6 +18,9 @@ export async function POST(request: Request) {
   if (!conv) {
     return NextResponse.json({ error: "Conversation introuvable" }, { status: 404 });
   }
+  if (user.id !== conv.studentId && user.id !== conv.teacherId) {
+    return NextResponse.json({ error: "Vous ne faites pas partie de cette conversation." }, { status: 403 });
+  }
 
   let offerObj: CustomOffer | null = null;
 

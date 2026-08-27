@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser(request);
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Accès administrateur requis." }, { status: 403 });
+  }
+
   const { id } = await params;
   try {
     const level = await prisma.educationLevel.findUnique({ where: { id } });
@@ -14,6 +20,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser(request);
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Accès administrateur requis." }, { status: 403 });
+  }
+
   const { id } = await params;
   try {
     const body = await request.json();
@@ -34,7 +45,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser(request);
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Accès administrateur requis." }, { status: 403 });
+  }
+
   const { id } = await params;
   try {
     await prisma.educationLevel.delete({ where: { id } });

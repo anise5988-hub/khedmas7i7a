@@ -13,6 +13,14 @@ export async function POST(
   }
 
   const { id: offerId } = await params;
+  const existingOffer = chatStore.getOfferById(offerId);
+  if (!existingOffer) {
+    return NextResponse.json({ error: "Offre introuvable" }, { status: 404 });
+  }
+  if (existingOffer.studentId !== user.id) {
+    return NextResponse.json({ error: "Vous n'êtes pas autorisé à refuser cette offre." }, { status: 403 });
+  }
+
   const updateRes = chatStore.updateOfferStatus(offerId, "REJECTED");
 
   if (!updateRes.success || !updateRes.offer) {

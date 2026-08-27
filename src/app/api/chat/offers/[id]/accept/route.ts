@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { chatStore } from "@/lib/server/chat-store";
 import { prisma } from "@/lib/server/prisma";
 import { notifyUser } from "@/lib/server/notification-service";
+import { creditTeacherEarning } from "@/lib/server/earnings";
 
 export async function POST(
   request: Request,
@@ -14,6 +15,14 @@ export async function POST(
   }
 
   const { id: offerId } = await params;
+  const existingOffer = chatStore.getOfferById(offerId);
+  if (!existingOffer) {
+    return NextResponse.json({ error: "Offre introuvable" }, { status: 404 });
+  }
+  if (existingOffer.studentId !== user.id) {
+    return NextResponse.json({ error: "Vous n'êtes pas autorisé à accepter cette offre." }, { status: 403 });
+  }
+
   const updateRes = chatStore.updateOfferStatus(offerId, "ACCEPTED");
 
   if (!updateRes.success || !updateRes.offer) {
@@ -42,42 +51,61 @@ export async function POST(
     }, { status: 400 });
   }
 
-    // Deduct from student wallet
+    // Deduct from student wallet, create the booking and credit the
+    // teacher's earnings atomically so partial failures never leave the
+    // student charged without a confirmed booking (or vice versa).
     try {
-      await prisma.wallet.update({
-        where: { userId: user.id },
-        data: {
-          availableMillimes: { decrement: requiredMillimes },
-          transactions: {
-            create: {
-              type: "BOOKING_PAYMENT",
-              amountMillimes: -requiredMillimes,
-              reference: `Offre cours: ${offer.subject} (${Date.now()})`,
-            },
+      const teacherProfile = await prisma.teacherProfile.findFirst({
+        where: { OR: [{ id: offer.teacherId }, { userId: offer.teacherId }] },
+      });
+
+      await prisma.$transaction(async (tx) => {
+        const deduction = await tx.wallet.updateMany({
+          where: { userId: user.id, availableMillimes: { gte: requiredMillimes } },
+          data: { availableMillimes: { decrement: requiredMillimes } },
+        });
+
+        if (deduction.count !== 1) {
+          throw new Error("WALLET_BALANCE_CHANGED");
+        }
+
+        const updatedWallet = await tx.wallet.findUnique({ where: { userId: user.id } });
+        if (!updatedWallet) throw new Error("WALLET_NOT_FOUND");
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: updatedWallet.id,
+            type: "BOOKING_PAYMENT",
+            amountMillimes: -requiredMillimes,
+            reference: `OFFER-${offer.id}`,
           },
-        },
-      });
+        });
 
-    // Find teacher profile
-    const teacherProfile = await prisma.teacherProfile.findFirst({
-      where: { OR: [{ id: offer.teacherId }, { userId: offer.teacherId }] },
-    });
+        if (teacherProfile) {
+          await tx.booking.create({
+            data: {
+              studentId: user.id,
+              teacherId: teacherProfile.id,
+              startsAt: new Date(offer.startsAt),
+              durationMinutes: offer.durationMinutes,
+              amountMillimes: offer.amountMillimes,
+              status: "CONFIRMED",
+            },
+          });
 
-    if (teacherProfile) {
-      // Create booking
-      await prisma.booking.create({
-        data: {
-          studentId: user.id,
-          teacherId: teacherProfile.id,
-          startsAt: new Date(offer.startsAt),
-          durationMinutes: offer.durationMinutes,
-          amountMillimes: offer.amountMillimes,
-          status: "CONFIRMED",
-        },
+          await creditTeacherEarning(tx, {
+            teacherUserId: teacherProfile.userId,
+            grossAmountMillimes: requiredMillimes,
+            reference: `EARN-OFFER-${offer.id}`,
+          });
+        }
       });
-    }
     } catch (dbErr) {
-      console.warn("Prisma wallet deduction failed, updating fallback store", dbErr);
+      console.error("Offer acceptance payment failed", dbErr);
+      chatStore.updateOfferStatus(offerId, "PENDING");
+      return NextResponse.json({
+        error: "Le paiement n'a pas pu être confirmé. Aucune séance n'a été réservée.",
+      }, { status: 502 });
     }
 
   // Send notifications and emails

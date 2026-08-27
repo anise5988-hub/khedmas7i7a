@@ -161,6 +161,18 @@ export const chatStore = {
     return msg;
   },
 
+  getOfferById(offerId: string): CustomOffer | null {
+    let foundOffer: CustomOffer | null = null;
+    globalStore.__profyspace_conversations!.forEach((conv: Conversation) => {
+      conv.messages.forEach((msg: ChatMessage) => {
+        if (msg.offer && msg.offer.id === offerId) {
+          foundOffer = msg.offer;
+        }
+      });
+    });
+    return foundOffer;
+  },
+
   updateOfferStatus(offerId: string, newStatus: OfferStatus): { success: boolean; offer?: CustomOffer } {
     let foundOffer: CustomOffer | null = null;
     globalStore.__profyspace_conversations!.forEach((conv: Conversation) => {

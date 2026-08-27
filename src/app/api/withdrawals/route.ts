@@ -51,13 +51,35 @@ export async function POST(request: Request) {
   }
 
   const user = await getCurrentUser(request);
+  if (!user || !user.teacher) {
+    return NextResponse.json({ error: "Profil professeur requis pour demander un retrait." }, { status: 403 });
+  }
+
   const breakdown = calculateTeacherWithdrawal(parsed.data.amountInMillimes);
 
-  if (user && user.teacher) {
-    try {
-      const withdrawal = await prisma.withdrawalRequest.create({
+  try {
+    const withdrawal = await prisma.$transaction(async (tx) => {
+      // Reserve the funds up front (available -> pending) so concurrent
+      // withdrawal requests can never together exceed what the teacher
+      // actually earned.
+      const reservation = await tx.wallet.updateMany({
+        where: { userId: user.id, availableMillimes: { gte: breakdown.requestedAmountInMillimes } },
         data: {
-          teacherId: user.teacher.id,
+          availableMillimes: { decrement: breakdown.requestedAmountInMillimes },
+          pendingMillimes: { increment: breakdown.requestedAmountInMillimes },
+        },
+      });
+
+      if (reservation.count !== 1) {
+        throw new Error("INSUFFICIENT_BALANCE");
+      }
+
+      const wallet = await tx.wallet.findUnique({ where: { userId: user.id } });
+      if (!wallet) throw new Error("WALLET_NOT_FOUND");
+
+      const created = await tx.withdrawalRequest.create({
+        data: {
+          teacherId: user.teacher!.id,
           requestedMillimes: breakdown.requestedAmountInMillimes,
           feeMillimes: breakdown.feeAmountInMillimes,
           payoutMillimes: breakdown.payoutAmountInMillimes,
@@ -67,27 +89,33 @@ export async function POST(request: Request) {
         },
       });
 
-      return NextResponse.json(
-        {
-          id: withdrawal.id,
-          status: withdrawal.status,
-          method: withdrawal.method,
-          ...breakdown,
-          message: "Demande de retrait enregistrée. L'administration procèdera au virement sous 24h.",
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "WITHDRAWAL",
+          amountMillimes: -breakdown.requestedAmountInMillimes,
+          reference: `WD-REQ-${created.id}`,
         },
-        { status: 201 },
-      );
-    } catch (error) {
-      console.error("Withdrawal record failed", error);
-    }
-  }
+      });
 
-  return NextResponse.json(
-    {
-      status: "PENDING",
-      method: parsed.data.method,
-      ...breakdown,
-    },
-    { status: 201 },
-  );
+      return created;
+    });
+
+    return NextResponse.json(
+      {
+        id: withdrawal.id,
+        status: withdrawal.status,
+        method: withdrawal.method,
+        ...breakdown,
+        message: "Demande de retrait enregistrée. L'administration procèdera au virement sous 24h.",
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message === "INSUFFICIENT_BALANCE") {
+      return NextResponse.json({ error: "Solde disponible insuffisant pour ce retrait." }, { status: 400 });
+    }
+    console.error("Withdrawal record failed", error);
+    return NextResponse.json({ error: "Impossible d'enregistrer la demande de retrait." }, { status: 500 });
+  }
 }

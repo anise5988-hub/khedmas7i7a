@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { coursesStore } from "@/lib/server/courses-store";
 import { prisma } from "@/lib/server/prisma";
 import { notifyUser } from "@/lib/server/notification-service";
+import { creditTeacherEarning } from "@/lib/server/earnings";
 
 export async function POST(
   request: Request,
@@ -93,6 +94,15 @@ export async function POST(
           reference: `Achat Cours: ${course.title} (${Date.now()})`,
         },
       });
+
+      const teacherProfile = await tx.teacherProfile.findUnique({ where: { id: course.teacherId } });
+      if (teacherProfile) {
+        await creditTeacherEarning(tx, {
+          teacherUserId: teacherProfile.userId,
+          grossAmountMillimes: requiredMillimes,
+          reference: `EARN-COURSE-${courseId}-${user.id}`,
+        });
+      }
     });
   } catch (dbErr) {
     console.error("Course payment failed:", dbErr);
