@@ -24,13 +24,19 @@ export async function POST(request: Request) {
     });
 
     // Supabase's own confirmation email is a separate, independently
-    // flaky service (rate limits, SMTP config) from the rest of account
-    // creation. When it's the ONLY thing that failed, don't block signup
-    // entirely — fall through to the direct-DB path below, the same one
-    // used when Supabase Auth isn't configured at all. A genuine
-    // validation failure (email taken, weak password, etc.) still stops
-    // registration here.
-    const isEmailDeliveryFailure = /error sending confirmation email/i.test(error?.message || "");
+    // flaky service (SMTP failures, its built-in send-rate limit) from
+    // the rest of account creation. When it's the ONLY thing that failed,
+    // don't block signup entirely — fall through to the direct-DB path
+    // below, the same one used when Supabase Auth isn't configured at
+    // all. A genuine validation failure (email taken, weak password,
+    // etc.) still stops registration here. Matches on both the error
+    // code (over_email_send_rate_limit) and the two message strings
+    // actually observed from Supabase for this failure family — SMTP
+    // failure ("Error sending confirmation email") and rate limiting
+    // ("email rate limit exceeded").
+    const isEmailDeliveryFailure =
+      error?.code === "over_email_send_rate_limit" ||
+      /error sending confirmation email|email rate limit/i.test(error?.message || "");
 
     if (error && !isEmailDeliveryFailure) {
       console.error("Supabase sign-up failed", { message: error?.message, status: error?.status, code: error?.code });
