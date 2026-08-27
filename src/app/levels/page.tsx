@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { PageShell } from "@/components/page-shell";
 import { educationLevels } from "@/lib/domain/catalog";
+
+export const metadata: Metadata = {
+  title: "Niveaux scolaires | ProfySpace.tn",
+  description: "Du primaire au Baccalauréat, trouve un professeur particulier adapté à ton niveau dans le système éducatif tunisien.",
+};
 
 const cycleLabels: Record<string, string> = {
   PRIMARY: "Primaire",
