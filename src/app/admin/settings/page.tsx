@@ -188,44 +188,86 @@ export default function AdminSettingsPage() {
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[.02] p-4 cursor-pointer hover:bg-white/[.05] transition">
+              <div className="rounded-2xl border border-white/10 bg-white/[.02] p-4 space-y-3">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <p className="font-bold text-sm">D17 (La Poste Tunisienne)</p>
+                    <p className="text-xs text-slate-400">Recharge par mandat carte D17 ou transfert mobile</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settings.d17Enabled}
+                    onChange={(e) => update("d17Enabled", e.target.checked)}
+                    className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
+                  />
+                </label>
                 <div>
-                  <p className="font-bold text-sm">D17 (La Poste Tunisienne)</p>
-                  <p className="text-xs text-slate-400">Recharge par mandat carte D17 ou transfert mobile</p>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    Numéro D17 à afficher aux élèves
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.d17Recipient || ""}
+                    onChange={(e) => update("d17Recipient", e.target.value)}
+                    placeholder="Ex: 20 123 456"
+                    className="w-full rounded-xl border border-white/20 bg-white/5 p-2.5 text-sm text-white outline-none focus:border-[#72d6bf]"
+                  />
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.d17Enabled}
-                  onChange={(e) => update("d17Enabled", e.target.checked)}
-                  className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
-                />
-              </label>
+              </div>
 
-              <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[.02] p-4 cursor-pointer hover:bg-white/[.05] transition">
+              <div className="rounded-2xl border border-white/10 bg-white/[.02] p-4 space-y-3">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <p className="font-bold text-sm">Flouci Wallet (Banque & Carte)</p>
+                    <p className="text-xs text-slate-400">Recharge instantanée par QR code et portefeuille Flouci</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settings.flouciEnabled}
+                    onChange={(e) => update("flouciEnabled", e.target.checked)}
+                    className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
+                  />
+                </label>
                 <div>
-                  <p className="font-bold text-sm">Flouci Wallet (Banque & Carte)</p>
-                  <p className="text-xs text-slate-400">Recharge instantanée par QR code et portefeuille Flouci</p>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    Numéro Flouci à afficher aux élèves
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.flouciRecipient || ""}
+                    onChange={(e) => update("flouciRecipient", e.target.value)}
+                    placeholder="Ex: 21000319"
+                    className="w-full rounded-xl border border-white/20 bg-white/5 p-2.5 text-sm text-white outline-none focus:border-[#72d6bf]"
+                  />
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.flouciEnabled}
-                  onChange={(e) => update("flouciEnabled", e.target.checked)}
-                  className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
-                />
-              </label>
+              </div>
 
-              <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[.02] p-4 cursor-pointer hover:bg-white/[.05] transition">
+              <div className="rounded-2xl border border-white/10 bg-white/[.02] p-4 space-y-3">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <p className="font-bold text-sm">Virement Bancaire / Banque Zitouna & Autres</p>
+                    <p className="text-xs text-slate-400">Virement avec preuve de paiement transmise par l'élève</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settings.bankTransferEnabled}
+                    onChange={(e) => update("bankTransferEnabled", e.target.checked)}
+                    className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
+                  />
+                </label>
                 <div>
-                  <p className="font-bold text-sm">Virement Bancaire / Banque Zitouna & Autres</p>
-                  <p className="text-xs text-slate-400">Virement avec preuve de paiement transmise par l'élève</p>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    RIB bancaire à afficher aux élèves
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.bankRib || ""}
+                    onChange={(e) => update("bankRib", e.target.value)}
+                    placeholder="Ex: TN59 1000 6035 0000 0012 3456"
+                    className="w-full rounded-xl border border-white/20 bg-white/5 p-2.5 text-sm text-white outline-none focus:border-[#72d6bf]"
+                  />
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.bankTransferEnabled}
-                  onChange={(e) => update("bankTransferEnabled", e.target.checked)}
-                  className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
-                />
-              </label>
+              </div>
             </div>
           </div>
 

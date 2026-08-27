@@ -3,6 +3,25 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { logAdminAction } from "@/lib/server/audit-log";
 
+export async function GET(request: Request) {
+  const user = await getCurrentUser(request);
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+  }
+
+  try {
+    const settings = await prisma.platformSettings.upsert({
+      where: { id: "default" },
+      update: {},
+      create: { id: "default" },
+    });
+    return NextResponse.json(settings);
+  } catch (error) {
+    console.error("Failed to load platform settings", error);
+    return NextResponse.json({ error: "Impossible de charger les paramètres." }, { status: 500 });
+  }
+}
+
 export async function PATCH(request: Request) {
   const user = await getCurrentUser(request);
   if (!user || user.role !== "ADMIN") {
