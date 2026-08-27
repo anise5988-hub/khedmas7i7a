@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { z } from "zod";
-import { supabaseAuth } from "@/lib/server/supabase-auth";
-import { sendTransactionalEmail } from "@/lib/server/email";
+import { sendOtpEmail } from "@/lib/server/email";
+import { fallbackStore } from "@/lib/server/fallback-store";
 
 const forgotPasswordSchema = z.object({
   email: z.string().trim().email().transform((v) => v.toLowerCase()),
@@ -22,39 +22,28 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      // Return positive message for security so user email existence isn't leaked
       return NextResponse.json({
         success: true,
         message: "Si cette adresse existe, les instructions de réinitialisation ont été envoyées.",
       });
     }
 
-    const appOrigin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    fallbackStore.setOtp(user.email, otp);
 
-    if (supabaseAuth) {
-      try {
-        await supabaseAuth.auth.resetPasswordForEmail(parsed.data.email, {
-          redirectTo: `${appOrigin}/reset-password`,
-        });
-      } catch (err) {
-        console.warn("Supabase resetPasswordForEmail failed", err);
-      }
-    }
-
-    if (!supabaseAuth) {
-      await sendTransactionalEmail({
-        to: user.email,
-        name: user.firstName,
-        subject: "Réinitialisation de votre mot de passe Profy",
-        title: "Réinitialisation de mot de passe",
-        message: `Bonjour ${user.firstName}, le service Supabase Auth n'est pas configuré. Contactez le support pour réinitialiser votre mot de passe.`,
-        link: "/support",
-      });
-    }
+    const emailSent = await sendOtpEmail(
+      user.email,
+      user.firstName,
+      otp,
+      "Code de réinitialisation de mot de passe",
+      `Bonjour ${user.firstName}, voici votre code de réinitialisation de mot de passe ProfySpace.tn. Il expire dans 10 minutes.`
+    );
 
     return NextResponse.json({
       success: true,
-      message: "Un email contenant les instructions de réinitialisation vous a été envoyé.",
+      message: emailSent
+        ? "Un code de réinitialisation a été envoyé à votre adresse email."
+        : "Impossible d'envoyer l'email pour le moment. Veuillez réessayer.",
     });
   } catch (error) {
     console.error("Forgot password failed", error);

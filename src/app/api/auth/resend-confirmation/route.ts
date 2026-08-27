@@ -1,18 +1,40 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { supabaseAuth } from "@/lib/server/supabase-auth";
+import { prisma } from "@/lib/server/prisma";
+import { sendOtpEmail } from "@/lib/server/email";
+import { fallbackStore } from "@/lib/server/fallback-store";
 
 const schema = z.object({ email: z.string().email().transform((value) => value.toLowerCase().trim()) });
 
 export async function POST(request: Request) {
-  if (!supabaseAuth) return NextResponse.json({ error: "Service email non configuré." }, { status: 503 });
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
-  const origin = new URL(request.url).origin;
-  const { error } = await supabaseAuth.auth.resend({ type: "signup", email: parsed.data.email, options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || origin}/auth/callback` } });
-  if (error) {
-    console.error("Supabase confirmation resend failed", { message: error.message, status: error.status, code: error.code });
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+    if (!user) {
+      return NextResponse.json({ success: true, message: "Si cette adresse existe, un code de confirmation a été envoyé." });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    fallbackStore.setOtp(user.email, otp);
+
+    const emailSent = await sendOtpEmail(
+      user.email,
+      user.firstName,
+      otp,
+      "Confirmez votre adresse email",
+      `Bonjour ${user.firstName}, voici votre code de confirmation ProfySpace.tn. Il expire dans 10 minutes.`
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: emailSent
+        ? "Un code de confirmation a été renvoyé. Vérifiez aussi vos spams."
+        : "Impossible d'envoyer l'email pour le moment. Veuillez réessayer.",
+    });
+  } catch (error) {
+    console.error("Resend confirmation failed", error);
     return NextResponse.json({ error: "Impossible de renvoyer l'email pour le moment." }, { status: 400 });
   }
-  return NextResponse.json({ success: true, message: "Email de confirmation renvoyé. Vérifiez aussi vos spams." });
 }

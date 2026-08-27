@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { IconCheck, IconShield } from "@/components/icons";
-import { supabase } from "@/lib/client/supabase";
 
 export default function ResetPasswordPage() {
+  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,6 +14,11 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
+
+    if (!otp.trim() || otp.trim().length !== 6) {
+      setMessage({ type: "error", text: "Veuillez saisir le code OTP à 6 chiffres envoyé par email." });
+      return;
+    }
 
     if (password.length < 8) {
       setMessage({ type: "error", text: "Le mot de passe doit contenir au moins 8 caractères." });
@@ -28,32 +33,20 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      let accessToken: string | undefined;
-      if (supabase) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        accessToken = sessionData?.session?.access_token;
-        const { error } = await supabase.auth.updateUser({ password });
-        if (error) {
-          console.warn("Supabase updateUser warning:", error.message);
-        }
-      }
-
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, accessToken }),
+        body: JSON.stringify({ otp: otp.trim(), password, confirmPassword }),
       });
 
+      const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: "Mot de passe réinitialisé avec succès ! Redirection..." });
+        setMessage({ type: "success", text: data.message || "Mot de passe réinitialisé avec succès ! Redirection..." });
         setTimeout(() => {
           window.location.replace("/login");
-        }, 1200);
+        }, 1500);
       } else {
-        setMessage({ type: "success", text: "Mot de passe mis à jour ! Redirection..." });
-        setTimeout(() => {
-          window.location.replace("/login");
-        }, 1200);
+        setMessage({ type: "error", text: data.error || "Code OTP invalide ou expiré." });
       }
     } catch {
       setMessage({ type: "error", text: "Erreur de connexion." });
@@ -72,10 +65,10 @@ export default function ResetPasswordPage() {
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#11233f]">
-            Nouveau mot de passe
+            Réinitialiser le mot de passe
           </h1>
           <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
-            Saisissez votre nouveau mot de passe sécurisé pour réactiver votre accès.
+            Saisissez le code reçu par email et votre nouveau mot de passe.
           </p>
         </div>
 
@@ -92,6 +85,22 @@ export default function ResetPasswordPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              Code OTP (6 chiffres) *
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              required
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="123456"
+              className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
               Nouveau mot de passe (8 caractères min) *
@@ -127,7 +136,7 @@ export default function ResetPasswordPage() {
             disabled={loading}
             className="w-full rounded-2xl bg-[#0d8d78] py-3.5 font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] disabled:opacity-50"
           >
-            {loading ? "Mise à jour..." : "Enregistrer le mot de passe →"}
+            {loading ? "Vérification..." : "Réinitialiser le mot de passe →"}
           </button>
         </form>
 

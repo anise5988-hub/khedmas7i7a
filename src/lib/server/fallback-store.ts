@@ -74,6 +74,7 @@ export type StoredUser = {
 const globalStore = globalThis as unknown as {
   __profyspace_users?: Map<string, StoredUser>;
   __profyspace_deposits?: StoredDeposit[];
+  __profyspace_otps?: Map<string, { otp: string; expiresAt: Date; email: string }>;
 };
 
 if (!globalStore.__profyspace_users) {
@@ -81,6 +82,9 @@ if (!globalStore.__profyspace_users) {
 }
 if (!globalStore.__profyspace_deposits) {
   globalStore.__profyspace_deposits = [];
+}
+if (!globalStore.__profyspace_otps) {
+  globalStore.__profyspace_otps = new Map();
 }
 
 export const fallbackStore = {
@@ -207,5 +211,27 @@ export const fallbackStore = {
 
   getDeposits(): StoredDeposit[] {
     return globalStore.__profyspace_deposits!;
+  },
+
+  setOtp(email: string, otp: string) {
+    const key = email.toLowerCase().trim();
+    globalStore.__profyspace_otps!.set(key, {
+      otp,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      email: key,
+    });
+  },
+
+  verifyOtp(email: string, otp: string): boolean {
+    const key = email.toLowerCase().trim();
+    const record = globalStore.__profyspace_otps!.get(key);
+    if (!record) return false;
+    if (record.otp !== otp) return false;
+    if (record.expiresAt < new Date()) {
+      globalStore.__profyspace_otps!.delete(key);
+      return false;
+    }
+    globalStore.__profyspace_otps!.delete(key);
+    return true;
   },
 };
