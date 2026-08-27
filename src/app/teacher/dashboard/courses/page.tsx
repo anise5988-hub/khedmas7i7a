@@ -66,7 +66,20 @@ export default function TeacherCoursesPage() {
           if (u?.id) userId = u.id;
         } catch {}
       }
-      const res = await fetch(userId ? `/api/courses?teacherId=${userId}` : "/api/courses", { headers: getAuthHeaders() });
+      // localStorage can be empty/stale right after login (e.g. arriving
+      // straight from an OAuth redirect). Falling back to the unfiltered
+      // "/api/courses" in that case would show every teacher's courses
+      // here, so resolve the real id from the session cookie instead.
+      if (!userId) {
+        const me = await fetch("/api/auth/me", { headers: getAuthHeaders() }).then((res) => (res.ok ? res.json() : null)).catch(() => null);
+        userId = me?.user?.id || "";
+      }
+      if (!userId) {
+        setCourses([]);
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
+      const res = await fetch(`/api/courses?teacherId=${userId}`, { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setCourses(data.courses || []);

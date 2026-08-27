@@ -188,14 +188,22 @@ export default function TeacherDashboardPage() {
   }
 
   useEffect(() => {
-    const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
     const headers = getAuthHeaders();
-    Promise.all([
-      fetch("/api/teacher/profile", { headers }).then((res) => (res.ok ? res.json() : null)),
-      fetch(`/api/courses?teacherId=${userId}`, { headers }).then((res) => (res.ok ? res.json() : { courses: [] })),
-    ])
-      .then(([teacherJson, coursesJson]) => {
+    // Courses must be fetched with this teacher's own profile id, resolved
+    // server-side from the session — never from client-cached localStorage,
+    // which can be empty/stale right after login and would otherwise make
+    // the courses query fall back to the public (unfiltered) catalog.
+    fetch("/api/teacher/profile", { headers })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((teacherJson) => {
         if (teacherJson?.teacher) setData(teacherJson.teacher);
+        const teacherId = teacherJson?.teacher?.id;
+        if (!teacherId) return { courses: [] };
+        return fetch(`/api/courses?teacherId=${teacherId}`, { headers }).then((res) =>
+          res.ok ? res.json() : { courses: [] },
+        );
+      })
+      .then((coursesJson) => {
         if (coursesJson?.courses) setCourses(coursesJson.courses);
       })
       .catch(() => {})
