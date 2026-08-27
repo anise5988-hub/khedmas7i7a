@@ -7,8 +7,9 @@ export function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin");
   const isTeacherRoute = pathname.startsWith("/teacher");
   const isStudentDashboardRoute = pathname.startsWith("/dashboard");
+  const isClassroomRoute = pathname.startsWith("/classroom");
 
-  if (!isAdminRoute && !isTeacherRoute && !isStudentDashboardRoute) {
+  if (!isAdminRoute && !isTeacherRoute && !isStudentDashboardRoute && !isClassroomRoute) {
     return NextResponse.next();
   }
 
@@ -43,5 +44,6 @@ export const config = {
     "/admin/:path*",
     "/teacher/:path*",
     "/dashboard/:path*",
+    "/classroom/:path*",
   ],
 };

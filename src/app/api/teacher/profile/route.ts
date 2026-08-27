@@ -100,6 +100,16 @@ export async function POST(request: Request) {
       });
     }
 
+    // Editing an already-approved (or suspended) profile shouldn't silently
+    // pull it back into review — that would make an active, bookable
+    // teacher unbookable just for fixing a typo in their bio. Only profiles
+    // still awaiting their first review, or resubmitted after rejection,
+    // move into UNDER_REVIEW.
+    const nextStatus =
+      teacher.verificationStatus === "APPROVED" || teacher.verificationStatus === "SUSPENDED"
+        ? teacher.verificationStatus
+        : "UNDER_REVIEW";
+
     await prisma.$transaction([
       prisma.teacherProfile.update({
         where: { id: teacher.id },
@@ -113,7 +123,7 @@ export async function POST(request: Request) {
           city: body.city || null,
           online: body.online !== false,
           inPerson: Boolean(body.inPerson),
-          verificationStatus: "UNDER_REVIEW",
+          verificationStatus: nextStatus,
         },
       }),
       prisma.teacherSubject.deleteMany({ where: { teacherId: teacher.id } }),
@@ -139,8 +149,13 @@ export async function POST(request: Request) {
     ]);
 
     return NextResponse.json({
-      status: "UNDER_REVIEW",
-      message: "Candidature enregistrée avec succès. Votre profil est actuellement en cours d'examen par l'administration.",
+      status: nextStatus,
+      message:
+        nextStatus === "APPROVED"
+          ? "Profil mis à jour avec succès."
+          : nextStatus === "SUSPENDED"
+          ? "Profil enregistré. Votre compte reste suspendu — contactez l'administration."
+          : "Candidature enregistrée avec succès. Votre profil est actuellement en cours d'examen par l'administration.",
     });
   } catch (error) {
     console.error("Teacher profile submission failed", error);

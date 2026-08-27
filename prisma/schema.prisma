@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -144,9 +145,35 @@ model Booking {
   student         User @relation("studentBookings", fields: [studentId], references: [id])
   teacher         TeacherProfile @relation("teacherBookings", fields: [teacherId], references: [id])
   payment         Payment?
+  classroomMessages ClassroomMessage[]
+  classroomNotes    ClassroomNote[]
   createdAt       DateTime @default(now())
   @@index([teacherId, startsAt])
   @@index([studentId, startsAt])
+}
+
+model ClassroomMessage {
+  id             String   @id @default(cuid())
+  bookingId      String
+  senderId       String
+  senderName     String
+  text           String?
+  attachmentUrl  String?
+  attachmentName String?
+  createdAt      DateTime @default(now())
+  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  @@index([bookingId, createdAt])
+}
+
+model ClassroomNote {
+  id         String   @id @default(cuid())
+  bookingId  String
+  authorId   String
+  authorName String
+  text       String
+  createdAt  DateTime @default(now())
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  @@index([bookingId, createdAt])
 }
 
 model Payment {

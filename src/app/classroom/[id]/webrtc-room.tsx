@@ -20,13 +20,12 @@ const rtcConfig: RTCConfiguration = {
 };
 
 type Signal = {
-  type: "offer" | "answer" | "ice" | "join";
-  offer?: RTCSessionDescriptionInit;
-  answer?: RTCSessionDescriptionInit;
+  type: "description" | "ice";
+  description?: RTCSessionDescriptionInit;
   candidate?: RTCIceCandidateInit;
 };
 
-export function WebRTCRoom({ roomId }: { roomId: string }) {
+export function WebRTCRoom({ roomId, polite = true }: { roomId: string; polite?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const localVideo = useRef<HTMLVideoElement>(null);
   const remoteVideo = useRef<HTMLVideoElement>(null);
@@ -62,6 +61,24 @@ export function WebRTCRoom({ roomId }: { roomId: string }) {
       }
 
       try {
+        const room = supabase.channel(`classroom:${roomId}`, {
+          config: { broadcast: { self: false } },
+        });
+        channel.current = room;
+
+        // "Perfect negotiation": both peers can independently trigger
+        // renegotiation (onnegotiationneeded), and without a tie-breaker
+        // they can each send a colliding offer at the same time. The
+        // designated impolite peer keeps its own offer and ignores the
+        // incoming one; the polite peer rolls back and accepts it. See
+        // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
+        let makingOffer = false;
+        let ignoreOffer = false;
+        // ICE candidates can arrive over the broadcast channel before the
+        // remote description that makes them valid has been applied yet —
+        // queue them and flush once setRemoteDescription resolves.
+        const pendingCandidates: RTCIceCandidateInit[] = [];
+
         const connection = new RTCPeerConnection(rtcConfig);
         peer.current = connection;
 
@@ -75,11 +92,6 @@ export function WebRTCRoom({ roomId }: { roomId: string }) {
           }
         };
 
-        const room = supabase.channel(`classroom:${roomId}`, {
-          config: { broadcast: { self: false } },
-        });
-        channel.current = room;
-
         connection.onicecandidate = (event) => {
           if (event.candidate) {
             room.send({
@@ -90,41 +102,76 @@ export function WebRTCRoom({ roomId }: { roomId: string }) {
           }
         };
 
-        room.on("broadcast", { event: "signal" }, async ({ payload }: { payload: Signal }) => {
-          if (!peer.current) return;
-          if (payload.type === "join") {
-            const offer = await peer.current.createOffer();
-            await peer.current.setLocalDescription(offer);
+        connection.onnegotiationneeded = async () => {
+          try {
+            makingOffer = true;
+            await connection.setLocalDescription();
             await room.send({
               type: "broadcast",
               event: "signal",
-              payload: { type: "offer", offer } satisfies Signal,
+              payload: { type: "description", description: connection.localDescription! } satisfies Signal,
             });
             if (mounted) setStatus("Invitation envoyée, connexion en cours...");
-          } else if (payload.type === "offer" && payload.offer) {
-            await peer.current.setRemoteDescription(payload.offer);
-            const answer = await peer.current.createAnswer();
-            await peer.current.setLocalDescription(answer);
-            await room.send({
-              type: "broadcast",
-              event: "signal",
-              payload: { type: "answer", answer } satisfies Signal,
-            });
-          } else if (payload.type === "answer" && payload.answer) {
-            await peer.current.setRemoteDescription(payload.answer);
-          } else if (payload.type === "ice" && payload.candidate) {
-            await peer.current.addIceCandidate(payload.candidate);
+          } catch (err) {
+            console.error("Negotiation error:", err);
+          } finally {
+            makingOffer = false;
+          }
+        };
+
+        room.on("broadcast", { event: "signal" }, async ({ payload }: { payload: Signal }) => {
+          if (!peer.current) return;
+          try {
+            if (payload.type === "description" && payload.description) {
+              const description = payload.description;
+              const offerCollision =
+                description.type === "offer" && (makingOffer || connection.signalingState !== "stable");
+              ignoreOffer = !polite && offerCollision;
+              if (ignoreOffer) return;
+
+              if (offerCollision) {
+                await Promise.all([
+                  connection.setLocalDescription({ type: "rollback" }),
+                  connection.setRemoteDescription(description),
+                ]);
+              } else {
+                await connection.setRemoteDescription(description);
+              }
+
+              // Remote description just landed — apply any ICE candidates
+              // that arrived earlier and couldn't be added yet.
+              while (pendingCandidates.length > 0) {
+                const candidate = pendingCandidates.shift()!;
+                await connection.addIceCandidate(candidate).catch(() => {});
+              }
+
+              if (description.type === "offer") {
+                await connection.setLocalDescription();
+                await room.send({
+                  type: "broadcast",
+                  event: "signal",
+                  payload: { type: "description", description: connection.localDescription! } satisfies Signal,
+                });
+              }
+            } else if (payload.type === "ice" && payload.candidate) {
+              if (!connection.remoteDescription) {
+                pendingCandidates.push(payload.candidate);
+                return;
+              }
+              try {
+                await connection.addIceCandidate(payload.candidate);
+              } catch (err) {
+                if (!ignoreOffer) throw err;
+              }
+            }
+          } catch (err) {
+            console.error("Signal handling error:", err);
           }
         });
 
-        await room.subscribe(async (subState) => {
-          if (subState === "SUBSCRIBED") {
-            await room.send({
-              type: "broadcast",
-              event: "signal",
-              payload: { type: "join" } satisfies Signal,
-            });
-            if (mounted) setStatus("En attente de l'autre participant...");
+        await room.subscribe((subState) => {
+          if (subState === "SUBSCRIBED" && mounted) {
+            setStatus("En attente de l'autre participant...");
           }
         });
 
@@ -149,7 +196,7 @@ export function WebRTCRoom({ roomId }: { roomId: string }) {
       peer.current?.close();
       if (channel.current) void channel.current.unsubscribe();
     };
-  }, [roomId]);
+  }, [roomId, polite]);
 
   function toggleTrack(kind: "video" | "audio") {
     const track = localStream.current?.getTracks().find((item) => item.kind === kind);

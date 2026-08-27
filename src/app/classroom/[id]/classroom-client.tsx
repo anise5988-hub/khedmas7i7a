@@ -1,10 +1,11 @@
-﻿/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { supabase } from "@/lib/client/supabase";
 import { WebRTCRoom } from "./webrtc-room";
-import { InteractiveWhiteboard } from "./interactive-whiteboard";
+import { InteractiveWhiteboard, type WhiteboardHandle } from "./interactive-whiteboard";
 import {
   IconPaperclip,
   IconSend,
@@ -19,7 +20,6 @@ import {
   IconMessageSquare,
   IconCheck,
   IconX,
-  IconChevronDown,
   IconCamera,
   IconCameraOff,
   IconFullscreen,
@@ -27,33 +27,22 @@ import {
   IconStar,
 } from "@/components/icons";
 
-type Attachment = {
-  type: "image" | "file";
-  name: string;
-  size: string;
-  url: string;
-};
-
 type Message = {
   id: string;
-  sender: string;
-  text: string;
-  time: string;
-  attachment?: Attachment;
+  senderId: string;
+  senderName: string;
+  text: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
+  createdAt: string;
 };
 
 type Note = {
   id: string;
+  authorId: string;
+  authorName: string;
   text: string;
-  time: string;
-};
-
-type Participant = {
-  id: string;
-  name: string;
-  role: "tutor" | "student";
-  muted: boolean;
-  videoOn: boolean;
+  createdAt: string;
 };
 
 type DeviceCheck = {
@@ -65,36 +54,56 @@ type DeviceCheck = {
 
 type Reaction = "👍" | "❤️" | "👏" | "💡" | "🎉";
 
-const MOCK_PARTICIPANTS: Participant[] = [
-  { id: "tutor-1", name: "Ahmed Ben Ali", role: "tutor", muted: false, videoOn: true },
-  { id: "student-1", name: "Vous", role: "student", muted: false, videoOn: true },
-];
+type Presence = { muted: boolean; videoOn: boolean };
 
-export function ClassroomClient({ id }: { id: string }) {
+type ClassroomEvent =
+  | { type: "chat_message"; message: Message }
+  | { type: "note"; note: Note }
+  | { type: "whiteboard_update"; pageIndex: number; dataUrl: string }
+  | { type: "presence"; senderId: string; presence: Presence };
+
+const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg)$/i;
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" });
+}
+
+export function ClassroomClient({
+  bookingId,
+  currentUserId,
+  currentUserName,
+  currentUserRole,
+  otherPartyName,
+  startsAt,
+  durationMinutes,
+}: {
+  bookingId: string;
+  currentUserId: string;
+  currentUserName: string;
+  currentUserRole: "tutor" | "student";
+  otherPartyName: string;
+  startsAt: string;
+  durationMinutes: number;
+}) {
   const [activeTab, setActiveTab] = useState<"video" | "whiteboard">("video");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      sender: "Système",
-      text: "Bienvenue dans la classe virtuelle ProfySpace.tn. Vous pouvez suivre la vidéo en direct, utiliser le tableau blanc interactif et échanger des documents en temps réel.",
-      time: "Direct",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [message, setMessage] = useState("");
-  const [userName, setUserName] = useState("Vous");
-  const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null);
+  const [selectedAttachment, setSelectedAttachment] = useState<{ name: string; url: string } | null>(null);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [secondsElapsed, setSecondsElapsed] = useState(() =>
+    Math.max(0, Math.floor((Date.now() - new Date(startsAt).getTime()) / 1000)),
+  );
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [activeSideTab, setActiveSideTab] = useState<"chat" | "notes" | "participants">("chat");
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteText, setNoteText] = useState("");
-  const [participants] = useState<Participant[]>(MOCK_PARTICIPANTS);
+  const [otherPresence, setOtherPresence] = useState<Presence>({ muted: false, videoOn: true });
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [showReactions, setShowReactions] = useState(false);
   const [deviceCheck, setDeviceCheck] = useState<DeviceCheck | null>(null);
@@ -102,25 +111,68 @@ export function ClassroomClient({ id }: { id: string }) {
   const [hasEnteredRoom, setHasEnteredRoom] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const mainStageRef = useRef<HTMLDivElement>(null);
+  const whiteboardRef = useRef<WhiteboardHandle>(null);
+  const channelRef = useRef<ReturnType<NonNullable<typeof supabase>["channel"]> | null>(null);
+
+  const broadcast = useCallback((payload: ClassroomEvent) => {
+    channelRef.current?.send({ type: "broadcast", event: "classroom", payload });
+  }, []);
+
+  // One realtime channel per booking, shared by chat, notes, whiteboard sync
+  // and mic/camera presence — kept separate from the video-call signaling
+  // channel in WebRTCRoom so neither feature can destabilize the other.
+  useEffect(() => {
+    if (!supabase) return;
+    const room = supabase.channel(`classroom-data:${bookingId}`, { config: { broadcast: { self: false } } });
+    channelRef.current = room;
+
+    room.on("broadcast", { event: "classroom" }, ({ payload }: { payload: ClassroomEvent }) => {
+      if (payload.type === "chat_message") {
+        setMessages((prev) => (prev.some((m) => m.id === payload.message.id) ? prev : [...prev, payload.message]));
+      } else if (payload.type === "note") {
+        setNotes((prev) => (prev.some((n) => n.id === payload.note.id) ? prev : [...prev, payload.note]));
+      } else if (payload.type === "whiteboard_update") {
+        whiteboardRef.current?.applyRemoteUpdate(payload.pageIndex, payload.dataUrl);
+      } else if (payload.type === "presence" && payload.senderId !== currentUserId) {
+        setOtherPresence(payload.presence);
+      }
+    });
+
+    room.subscribe();
+
+    return () => {
+      void room.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId]);
+
+  // Load chat/notes history once on entry.
+  useEffect(() => {
+    Promise.all([
+      fetch(`/api/classroom/${bookingId}/messages`).then((res) => (res.ok ? res.json() : { messages: [] })),
+      fetch(`/api/classroom/${bookingId}/notes`).then((res) => (res.ok ? res.json() : { notes: [] })),
+    ])
+      .then(([messagesJson, notesJson]) => {
+        setMessages(messagesJson.messages || []);
+        setNotes(notesJson.notes || []);
+      })
+      .catch(() => {})
+      .finally(() => setMessagesLoaded(true));
+  }, [bookingId]);
+
+  // Broadcast local mic/camera presence so the other participant's
+  // "Participants" panel reflects reality instead of a guess.
+  useEffect(() => {
+    broadcast({ type: "presence", senderId: currentUserId, presence: { muted: isMuted, videoOn: !isVideoOff } });
+  }, [isMuted, isVideoOff, broadcast, currentUserId]);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.user) {
-          setUserName(`${data.user.firstName} ${data.user.lastName}`);
-        }
-      })
-      .catch(() => {});
-
     const timer = setInterval(() => {
-      setSecondsElapsed((prev) => prev + 1);
+      setSecondsElapsed(Math.max(0, Math.floor((Date.now() - new Date(startsAt).getTime()) / 1000)));
     }, 1000);
-
     return () => clearInterval(timer);
-  }, []);
+  }, [startsAt]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -179,47 +231,81 @@ export function ClassroomClient({ id }: { id: string }) {
     setHasEnteredRoom(true);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isImg = file.type.startsWith("image/");
-    const sizeKb = (file.size / 1024).toFixed(0) + " KB";
-    const url = URL.createObjectURL(file);
+    const isImage = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf";
+    if (!isImage && !isPdf) {
+      setSelectedAttachment(null);
+      return;
+    }
 
-    setSelectedAttachment({
-      type: isImg ? "image" : "file",
-      name: file.name,
-      size: sizeKb,
-      url,
-    });
+    setUploadingAttachment(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", isPdf ? "pdf" : "image");
+      const response = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Envoi impossible.");
+      setSelectedAttachment({ name: file.name, url: data.url });
+    } catch {
+      setSelectedAttachment(null);
+    } finally {
+      setUploadingAttachment(false);
+    }
   };
 
-  const send = (event: React.FormEvent) => {
+  const send = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!message.trim() && !selectedAttachment) return;
+    const text = message.trim();
+    if (!text && !selectedAttachment) return;
 
-    const nowTime = new Date().toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" });
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      sender: userName,
-      text: message.trim(),
-      time: nowTime,
-      attachment: selectedAttachment || undefined,
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
     setMessage("");
     setSelectedAttachment(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    try {
+      const res = await fetch(`/api/classroom/${bookingId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: text || undefined,
+          attachmentUrl: selectedAttachment?.url,
+          attachmentName: selectedAttachment?.name,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return;
+      setMessages((prev) => [...prev, data.message]);
+      broadcast({ type: "chat_message", message: data.message });
+    } catch {
+      // Message send failed silently offline; the input already cleared,
+      // which is acceptable for a best-effort live chat.
+    }
   };
 
-  const addNote = (e: React.FormEvent) => {
+  const addNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!noteText.trim()) return;
-    const nowTime = new Date().toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" });
-    setNotes((prev) => [...prev, { id: `note-${Date.now()}`, text: noteText.trim(), time: nowTime }]);
+    const text = noteText.trim();
+    if (!text) return;
     setNoteText("");
+
+    try {
+      const res = await fetch(`/api/classroom/${bookingId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      if (!res.ok) return;
+      setNotes((prev) => [...prev, data.note]);
+      broadcast({ type: "note", note: data.note });
+    } catch {
+      // Best-effort — note stays in the input box's history via re-typing.
+    }
   };
 
   const addReaction = (emoji: Reaction) => {
@@ -241,6 +327,23 @@ export function ClassroomClient({ id }: { id: string }) {
   const toggleScreenShare = () => {
     setIsScreenSharing((prev) => !prev);
   };
+
+  const participants = [
+    {
+      id: currentUserId,
+      name: `${currentUserName} (Vous)`,
+      role: currentUserRole,
+      muted: isMuted,
+      videoOn: !isVideoOff,
+    },
+    {
+      id: "other",
+      name: otherPartyName,
+      role: currentUserRole === "tutor" ? ("student" as const) : ("tutor" as const),
+      muted: otherPresence.muted,
+      videoOn: otherPresence.videoOn,
+    },
+  ];
 
   if (!hasEnteredRoom) {
     return (
@@ -307,6 +410,8 @@ export function ClassroomClient({ id }: { id: string }) {
   }
 
   const timerDisplay = formatTimer(secondsElapsed);
+  const plannedEndSeconds = durationMinutes * 60;
+  const isOvertime = secondsElapsed > plannedEndSeconds;
 
   return (
     <main className="min-h-screen bg-[#101b2d] text-white flex flex-col">
@@ -321,12 +426,17 @@ export function ClassroomClient({ id }: { id: string }) {
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm sm:text-base">Classe Virtuelle ProfySpace</span>
             <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-[11px] font-extrabold text-white">.tn</span>
-            <span className="text-[11px] text-slate-400 hidden sm:inline">#{id.slice(-6).toUpperCase()}</span>
+            <span className="text-[11px] text-slate-400 hidden sm:inline">#{bookingId.slice(-6).toUpperCase()}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1 text-xs font-mono font-bold text-slate-200 border border-white/10">
+          <div
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-mono font-bold border ${
+              isOvertime ? "bg-amber-500/10 border-amber-500/30 text-amber-300" : "bg-white/10 border-white/10 text-slate-200"
+            }`}
+            title={isOvertime ? "Durée prévue dépassée" : `Durée prévue : ${durationMinutes} min`}
+          >
             <IconClock className="h-3.5 w-3.5 text-[#72d6bf]" />
             <span>{timerDisplay}</span>
           </div>
@@ -358,11 +468,17 @@ export function ClassroomClient({ id }: { id: string }) {
 
       <div className="flex-1 mx-auto w-full max-w-7xl grid gap-4 p-4 sm:p-6 lg:grid-cols-[1fr_360px]">
         <section className="flex flex-col rounded-3xl border border-white/10 bg-white/[.03] shadow-2xl overflow-hidden" ref={mainStageRef}>
-          {activeTab === "video" ? (
-            <WebRTCRoom roomId={id} />
-          ) : (
-            <InteractiveWhiteboard />
-          )}
+          {/* Both stay mounted so switching tabs never drops the live call
+              or resets the whiteboard — only visibility toggles. */}
+          <div className={activeTab === "video" ? "flex-1 flex flex-col min-h-0" : "hidden"}>
+            <WebRTCRoom roomId={bookingId} polite={currentUserRole === "student"} />
+          </div>
+          <div className={activeTab === "whiteboard" ? "flex-1 flex flex-col min-h-0" : "hidden"}>
+            <InteractiveWhiteboard
+              ref={whiteboardRef}
+              onLocalUpdate={(pageIndex, dataUrl) => broadcast({ type: "whiteboard_update", pageIndex, dataUrl })}
+            />
+          </div>
 
           <div className="border-t border-white/10 bg-[#0c1626]/80 p-2 sm:p-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -386,7 +502,7 @@ export function ClassroomClient({ id }: { id: string }) {
                 type="button"
                 onClick={toggleScreenShare}
                 className={`rounded-xl p-3 transition ${isScreenSharing ? "bg-[#0d8d78] text-white" : "bg-white/10 text-white hover:bg-white/20"}`}
-                title="Partage d'écran"
+                title="Partage d'écran (utilisez le bouton dédié dans la fenêtre vidéo)"
               >
                 <IconCameraOff className="h-5 w-5" />
               </button>
@@ -466,48 +582,45 @@ export function ClassroomClient({ id }: { id: string }) {
           {activeSideTab === "chat" && (
             <>
               <div className="flex-1 space-y-3.5 overflow-y-auto py-4 text-xs max-h-[500px] px-4">
+                {messagesLoaded && messages.length === 0 && (
+                  <p className="text-center text-slate-400 py-8">
+                    Aucun message pour le moment. Dites bonjour à {otherPartyName.split(" ")[0]} !
+                  </p>
+                )}
                 {messages.map((item) => {
-                  const isMe = item.sender === userName;
+                  const isMe = item.senderId === currentUserId;
+                  const isImageAttachment = item.attachmentName ? IMAGE_EXTENSIONS.test(item.attachmentName) : false;
                   return (
                     <div key={item.id} className={isMe ? "text-right" : "text-left"}>
                       <p className="text-[10px] text-slate-400 mb-0.5">
-                        {item.sender} · {item.time}
+                        {isMe ? "Vous" : item.senderName} · {formatTime(item.createdAt)}
                       </p>
                       <div
                         className={`inline-block rounded-2xl p-3.5 max-w-[90%] text-left ${
-                          isMe
-                            ? "bg-[#0d8d78] text-white font-medium"
-                            : item.sender === "Système"
-                            ? "bg-white/5 border border-white/10 text-slate-300 italic"
-                            : "bg-white/10 text-white"
+                          isMe ? "bg-[#0d8d78] text-white font-medium" : "bg-white/10 text-white"
                         }`}
                       >
                         {item.text && <p className="leading-relaxed">{item.text}</p>}
-                        {item.attachment?.type === "image" && (
+                        {item.attachmentUrl && isImageAttachment && (
                           <div className="mt-2">
                             <img
-                              src={item.attachment.url}
-                              alt={item.attachment.name}
-                              onClick={() => setPreviewImage(item.attachment?.url || null)}
+                              src={item.attachmentUrl}
+                              alt={item.attachmentName || "Pièce jointe"}
+                              onClick={() => setPreviewImage(item.attachmentUrl || null)}
                               className="rounded-xl max-h-48 object-cover cursor-pointer border border-white/20 transition hover:opacity-90"
                             />
-                            <span className="block mt-1 text-[10px] opacity-75">
-                              {item.attachment.name} ({item.attachment.size})
-                            </span>
+                            <span className="block mt-1 text-[10px] opacity-75">{item.attachmentName}</span>
                           </div>
                         )}
-                        {item.attachment?.type === "file" && (
+                        {item.attachmentUrl && !isImageAttachment && (
                           <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-black/30 border border-white/20 p-2.5">
                             <div className="flex items-center gap-2 truncate">
                               <IconFileText className="h-4 w-4 shrink-0 text-[#72d6bf]" />
-                              <div className="truncate">
-                                <p className="font-bold truncate text-[11px]">{item.attachment.name}</p>
-                                <p className="text-[9px] text-slate-400">{item.attachment.size}</p>
-                              </div>
+                              <p className="font-bold truncate text-[11px]">{item.attachmentName}</p>
                             </div>
                             <a
-                              href={item.attachment.url}
-                              download={item.attachment.name}
+                              href={item.attachmentUrl}
+                              download={item.attachmentName || undefined}
                               className="rounded-lg bg-white/20 p-1.5 hover:bg-white/30 text-white"
                               title="Télécharger"
                             >
@@ -524,13 +637,12 @@ export function ClassroomClient({ id }: { id: string }) {
               {selectedAttachment && (
                 <div className="px-4 mb-2 flex items-center justify-between gap-2 rounded-xl bg-white/10 border border-white/20 p-2 text-xs">
                   <div className="flex items-center gap-2 truncate">
-                    {selectedAttachment.type === "image" ? (
+                    {IMAGE_EXTENSIONS.test(selectedAttachment.name) ? (
                       <IconImage className="h-4 w-4 text-[#72d6bf]" />
                     ) : (
                       <IconFileText className="h-4 w-4 text-[#72d6bf]" />
                     )}
                     <span className="truncate font-semibold">{selectedAttachment.name}</span>
-                    <span className="text-[10px] text-slate-400">({selectedAttachment.size})</span>
                   </div>
                   <button
                     type="button"
@@ -546,12 +658,13 @@ export function ClassroomClient({ id }: { id: string }) {
               )}
 
               <form onSubmit={send} className="border-t border-white/10 p-3 flex items-center gap-2">
-                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" />
+                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  title="Joindre un fichier"
-                  className="rounded-xl bg-white/10 p-2.5 text-slate-300 transition hover:bg-white/20 hover:text-white"
+                  title="Joindre une image ou un PDF"
+                  disabled={uploadingAttachment}
+                  className="rounded-xl bg-white/10 p-2.5 text-slate-300 transition hover:bg-white/20 hover:text-white disabled:opacity-50"
                 >
                   <IconPaperclip className="h-4 w-4" />
                 </button>
@@ -582,7 +695,9 @@ export function ClassroomClient({ id }: { id: string }) {
                   notes.map((note) => (
                     <div key={note.id} className="rounded-2xl bg-white/5 border border-white/10 p-3">
                       <p className="text-xs text-white leading-relaxed">{note.text}</p>
-                      <p className="text-[10px] text-slate-400 mt-1">{note.time}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        {note.authorId === currentUserId ? "Vous" : note.authorName} · {formatTime(note.createdAt)}
+                      </p>
                     </div>
                   ))
                 )}
@@ -592,7 +707,7 @@ export function ClassroomClient({ id }: { id: string }) {
                   type="text"
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
-                  placeholder="Ajouter une note..."
+                  placeholder="Ajouter une note partagée..."
                   className="min-w-0 flex-1 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-xs text-white placeholder-slate-400 outline-none focus:border-[#72d6bf]"
                 />
                 <button
@@ -617,7 +732,7 @@ export function ClassroomClient({ id }: { id: string }) {
                       </div>
                       <div>
                         <p className="text-xs font-bold">{participant.name}</p>
-                        <span className="text-[10px] text-slate-400">{participant.role === "tutor" ? "Tuteur" : "Étudiant"}</span>
+                        <span className="text-[10px] text-slate-400">{participant.role === "tutor" ? "Enseignant" : "Élève"}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
