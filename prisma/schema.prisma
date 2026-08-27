@@ -109,6 +109,7 @@ model TeacherProfile {
   verificationStatus VerificationStatus @default(PENDING)
   user               User @relation(fields: [userId], references: [id], onDelete: Cascade)
   subjects           TeacherSubject[]
+  levels             TeacherLevel[]
   availabilities     Availability[]
   bookings           Booking[] @relation("teacherBookings")
   withdrawals        WithdrawalRequest[]
@@ -122,6 +123,13 @@ model TeacherSubject {
   subject   String
   teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   @@id([teacherId, subject])
+}
+
+model TeacherLevel {
+  teacherId String
+  levelSlug String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  @@id([teacherId, levelSlug])
 }
 
 model Availability {

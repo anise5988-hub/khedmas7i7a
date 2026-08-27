@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
-import { governorates, subjects as allSubjects } from "@/lib/domain/catalog";
+import { governorates, subjects as allSubjects, educationLevels } from "@/lib/domain/catalog";
 import {
   IconCheckCircle,
   IconAlertCircle,
@@ -39,6 +39,7 @@ export default function TeacherProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(["Mathématiques"]);
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [availabilities, setAvailabilities] = useState<AvailabilitySlot[]>([
     { dayOfWeek: 0, startTime: "17:00", endTime: "20:00" },
     { dayOfWeek: 2, startTime: "17:00", endTime: "20:00" },
@@ -65,6 +66,9 @@ export default function TeacherProfilePage() {
           if (Array.isArray(t.subjects) && t.subjects.length > 0) {
             setSelectedSubjects(t.subjects);
           }
+          if (Array.isArray(t.levels)) {
+            setSelectedLevels(t.levels);
+          }
           if (Array.isArray(t.availabilities) && t.availabilities.length > 0) {
             setAvailabilities(t.availabilities);
           }
@@ -82,6 +86,10 @@ export default function TeacherProfilePage() {
     } else {
       setSelectedSubjects([...selectedSubjects, subj]);
     }
+  }
+
+  function toggleLevel(slug: string) {
+    setSelectedLevels((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
   }
 
   function addAvailabilitySlot() {
@@ -132,6 +140,7 @@ export default function TeacherProfilePage() {
       online,
       inPerson,
       subjects: selectedSubjects,
+      levels: selectedLevels,
       availability: availabilities,
     };
 
@@ -325,9 +334,43 @@ export default function TeacherProfilePage() {
               </div>
             </div>
 
-            {/* 3. Localisation & Formats */}
+            {/* 3. Niveaux Enseignés */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold">3. Localisation & Formats de Cours</h2>
+              <h2 className="text-lg font-bold">3. Niveaux Enseignés</h2>
+              <p className="text-xs text-slate-500">
+                Sélectionnez les niveaux scolaires que vous encadrez — utilisé pour vous faire apparaître dans les recherches par niveau.
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {educationLevels.map((lvl) => {
+                  const isSelected = selectedLevels.includes(lvl.slug);
+                  return (
+                    <button
+                      type="button"
+                      key={lvl.slug}
+                      onClick={() => toggleLevel(lvl.slug)}
+                      className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
+                        isSelected
+                          ? "bg-[#0d8d78] text-white shadow-xs"
+                          : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      {isSelected ? "✓ " : "+ "}
+                      {lvl.name}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedLevels.length === 0 && (
+                <p className="text-[11px] text-amber-600">
+                  Aucun niveau sélectionné — vous n&apos;apparaîtrez pas dans les recherches filtrées par niveau.
+                </p>
+              )}
+            </div>
+
+            {/* 4. Localisation & Formats */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
+              <h2 className="text-lg font-bold">4. Localisation & Formats de Cours</h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -388,7 +431,7 @@ export default function TeacherProfilePage() {
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                  <h2 className="text-lg font-bold">4. Créneaux Hebdomadaires</h2>
+                  <h2 className="text-lg font-bold">5. Créneaux Hebdomadaires</h2>
                   <p className="text-xs text-slate-500">Indiquez vos plages horaires ouvertes aux réservations :</p>
                 </div>
                 <button

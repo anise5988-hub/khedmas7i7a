@@ -957,8 +957,10 @@ export default function Home() {
           <p className="font-bold text-white">
             ProfySpace<span className="text-[#72d6bf]">.tn</span> · Marketplace Tunisienne de Cours Particuliers
           </p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             <Link href="/teachers" className="hover:text-white transition">Professeurs</Link>
+            <Link href="/subjects" className="hover:text-white transition">Matières</Link>
+            <Link href="/levels" className="hover:text-white transition">Niveaux</Link>
             <Link href="/login" className="hover:text-white transition">Espace Membre</Link>
             <Link href="/register" className="hover:text-white transition">Inscription</Link>
           </div>

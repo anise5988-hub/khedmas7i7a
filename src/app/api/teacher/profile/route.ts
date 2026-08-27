@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
-import { subjects } from "@/lib/domain/catalog";
+import { subjects, educationLevels } from "@/lib/domain/catalog";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -16,6 +16,7 @@ export async function GET(request: Request) {
       where: { userId: user.id },
       include: {
         subjects: true,
+        levels: true,
         availabilities: true,
         bookings: {
           include: {
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
   const subjectsList = teacher?.subjects
     ? teacher.subjects.map((s) => s.subject)
     : fallbackTeacher?.subjects || ["Mathématiques"];
+  const levelsList = teacher?.levels ? teacher.levels.map((l) => l.levelSlug) : [];
 
   const hourlyRateMillimes = teacher?.hourlyRateMillimes ?? fallbackTeacher?.hourlyRateMillimes ?? 25000;
 
@@ -56,6 +58,7 @@ export async function GET(request: Request) {
       inPerson: teacher?.inPerson ?? fallbackTeacher?.inPerson ?? false,
       verificationStatus: teacher?.verificationStatus || fallbackTeacher?.verificationStatus || "PENDING",
       subjects: subjectsList,
+      levels: levelsList,
       availabilities: teacher?.availabilities || fallbackTeacher?.availabilities || [],
       bookings: teacher?.bookings || [],
       withdrawals: teacher?.withdrawals || [],
@@ -80,6 +83,10 @@ export async function POST(request: Request) {
   if (validSubjects.length === 0) {
     return NextResponse.json({ error: "Veuillez sélectionner au moins une matière valide." }, { status: 400 });
   }
+
+  const validLevelSlugs = new Set(educationLevels.map((l) => l.slug));
+  const selectedLevels = Array.isArray(body.levels) ? body.levels : [];
+  const validLevels = selectedLevels.filter((slug: string) => validLevelSlugs.has(slug));
 
   try {
     let teacher = await prisma.teacherProfile.findUnique({ where: { userId: user.id } });
@@ -133,6 +140,17 @@ export async function POST(request: Request) {
           subject,
         })),
       }),
+      prisma.teacherLevel.deleteMany({ where: { teacherId: teacher.id } }),
+      ...(validLevels.length > 0
+        ? [
+            prisma.teacherLevel.createMany({
+              data: validLevels.map((levelSlug: string) => ({
+                teacherId: teacher.id,
+                levelSlug,
+              })),
+            }),
+          ]
+        : []),
       prisma.availability.deleteMany({ where: { teacherId: teacher.id } }),
       ...(Array.isArray(body.availability) && body.availability.length > 0
         ? [

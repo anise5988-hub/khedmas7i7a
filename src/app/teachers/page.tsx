@@ -21,6 +21,10 @@ import {
   IconVideo,
 } from "@/components/icons";
 
+function levelName(slug: string): string {
+  return educationLevels.find((l) => l.slug === slug)?.name ?? slug;
+}
+
 type Teacher = {
   id: string;
   slug: string;
@@ -31,7 +35,7 @@ type Teacher = {
   bio: string;
   subject: string;
   subjects: string[];
-  level: string;
+  levels: string[];
   city: string;
   governorate: string;
   rate: number;
@@ -137,7 +141,7 @@ export default function TeachersPage() {
     if (subject && !t.subjects.some((s) => s.toLowerCase() === subject.toLowerCase()) && t.subject !== subject) {
       return false;
     }
-    if (level && t.level !== level) {
+    if (level && !t.levels.includes(level)) {
       return false;
     }
     if (governorate && t.governorate !== governorate && t.city !== governorate) {
@@ -259,7 +263,7 @@ function FilterSidebar({
           >
             <option value="">Tous les niveaux</option>
             {educationLevels.map((l) => (
-              <option key={l.slug} value={l.name}>
+              <option key={l.slug} value={l.slug}>
                 {l.name}
               </option>
             ))}
@@ -609,9 +613,10 @@ function FilterSidebar({
                             {s}
                           </span>
                         ))}
-                        {t.level && t.level !== "Tous niveaux" && (
+                        {t.levels.length > 0 && (
                           <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                            {t.level}
+                            {levelName(t.levels[0])}
+                            {t.levels.length > 1 ? ` +${t.levels.length - 1}` : ""}
                           </span>
                         )}
                       </div>

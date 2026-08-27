@@ -242,6 +242,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             <Link href="/teachers" className="hover:text-[#0d8d78] transition duration-150">
               Explorer les professeurs
             </Link>
+            <Link href="/subjects" className="hover:text-[#0d8d78] transition duration-150">
+              Matières
+            </Link>
             <Link href="/courses" className="hover:text-[#0d8d78] transition duration-150">
               Cours & Packs
             </Link>
@@ -515,6 +518,12 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
               <>
                 <Link href="/teachers" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Explorer les professeurs
+                </Link>
+                <Link href="/subjects" onClick={() => setMobileMenuOpen(false)} className="py-1">
+                  Matières
+                </Link>
+                <Link href="/levels" onClick={() => setMobileMenuOpen(false)} className="py-1">
+                  Niveaux scolaires
                 </Link>
                 <Link href="/courses" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Cours & Packs
