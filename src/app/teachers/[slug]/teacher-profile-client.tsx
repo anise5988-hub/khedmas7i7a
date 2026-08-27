@@ -1,13 +1,13 @@
-
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   IconStar,
   IconShield,
   IconCalendar,
+  IconCheckCircle,
 } from "@/components/icons";
 
 type TeacherData = {
@@ -35,10 +35,70 @@ type TeacherData = {
 
 const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
+const timeSlots = [
+  "08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00",
+];
+
 function getTomorrowDateString() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   return tomorrow.toISOString().split("T")[0];
+}
+
+function MapPinIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20Z" />
+      <path d="M2 12h20" />
+    </svg>
+  );
+}
+
+function UsersIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function MessageIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function AwardIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="6" />
+      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+    </svg>
+  );
 }
 
 export function TeacherProfileClient({ slug }: { slug: string }) {
@@ -52,6 +112,9 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
   const [selectedTime, setSelectedTime] = useState("18:00");
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingResult, setBookingResult] = useState<{ success: boolean; message: string; bookingId?: string } | null>(null);
+
+  const bookingRef = useRef<HTMLDivElement>(null);
+  const availabilitiesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`/api/teachers/${slug}`)
@@ -85,7 +148,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#f8fafc] px-4 text-center">
         <span className="text-4xl">👨‍🏫</span>
         <h1 className="mt-4 text-2xl font-bold">Professeur introuvable</h1>
-        <p className="mt-2 text-sm text-slate-500">Ce professeur n'existe pas ou sa candidature est en cours d'examen.</p>
+        <p className="mt-2 text-sm text-slate-500">Ce professeur n&apos;existe pas ou sa candidature est en cours d&apos;examen.</p>
         <Link href="/teachers" className="mt-6 rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white">
           Explorer les professeurs vérifiés →
         </Link>
@@ -163,80 +226,148 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-10">
-        <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-10">
+        <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-[#d9f1e9] text-2xl font-bold text-[#0d8d78] overflow-hidden border-2 border-[#0d8d78]/20 shadow-sm">
-                  {teacher.avatarUrl ? (
-                    <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <span>{teacher.initials}</span>
+            {/* Premium Profile Header */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+              <div className="flex flex-col sm:flex-row gap-6">
+                <div className="relative mx-auto sm:mx-0 shrink-0">
+                  <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-3xl bg-[#d9f1e9] text-3xl font-bold text-[#0d8d78] overflow-hidden border-2 border-[#0d8d78]/20 shadow-sm">
+                    {teacher.avatarUrl ? (
+                      <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span>{teacher.initials}</span>
+                    )}
+                  </div>
+                  {teacher.online && (
+                    <span className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 border-2 border-white shadow-sm">
+                      <span className="sr-only">En ligne</span>
+                    </span>
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl sm:text-3xl font-bold">{teacher.name}</h1>
+
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[#11233f]">{teacher.name}</h1>
                     {teacher.verificationStatus === "APPROVED" && (
-                      <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-xs font-bold text-emerald-800">
-                        ✓ Professeur Vérifié
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-xs font-bold text-emerald-800 mx-auto sm:mx-0">
+                        <IconCheckCircle className="h-3.5 w-3.5" />
+                        Professeur Vérifié
                       </span>
                     )}
                   </div>
                   <p className="mt-1 text-base text-[#0d8d78] font-semibold">{teacher.title}</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    📍 {teacher.city ? `${teacher.city}, ${teacher.governorate}` : teacher.governorate} · 🎓 {teacher.experienceYears} ans d'expérience
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-slate-500">
+                    <span className="inline-flex items-center gap-1">
+                      <MapPinIcon />
+                      {teacher.city ? `${teacher.city}, ${teacher.governorate}` : teacher.governorate}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <ClockIcon />
+                      {teacher.experienceYears} ans d&apos;expérience
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    {teacher.online && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/20 px-3 py-1 text-xs font-bold text-[#0d8d78]">
+                        <GlobeIcon />
+                        En ligne
+                      </span>
+                    )}
+                    {teacher.inPerson && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-800">
+                        <UsersIcon />
+                        Présentiel
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-center min-w-[85px]">
-                  <span className="flex items-center justify-center gap-1 text-lg font-bold text-amber-900">
-                    <IconStar className="h-4 w-4 fill-amber-500 text-amber-500" />
+                <div className="mx-auto sm:mx-0 shrink-0 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center min-w-[100px]">
+                  <span className="flex items-center justify-center gap-1 text-xl font-bold text-amber-900">
+                    <IconStar className="h-5 w-5 fill-amber-500 text-amber-500" />
                     {teacher.rating.toFixed(1)}
                   </span>
-                  <span className="block text-xs text-amber-800">{teacher.reviewsCount} avis</span>
+                  <span className="block text-xs text-amber-800 mt-0.5">{teacher.reviewsCount} avis</span>
                 </div>
               </div>
 
-              <div className="mt-6 border-t border-slate-100 pt-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Matières enseignées</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866]"
+                >
+                  <IconCalendar className="h-4 w-4" />
+                  Réserver une séance
+                </button>
+                <button
+                  onClick={() => availabilitiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3.5 text-center text-sm font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+                >
+                  <ClockIcon />
+                  Voir les disponibilités
+                </button>
+                <Link
+                  href={`/dashboard/messages?teacherId=${teacher.id}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white py-3.5 text-center text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                >
+                  <MessageIcon />
+                  Envoyer un message
+                </Link>
+              </div>
+            </div>
+
+            {/* About Section */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <h2 className="text-xl font-bold text-[#11233f]">À propos</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600 whitespace-pre-line">
+                {teacher.bio}
+              </p>
+            </div>
+
+            {/* Quick Info Card */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <h2 className="text-xl font-bold text-[#11233f]">Informations rapides</h2>
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
+                  <span className="block text-xs text-slate-400 mb-1">Expérience</span>
+                  <strong className="text-sm font-bold text-[#11233f]">{teacher.experienceYears} ans</strong>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
+                  <span className="block text-xs text-slate-400 mb-1">Tarif horaire</span>
+                  <strong className="text-sm font-bold text-[#0d8d78]">{teacher.rateTnd} DT</strong>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
+                  <span className="block text-xs text-slate-400 mb-1">Format</span>
+                  <strong className="text-sm font-bold text-[#11233f]">
+                    {teacher.online && teacher.inPerson ? "En ligne & Présentiel" : teacher.online ? "En ligne" : "Présentiel"}
+                  </strong>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
+                  <span className="block text-xs text-slate-400 mb-1">Classe virtuelle</span>
+                  <strong className="text-sm font-bold text-[#0d8d78]">WebRTC Direct</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Specialties / Subjects */}
+            {teacher.subjects.length > 0 && (
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                <h2 className="text-xl font-bold text-[#11233f]">Spécialités</h2>
+                <div className="mt-4 flex flex-wrap gap-2">
                   {teacher.subjects.map((s) => (
-                    <span key={s} className="rounded-xl bg-[#e5f7f2] px-3 py-1 text-xs font-bold text-[#0d8d78]">
+                    <span key={s} className="rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/10 px-4 py-2 text-xs font-bold text-[#0d8d78]">
                       {s}
                     </span>
                   ))}
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 space-y-4">
-              <h2 className="text-xl font-bold">À propos & Pédagogie</h2>
-              <p className="text-sm leading-relaxed text-slate-600 whitespace-pre-line">
-                {teacher.bio}
-              </p>
-
-              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 border-t border-slate-100 pt-4">
-                <div className="rounded-2xl bg-slate-50 p-3 text-center">
-                  <span className="block text-xs text-slate-400">Expérience</span>
-                  <strong className="mt-1 block text-sm">{teacher.experienceYears} ans</strong>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-3 text-center">
-                  <span className="block text-xs text-slate-400">Format de cours</span>
-                  <strong className="mt-1 block text-sm">
-                    {teacher.online && teacher.inPerson ? "En ligne & Présentiel" : teacher.online ? "En ligne" : "Présentiel"}
-                  </strong>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-3 text-center col-span-2 sm:col-span-1">
-                  <span className="block text-xs text-slate-400">Classe virtuelle</span>
-                  <strong className="mt-1 block text-sm text-[#0d8d78]">WebRTC Direct</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-xl font-bold">Créneaux habituels de disponibilité</h2>
+            {/* Availabilities */}
+            <div ref={availabilitiesRef} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <h2 className="text-xl font-bold text-[#11233f]">Créneaux habituels de disponibilité</h2>
               <p className="mt-1 text-xs text-slate-500">Heures régulières durant lesquelles le professeur dispense ses cours.</p>
 
               {teacher.availabilities.length === 0 ? (
@@ -244,8 +375,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               ) : (
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   {teacher.availabilities.map((a) => (
-                    <div key={a.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs">
-                      <span className="font-bold">{dayNames[a.dayOfWeek]}</span>
+                    <div key={a.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs border border-slate-100">
+                      <span className="font-bold text-[#11233f]">{dayNames[a.dayOfWeek]}</span>
                       <span className="font-semibold text-[#0d8d78]">{a.startTime} – {a.endTime}</span>
                     </div>
                   ))}
@@ -253,13 +384,14 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               )}
             </div>
 
+            {/* Reviews */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <h2 className="text-xl font-bold">Avis des élèves ({teacher.reviewsCount})</h2>
-                  <p className="text-xs text-slate-400">Évaluations certifiées après chaque séance</p>
+                  <h2 className="text-xl font-bold text-[#11233f]">Avis des élèves ({teacher.reviewsCount})</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Évaluations certifiées après chaque séance</p>
                 </div>
-                <span className="font-bold text-[#0d8d78]">★ {teacher.rating.toFixed(1)} / 5</span>
+                <span className="font-bold text-[#0d8d78] text-lg">★ {teacher.rating.toFixed(1)} / 5</span>
               </div>
 
               {teacher.reviews.length === 0 ? (
@@ -267,16 +399,21 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   Nouveau professeur vérifié. Soyez le premier à réserver et à donner votre avis !
                 </div>
               ) : (
-                <div className="mt-4 divide-y divide-slate-100">
+                <div className="mt-4 space-y-0">
                   {teacher.reviews.map((r) => (
-                    <div key={r.id} className="py-4">
+                    <div key={r.id} className="py-4 border-b border-slate-50 last:border-0">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm">{r.studentName}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e5f7f2] text-xs font-bold text-[#0d8d78]">
+                            {r.studentName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                          </div>
+                          <span className="font-bold text-sm text-[#11233f]">{r.studentName}</span>
+                        </div>
                         <span className="text-xs font-bold text-amber-700">★ {r.rating}/5</span>
                       </div>
-                      {r.comment && <p className="mt-1 text-xs text-slate-600">{r.comment}</p>}
-                      <span className="mt-1 block text-[10px] text-slate-400">
-                        {new Date(r.createdAt).toLocaleDateString("fr-TN")}
+                      {r.comment && <p className="mt-2 text-sm text-slate-600 leading-relaxed">{r.comment}</p>}
+                      <span className="mt-1.5 block text-[11px] text-slate-400">
+                        {new Date(r.createdAt).toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })}
                       </span>
                     </div>
                   ))}
@@ -285,23 +422,34 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
             </div>
           </div>
 
-          <div>
-            <div className="sticky top-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl space-y-6">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Tarif horaire</span>
-                <p className="mt-1 text-3xl font-bold text-[#0d8d78]">
-                  {teacher.rateTnd} DT <span className="text-sm font-normal text-slate-500">/ heure</span>
-                </p>
+          {/* Booking Sidebar */}
+          <div ref={bookingRef}>
+            <div className="sticky top-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl space-y-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Tarif horaire</span>
+                  <p className="mt-1 text-3xl font-bold text-[#0d8d78]">
+                    {teacher.rateTnd} DT <span className="text-sm font-normal text-slate-500">/ heure</span>
+                  </p>
+                </div>
+                <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-center">
+                  <span className="flex items-center justify-center gap-1 text-sm font-bold text-amber-900">
+                    <IconStar className="h-4 w-4 fill-amber-500 text-amber-500" />
+                    {teacher.rating.toFixed(1)}
+                  </span>
+                  <span className="block text-[11px] text-amber-800">{teacher.reviewsCount} avis</span>
+                </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <a
                   href={`/dashboard/messages?teacherId=${teacher.id}`}
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3.5 text-center text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+                  className="flex items-center justify-center gap-2 w-full rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3 text-center text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
                 >
-                  Discuter pour une offre sur-mesure
+                  <MessageIcon />
+                  Envoyer un message
                 </a>
-                <p className="text-[11px] text-slate-400 text-center">Si vous souhaitez une offre spécifique, cliquez sur Discuter</p>
+                <p className="text-[11px] text-slate-400 text-center">Pour une offre spécifique ou un cours personnalisé</p>
               </div>
 
               {bookingResult && (
@@ -332,18 +480,18 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
               )}
 
-              <form onSubmit={handleBook} className="space-y-4 border-t border-slate-100 pt-4">
-                <h3 className="font-bold text-base">Réserver une séance</h3>
+              <form onSubmit={handleBook} className="space-y-4 border-t border-slate-100 pt-5">
+                <h3 className="font-bold text-base text-[#11233f]">Réserver une séance</h3>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Durée du cours</label>
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Durée du cours</label>
+                  <div className="grid grid-cols-4 gap-2">
                     {([30, 60, 90, 120] as const).map((d) => (
                       <button
                         type="button"
                         key={d}
                         onClick={() => setDuration(d)}
-                        className={`rounded-xl border py-2 text-xs font-bold transition ${
+                        className={`rounded-xl border py-2.5 text-xs font-bold transition ${
                           duration === d
                             ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
                             : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
@@ -356,7 +504,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Format</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Format</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -368,7 +516,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                           : "border-slate-200 bg-white text-slate-700"
                       }`}
                     >
-                      🌐 En ligne (WebRTC)
+                      🌐 En ligne
                     </button>
                     <button
                       type="button"
@@ -387,36 +535,55 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Date</label>
                     <input
                       type="date"
                       required
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none"
+                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78] focus:ring-1 focus:ring-[#0d8d78] transition"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Heure</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Heure</label>
                     <input
                       type="time"
                       required
                       value={selectedTime}
                       onChange={(e) => setSelectedTime(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none"
+                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78] focus:ring-1 focus:ring-[#0d8d78] transition"
                     />
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4 text-xs space-y-1.5 border border-slate-100">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Créneaux suggérés</label>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {timeSlots.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setSelectedTime(t)}
+                        className={`rounded-lg border py-1.5 text-[11px] font-bold transition ${
+                          selectedTime === t
+                            ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-4 text-xs space-y-2 border border-slate-100">
                   <div className="flex justify-between text-slate-500">
-                    <span>Durée :</span>
-                    <span>{duration} minutes</span>
+                    <span>Durée sélectionnée :</span>
+                    <span className="font-bold text-[#11233f]">{duration} minutes</span>
                   </div>
                   <div className="flex justify-between text-slate-500">
                     <span>Tarif appliqué :</span>
-                    <span>{teacher.rateTnd} DT / heure</span>
+                    <span className="font-bold text-[#11233f]">{teacher.rateTnd} DT / heure</span>
                   </div>
                   <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-sm text-[#11233f]">
                     <span>Total à régler :</span>
@@ -434,7 +601,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </button>
               </form>
 
-              <div className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400">
+              <div className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400 pt-1">
                 <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
                 <span>Paiement sécurisé par Wallet ProfySpace.tn ou règlement direct</span>
               </div>
