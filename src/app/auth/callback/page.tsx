@@ -12,10 +12,10 @@ export default function AuthCallbackPage() {
       return;
     }
 
+    const client = supabase;
     let isHandled = false;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async function processUserSession(session: any) {
+    async function processUserSession(session: { user: { email?: string; user_metadata?: Record<string, unknown> }; access_token?: string }) {
       if (isHandled || !session?.user) return;
       isHandled = true;
 
@@ -27,14 +27,14 @@ export default function AuthCallbackPage() {
       }
 
       const meta = user.user_metadata || {};
-      const fullName = meta.full_name || meta.name || "";
+      const fullName = (meta.full_name || meta.name || "") as string;
       const nameParts = fullName.trim().split(" ");
-      const firstName = meta.given_name || nameParts[0] || "Utilisateur";
-      const lastName = meta.family_name || nameParts.slice(1).join(" ") || "Google";
+      const firstName = (meta.given_name || nameParts[0] || "Utilisateur") as string;
+      const lastName = (meta.family_name || nameParts.slice(1).join(" ") || "Google") as string;
 
       const roleFromStorage = typeof window !== "undefined" ? localStorage.getItem("profyspace_oauth_role") : null;
       const params = new URLSearchParams(window.location.search);
-      const roleParam = meta.role || params.get("role") || roleFromStorage || "STUDENT";
+      const roleParam = (meta.role as string | null) || params.get("role") || roleFromStorage || "STUDENT";
 
       if (typeof window !== "undefined") {
         localStorage.removeItem("profyspace_oauth_role");
@@ -77,40 +77,30 @@ export default function AuthCallbackPage() {
       }
     }
 
-    // 1. Try exchangeCodeForSession if PKCE code is in search params
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ data, error: exchangeError }) => {
-        if (exchangeError) {
-          console.error("PKCE exchange error:", exchangeError);
-        } else if (data?.session) {
-          processUserSession(data.session);
-        }
-      });
-    }
-
-    // 2. Fallback to current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        processUserSession(session);
-      }
-    });
-
-    // 3. Listen to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // With detectSessionInUrl: true, Supabase automatically processes the auth callback.
+    // We listen for the auth state change and also try getSession as a fallback.
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
         processUserSession(session);
       }
     });
 
-    // Timeout after 8 seconds if session wasn't retrieved
+    // Fallback: check if session is already available
+    setTimeout(async () => {
+      if (!isHandled) {
+        const { data: { session } } = await client.auth.getSession();
+        if (session) {
+          processUserSession(session);
+        }
+      }
+    }, 500);
+
+    // Timeout after 10 seconds if session wasn't retrieved
     const timer = setTimeout(() => {
       if (!isHandled) {
-        setError("Impossible de récupérer la session Google. Vérifiez votre connexion ou réessayez.");
+        setError("Impossible de récupérer la session Google. Vérifiez que Google est bien activé dans Supabase Authentication et que l'URL de redirection est autorisée.");
       }
-    }, 8000);
+    }, 10000);
 
     return () => {
       subscription.unsubscribe();

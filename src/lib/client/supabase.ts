@@ -13,7 +13,7 @@ export const supabase = url && anonKey ? createClient(url, anonKey, {
 
 export async function signInWithGoogle(role: "STUDENT" | "TEACHER" = "STUDENT") {
   if (!supabase) {
-    const errorMsg = "Clé Supabase manquante ! Veuillez ajouter NEXT_PUBLIC_SUPABASE_ANON_KEY dans votre fichier .env (ou dans Vercel).";
+    const errorMsg = "Supabase n'est pas configuré. Vérifiez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans les variables d'environnement.";
     alert(errorMsg);
     return { data: null, error: new Error(errorMsg) };
   }
@@ -25,21 +25,26 @@ export async function signInWithGoogle(role: "STUDENT" | "TEACHER" = "STUDENT") 
   const origin = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
   const redirectTo = `${origin}/auth/callback`;
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo,
-    },
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+      },
+    });
 
-  if (error) {
-    console.error("Supabase Google OAuth Error:", error, "Redirect URL used:", redirectTo);
-    return { data, error };
+    if (error) {
+      console.error("Supabase Google OAuth Error:", error, "Redirect URL used:", redirectTo);
+      return { data, error };
+    }
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+
+    return { data, error: null };
+  } catch (err) {
+    console.error("Google sign-in exception:", err);
+    return { data: null, error: err as Error };
   }
-
-  if (data?.url) {
-    window.location.href = data.url;
-  }
-
-  return { data, error: null };
 }
