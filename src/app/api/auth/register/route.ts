@@ -170,39 +170,15 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error) {
-    console.warn("Prisma registration failed, falling back to in-memory store", error);
-
-    const fallbackUser = await fallbackStore.createUser({
-      firstName: input.firstName,
-      lastName: input.lastName,
-      email: input.email,
-      phone: input.phone,
-      passwordHash,
-      role: input.role,
-    });
-
-    const response = NextResponse.json({
-      success: true,
-      user: {
-        id: fallbackUser.id,
-        firstName: fallbackUser.firstName,
-        lastName: fallbackUser.lastName,
-        email: fallbackUser.email,
-        role: fallbackUser.role,
-      },
-      message: "Compte créé avec succès !",
-    }, { status: 201 });
-
-    const cookieOptions = {
-      path: "/",
-      sameSite: "lax" as const,
-      maxAge: 60 * 60 * 24 * 30,
-    };
-
-    response.cookies.set("profy_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profy_role", fallbackUser.role, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profyspace_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: false });
-
-    return response;
+    // A real database write failure must never be silently swapped for a
+    // fake in-memory account: that account looks like a success to the
+    // user right now, then evaporates on the next server instance/cold
+    // start (it isn't shared across serverless invocations), leaving them
+    // locked out with no idea why. Fail loudly and let them retry instead.
+    console.error("Registration failed — database write did not succeed", error);
+    return NextResponse.json(
+      { error: "Impossible de créer votre compte pour le moment. Veuillez réessayer dans quelques secondes." },
+      { status: 503 },
+    );
   }
 }
