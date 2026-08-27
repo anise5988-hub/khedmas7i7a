@@ -60,7 +60,7 @@ type HomeCourse = {
   studentCount: number;
 };
 
-const faqs = [
+const defaultFaqs = [
   {
     q: "Comment réserver une séance de cours particulier ?",
     a: "Explorez nos professeurs certifiés, choisissez la matière et votre niveau, sélectionnez un créneau horaire dans l'agenda du professeur et confirmez votre réservation en 1 clic.",
@@ -107,6 +107,9 @@ export default function Home() {
   const [teachersError, setTeachersError] = useState("");
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [faqs, setFaqs] = useState(defaultFaqs);
+  const [heroContent, setHeroContent] = useState<{ titlePrefix: string; titleHighlight: string; description: string } | null>(null);
+  const [banner, setBanner] = useState<{ message: string; linkUrl: string | null; linkLabel: string | null } | null>(null);
 
   // Review submission modal state
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -142,6 +145,20 @@ export default function Home() {
       .catch(() => setStatsError("Impossible de charger les statistiques."));
 
     loadReviews();
+
+    fetch("/api/content/homepage")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return;
+        if (data.hero?.titlePrefix && data.hero?.titleHighlight && data.hero?.description) {
+          setHeroContent(data.hero);
+        }
+        if (data.banner) setBanner(data.banner);
+        if (Array.isArray(data.faqs) && data.faqs.length > 0) {
+          setFaqs(data.faqs.map((f: { question: string; answer: string }) => ({ q: f.question, a: f.answer })));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   function loadReviews() {
@@ -231,12 +248,25 @@ export default function Home() {
             </div>
 
             <h1 className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold leading-[1.05] tracking-[-.03em] sm:text-5xl lg:text-[62px]">
-              Trouvez votre prof particulier <span className="text-[#72d6bf]">idéal.</span>
+              {heroContent?.titlePrefix ?? "Trouvez votre prof particulier"}{" "}
+              <span className="text-[#72d6bf]">{heroContent?.titleHighlight ?? "idéal."}</span>
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
-              Cours particuliers en ligne par classe virtuelle HD ou en présentiel partout en Tunisie. Des professeurs vérifiés par notre équipe, du primaire au Baccalauréat, pour réussir vos examens et booster vos moyennes.
+              {heroContent?.description ??
+                "Cours particuliers en ligne par classe virtuelle HD ou en présentiel partout en Tunisie. Des professeurs vérifiés par notre équipe, du primaire au Baccalauréat, pour réussir vos examens et booster vos moyennes."}
             </p>
+
+            {banner && (
+              <div className="mt-5 inline-flex flex-wrap items-center gap-3 rounded-2xl border border-[#72d6bf]/30 bg-[#72d6bf]/10 px-4 py-3 text-sm text-white">
+                <span>{banner.message}</span>
+                {banner.linkUrl && (
+                  <Link href={banner.linkUrl} className="font-bold text-[#72d6bf] hover:underline">
+                    {banner.linkLabel || "En savoir plus"} →
+                  </Link>
+                )}
+              </div>
+            )}
 
             <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-300">
               <li className="inline-flex items-center gap-2">

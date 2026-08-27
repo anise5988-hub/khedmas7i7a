@@ -342,6 +342,29 @@ model News {
   @@index([published, createdAt])
 }
 
+model HomepageContent {
+  id                 String   @id @default(cuid())
+  heroTitlePrefix    String   @default("Trouvez votre prof particulier")
+  heroTitleHighlight String   @default("idéal.")
+  heroDescription    String   @default("Cours particuliers en ligne par classe virtuelle HD ou en présentiel partout en Tunisie. Des professeurs vérifiés par notre équipe, du primaire au Baccalauréat, pour réussir vos examens et booster vos moyennes.")
+  bannerMessage      String?
+  bannerLinkUrl      String?
+  bannerLinkLabel    String?
+  bannerActive       Boolean  @default(false)
+  updatedAt          DateTime @updatedAt
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([active, sortOrder])
+}
+
 model PlatformSettings {
   id                String   @id @default(cuid())
   commissionRate    Float    @default(10)
