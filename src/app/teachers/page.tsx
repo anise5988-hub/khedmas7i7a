@@ -1,9 +1,26 @@
-/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
+/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element, react-hooks/static-components */
 "use client";
 
 import { useEffect, useState } from "react";
 import { SiteNavbar } from "@/components/site-navbar";
-import { governorates, subjects, educationLevels } from "@/lib/domain/catalog";
+import {
+  governorates,
+  subjects,
+  educationLevels,
+  academicSections,
+} from "@/lib/domain/catalog";
+import {
+  IconStar,
+  IconShield,
+  IconUsers,
+  IconClock,
+  IconFilter,
+  IconX,
+  IconChevronDown,
+  IconSparkles,
+  IconSearch,
+  IconVideo,
+} from "@/components/icons";
 
 type Teacher = {
   id: string;
@@ -28,19 +45,98 @@ type Teacher = {
   verificationStatus?: string;
 };
 
-const selectClass =
-  "mt-2 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]";
+const PRIMARY = "#0d8d78";
+const PRIMARY_LIGHT = "#72d6bf";
+const PRIMARY_PALE = "#e5f7f2";
+const PRIMARY_PALE_HOVER = "#d4f2e9";
+const TEXT_DARK = "#11233f";
+const RATING_AMBER = "#f59e0b";
+const RATING_AMBER_BG = "#fffbeb";
+const RATING_AMBER_BORDER = "#fcd34d";
+
+function StarRating({ rating, reviewsCount }: { rating: number; reviewsCount: number }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <IconStar
+            key={star}
+            className={`h-4 w-4 ${
+              star <= Math.round(rating) ? "text-[#f59e0b]" : "text-slate-300"
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-xs font-bold text-[#f59e0b]">{rating.toFixed(1)}</span>
+      {reviewsCount > 0 && (
+        <span className="text-[11px] text-slate-400">({reviewsCount})</span>
+      )}
+    </div>
+  );
+}
+
+function VerifiedBadge() {
+  return (
+    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+      <IconShield className="h-3 w-3" />
+      Vérifié
+    </span>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="h-14 w-14 shrink-0 rounded-2xl bg-slate-200 animate-pulse" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-32 rounded-lg bg-slate-200 animate-pulse" />
+            <div className="h-3 w-24 rounded-lg bg-slate-200 animate-pulse" />
+          </div>
+          <div className="h-8 w-16 rounded-lg bg-slate-200 animate-pulse" />
+        </div>
+        <div className="flex gap-2">
+          <div className="h-6 w-20 rounded-lg bg-slate-200 animate-pulse" />
+          <div className="h-6 w-24 rounded-lg bg-slate-200 animate-pulse" />
+          <div className="h-6 w-16 rounded-lg bg-slate-200 animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-3 w-full rounded bg-slate-200 animate-pulse" />
+          <div className="h-3 w-3/4 rounded bg-slate-200 animate-pulse" />
+        </div>
+        <div className="flex gap-4">
+          <div className="h-3 w-24 rounded bg-slate-200 animate-pulse" />
+          <div className="h-3 w-28 rounded bg-slate-200 animate-pulse" />
+        </div>
+      </div>
+      <div className="mt-6 border-t border-slate-100 pt-4">
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-20 rounded-lg bg-slate-200 animate-pulse" />
+          <div className="flex gap-2">
+            <div className="h-9 w-20 rounded-xl bg-slate-200 animate-pulse" />
+            <div className="h-9 w-24 rounded-xl bg-slate-200 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [activeFilterCount, setActiveFilterCount] = useState(0);
 
   const [subject, setSubject] = useState("");
   const [level, setLevel] = useState("");
+  const [bacSection, setBacSection] = useState("");
   const [governorate, setGovernorate] = useState("");
   const [mode, setMode] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [minRating, setMinRating] = useState("");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sort, setSort] = useState("recommended");
 
   useEffect(() => {
@@ -63,8 +159,24 @@ export default function TeachersPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    let count = 0;
+    if (subject) count++;
+    if (level) count++;
+    if (bacSection) count++;
+    if (governorate) count++;
+    if (mode) count++;
+    if (maxPrice) count++;
+    if (minRating) count++;
+    if (verifiedOnly) count++;
+    setActiveFilterCount(count);
+  }, [subject, level, bacSection, governorate, mode, maxPrice, minRating, verifiedOnly]);
+
   const filtered = teachers.filter((t) => {
     if (subject && !t.subjects.some((s) => s.toLowerCase() === subject.toLowerCase()) && t.subject !== subject) {
+      return false;
+    }
+    if (level && t.level !== level) {
       return false;
     }
     if (governorate && t.governorate !== governorate && t.city !== governorate) {
@@ -74,6 +186,7 @@ export default function TeachersPage() {
     if (mode === "IN_PERSON" && !t.inPerson) return false;
     if (maxPrice && t.rate > Number(maxPrice)) return false;
     if (minRating && t.rating < Number(minRating)) return false;
+    if (verifiedOnly && t.verificationStatus !== "APPROVED") return false;
     return true;
   });
 
@@ -88,11 +201,201 @@ export default function TeachersPage() {
   function resetFilters() {
     setSubject("");
     setLevel("");
+    setBacSection("");
     setGovernorate("");
     setMode("");
     setMaxPrice("");
     setMinRating("");
+    setVerifiedOnly(false);
   }
+
+type FilterSidebarProps = {
+  className?: string;
+  subject: string;
+  setSubject: (v: string) => void;
+  level: string;
+  setLevel: (v: string) => void;
+  bacSection: string;
+  setBacSection: (v: string) => void;
+  governorate: string;
+  setGovernorate: (v: string) => void;
+  mode: string;
+  setMode: (v: string) => void;
+  maxPrice: string;
+  setMaxPrice: (v: string) => void;
+  minRating: string;
+  setMinRating: (v: string) => void;
+  verifiedOnly: boolean;
+  setVerifiedOnly: (v: boolean) => void;
+  activeFilterCount: number;
+  onReset: () => void;
+};
+
+function FilterSidebar({
+  className = "",
+  subject,
+  setSubject,
+  level,
+  setLevel,
+  bacSection,
+  setBacSection,
+  governorate,
+  setGovernorate,
+  mode,
+  setMode,
+  maxPrice,
+  setMaxPrice,
+  minRating,
+  setMinRating,
+  verifiedOnly,
+  setVerifiedOnly,
+  activeFilterCount,
+  onReset,
+}: FilterSidebarProps) {
+  return (
+    <aside className={`rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-5 ${className}`}>
+      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-center gap-2">
+          <IconFilter className="h-4 w-4 text-[#0d8d78]" />
+          <h2 className="font-bold text-base text-[#11233f]">Filtres</h2>
+          {activeFilterCount > 0 && (
+            <span className="rounded-full bg-[#0d8d78] px-2 py-0.5 text-[10px] font-bold text-white">
+              {activeFilterCount}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={onReset}
+          className="text-xs font-bold text-[#0d8d78] hover:underline"
+        >
+          Réinitialiser
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Matière</label>
+          <select
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+          >
+            <option value="">Toutes les matières</option>
+            {subjects.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Niveau scolaire</label>
+          <select
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+          >
+            <option value="">Tous les niveaux</option>
+            {educationLevels.map((l) => (
+              <option key={l.slug} value={l.name}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Section BAC</label>
+          <select
+            value={bacSection}
+            onChange={(e) => setBacSection(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+          >
+            <option value="">Toutes sections</option>
+            {academicSections.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Gouvernorat</label>
+          <select
+            value={governorate}
+            onChange={(e) => setGovernorate(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+          >
+            <option value="">Toute la Tunisie</option>
+            {governorates.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Mode de cours</label>
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+          >
+            <option value="">Tous les formats</option>
+            <option value="ONLINE">En ligne (WebRTC)</option>
+            <option value="IN_PERSON">Présentiel</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Tarif max / heure (DT)</label>
+          <select
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+          >
+            <option value="">Tous les tarifs</option>
+            <option value="15">Moins de 15 DT / h</option>
+            <option value="20">Moins de 20 DT / h</option>
+            <option value="30">Moins de 30 DT / h</option>
+            <option value="50">Moins de 50 DT / h</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Note minimum</label>
+          <select
+            value={minRating}
+            onChange={(e) => setMinRating(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+          >
+            <option value="">Toutes les notes</option>
+            <option value="3">3+ étoiles</option>
+            <option value="4">4+ étoiles</option>
+            <option value="4.5">4.5+ étoiles</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+          <input
+            type="checkbox"
+            id="verifiedOnly"
+            checked={verifiedOnly}
+            onChange={(e) => setVerifiedOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-[#0d8d78] focus:ring-[#0d8d78]"
+          />
+          <label htmlFor="verifiedOnly" className="flex items-center gap-1.5 text-sm font-medium text-[#11233f] cursor-pointer select-none">
+            <IconShield className="h-4 w-4 text-[#0d8d78]" />
+            Professeurs vérifiés uniquement
+          </label>
+        </div>
+      </div>
+    </aside>
+  );
+}
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
@@ -101,121 +404,221 @@ export default function TeachersPage() {
         <SiteNavbar dark={false} />
       </header>
 
-      {/* Hero Banner */}
-      <div className="bg-[#11233f] py-12 px-4 sm:px-6 text-white text-center">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-[.2em] text-[#72d6bf]">Marketplace certifiée Tunisie</p>
-          <h1 className="mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl tracking-tight">
-            Trouvez le professeur idéal pour progresser.
+      {/* Premium Hero Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#11233f] via-[#1a2d4d] to-[#0d8d78]">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0idXJsKCNncmFkKSIgZmlsbC1vcGFjaXR5PSIwLjEiLz48L3N2Zz4=')] opacity-30" />
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-10">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#72d6bf]/20 border border-[#72d6bf]/30 px-3 py-1 text-xs font-bold text-[#72d6bf]">
+              <IconSparkles className="h-3.5 w-3.5" />
+              Marketplace certifiée Tunisie
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            Trouvez le professeur idéal
           </h1>
-          <p className="mt-3 text-sm text-slate-300">
-            Comparez les matières, tarifs et disponibilités de nos professeurs vérifiés par l&apos;administration.
+          <p className="mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">
+            Des enseignants vérifiés par l&apos;administration, prêts à vous accompagner dans votre réussite scolaire.
           </p>
+          <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <IconUsers className="h-4 w-4 text-[#72d6bf]" />
+              <span><strong className="text-white font-bold">{teachers.length}+</strong> professeurs</span>
+            </div>
+            <div className="h-1 w-1 rounded-full bg-slate-500" />
+            <div className="flex items-center gap-1.5">
+              <IconStar className="h-4 w-4 text-[#f59e0b]" />
+              <span>Notes vérifiées</span>
+            </div>
+            <div className="h-1 w-1 rounded-full bg-slate-500" />
+            <div className="flex items-center gap-1.5">
+              <IconShield className="h-4 w-4 text-[#72d6bf]" />
+              <span>Professeurs certifiés</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-10">
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-          {/* Filters Sidebar */}
-          <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="font-bold text-base">Filtres de recherche</h2>
-              <button onClick={resetFilters} className="text-xs font-bold text-[#0d8d78] hover:underline">
-                Réinitialiser
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
+        {/* Mobile Filter Toggle + Sort */}
+        <div className="flex items-center justify-between gap-4 mb-6 lg:hidden">
+          <button
+            onClick={() => setFiltersOpen(true)}
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-[#11233f] shadow-sm transition hover:border-[#0d8d78] hover:text-[#0d8d78]"
+          >
+            <IconFilter className="h-4 w-4" />
+            Filtres
+            {activeFilterCount > 0 && (
+              <span className="rounded-full bg-[#0d8d78] px-2 py-0.5 text-[10px] font-bold text-white">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-500">Trier par :</span>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white p-2 font-semibold text-slate-700 outline-none"
+            >
+              <option value="recommended">Recommandés</option>
+              <option value="rating">Note</option>
+              <option value="price_asc">Prix croissant</option>
+              <option value="price_desc">Prix décroissant</option>
+              <option value="experience">Expérience</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Desktop Results Count + Sort */}
+        <div className="hidden lg:flex items-center justify-between gap-4 pb-4 mb-6 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-semibold text-slate-600">
+              <strong className="text-[#11233f]">{sorted.length}</strong> professeur{sorted.length > 1 ? "s" : ""} disponible{sorted.length > 1 ? "s" : ""}
+            </p>
+            {activeFilterCount > 0 && (
+              <button
+                onClick={resetFilters}
+                className="text-xs font-medium text-[#0d8d78] hover:underline"
+              >
+                Effacer les filtres
               </button>
-            </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-500">Trier par :</span>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white p-2 font-semibold text-slate-700 outline-none"
+            >
+              <option value="recommended">Recommandés</option>
+              <option value="rating">Note</option>
+              <option value="price_asc">Prix croissant</option>
+              <option value="price_desc">Prix décroissant</option>
+              <option value="experience">Expérience</option>
+            </select>
+          </div>
+        </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-500">Matière</label>
-              <select value={subject} onChange={(e) => setSubject(e.target.value)} className={selectClass}>
-                <option value="">Toutes les matières</option>
-                {subjects.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+          {/* Desktop Filters Sidebar */}
+          <div className="hidden lg:block">
+            <FilterSidebar
+              subject={subject}
+              setSubject={setSubject}
+              level={level}
+              setLevel={setLevel}
+              bacSection={bacSection}
+              setBacSection={setBacSection}
+              governorate={governorate}
+              setGovernorate={setGovernorate}
+              mode={mode}
+              setMode={setMode}
+              maxPrice={maxPrice}
+              setMaxPrice={setMaxPrice}
+              minRating={minRating}
+              setMinRating={setMinRating}
+              verifiedOnly={verifiedOnly}
+              setVerifiedOnly={setVerifiedOnly}
+              activeFilterCount={activeFilterCount}
+              onReset={resetFilters}
+            />
+          </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-500">Niveau scolaire</label>
-              <select value={level} onChange={(e) => setLevel(e.target.value)} className={selectClass}>
-                <option value="">Tous les niveaux</option>
-                {educationLevels.map((l) => (
-                  <option key={l.slug} value={l.name}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
+          {/* Mobile Filter Drawer / Bottom Sheet */}
+          {filtersOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setFiltersOpen(false)}
+              />
+              <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white shadow-2xl">
+                <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between z-10">
+                  <div className="flex items-center gap-2">
+                    <IconFilter className="h-4 w-4 text-[#0d8d78]" />
+                    <h3 className="font-bold text-base text-[#11233f]">Filtres</h3>
+                    {activeFilterCount > 0 && (
+                      <span className="rounded-full bg-[#0d8d78] px-2 py-0.5 text-[10px] font-bold text-white">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setFiltersOpen(false)}
+                    className="p-2 rounded-xl hover:bg-slate-100 transition"
+                  >
+                    <IconX className="h-5 w-5 text-slate-500" />
+                  </button>
+                </div>
+                <div className="p-5">
+                  <FilterSidebar
+                    className="!rounded-none !border-none !shadow-none !p-0"
+                    subject={subject}
+                    setSubject={setSubject}
+                    level={level}
+                    setLevel={setLevel}
+                    bacSection={bacSection}
+                    setBacSection={setBacSection}
+                    governorate={governorate}
+                    setGovernorate={setGovernorate}
+                    mode={mode}
+                    setMode={setMode}
+                    maxPrice={maxPrice}
+                    setMaxPrice={setMaxPrice}
+                    minRating={minRating}
+                    setMinRating={setMinRating}
+                    verifiedOnly={verifiedOnly}
+                    setVerifiedOnly={setVerifiedOnly}
+                    activeFilterCount={activeFilterCount}
+                    onReset={resetFilters}
+                  />
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={resetFilters}
+                      className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Réinitialiser
+                    </button>
+                    <button
+                      onClick={() => setFiltersOpen(false)}
+                      className="flex-1 rounded-xl bg-[#0d8d78] py-3 text-sm font-bold text-white transition hover:bg-[#0b7866]"
+                    >
+                      Voir les résultats
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-500">Gouvernorat</label>
-              <select value={governorate} onChange={(e) => setGovernorate(e.target.value)} className={selectClass}>
-                <option value="">Toute la Tunisie</option>
-                {governorates.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-500">Mode de cours</label>
-              <select value={mode} onChange={(e) => setMode(e.target.value)} className={selectClass}>
-                <option value="">Tous les formats</option>
-                <option value="ONLINE">🌐 En ligne (WebRTC)</option>
-                <option value="IN_PERSON">🏠 Présentiel</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-500">Tarif max / heure (DT)</label>
-              <select value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className={selectClass}>
-                <option value="">Tous les tarifs</option>
-                <option value="20">Moins de 20 DT / h</option>
-                <option value="30">Moins de 30 DT / h</option>
-                <option value="50">Moins de 50 DT / h</option>
-              </select>
-            </div>
-          </aside>
+          )}
 
           {/* Results List */}
           <section>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+            {/* Mobile result count */}
+            <div className="lg:hidden pb-4 mb-4 border-b border-slate-200">
               <p className="text-sm font-semibold text-slate-600">
-                <strong>{sorted.length}</strong> professeur{sorted.length > 1 ? "s" : ""} disponible{sorted.length > 1 ? "s" : ""}
+                <strong className="text-[#11233f]">{sorted.length}</strong> professeur{sorted.length > 1 ? "s" : ""}
               </p>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-slate-500">Trier par :</span>
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="rounded-lg border border-slate-200 bg-white p-2 font-semibold text-slate-700 outline-none"
-                >
-                  <option value="recommended">Recommandés</option>
-                  <option value="price_asc">Prix croissant</option>
-                  <option value="price_desc">Prix décroissant</option>
-                  <option value="experience">Années d'expérience</option>
-                </select>
-              </div>
             </div>
 
             {loading ? (
-              <div className="py-20 text-center">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>
-                <p className="mt-4 text-sm text-slate-500">Recherche des professeurs vérifiés...</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
               </div>
             ) : sorted.length === 0 ? (
-              <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-                <span className="text-4xl">🔍</span>
-                <h3 className="mt-3 text-lg font-bold">Aucun professeur ne correspond à ces critères.</h3>
-                <p className="mt-1 text-xs text-slate-500">Essayez d&apos;élargir vos filtres de recherche.</p>
-                <button
+              <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+                <div className="mx-auto w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                  <IconSearch className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-[#11233f]">Aucun professeur ne correspond à ces critères</h3>
+                <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">
+                  Essayez d&apos;élargir vos filtres de recherche ou modifiez vos critères de sélection.
+                </p>
+                  <button
                   onClick={resetFilters}
-                  className="mt-4 rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0d8d78] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#0b7866]"
                 >
                   Afficher tous les professeurs
                 </button>
@@ -225,7 +628,7 @@ export default function TeachersPage() {
                 {sorted.map((t) => (
                   <div
                     key={t.id}
-                    className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-[#72d6bf] hover:shadow-lg"
+                    className="group flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#72d6bf] hover:shadow-xl"
                   >
                     <div>
                       <div className="flex items-start justify-between gap-3">
@@ -237,22 +640,20 @@ export default function TeachersPage() {
                               <span>{t.initials}</span>
                             )}
                           </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="font-bold text-base text-[#11233f]">{t.name}</h3>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h3 className="font-bold text-base text-[#11233f] truncate">{t.name}</h3>
                               {t.verificationStatus === "APPROVED" && (
-                                <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-800" title="Professeur vérifié par l'administration">
-                                  ✓ Vérifié
-                                </span>
+                                <VerifiedBadge />
                               )}
                             </div>
-                            <p className="text-xs text-slate-500 line-clamp-1">{t.title}</p>
+                            <p className="text-xs text-slate-500 truncate">{t.title}</p>
                           </div>
                         </div>
 
-                        <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-800">
-                          ★ {t.rating.toFixed(1)}
-                        </span>
+                        <div className="shrink-0">
+                          <StarRating rating={t.rating} reviewsCount={t.reviewsCount} />
+                        </div>
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -261,6 +662,11 @@ export default function TeachersPage() {
                             {s}
                           </span>
                         ))}
+                        {t.level && t.level !== "Tous niveaux" && (
+                          <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                            {t.level}
+                          </span>
+                        )}
                       </div>
 
                       {t.bio && (
@@ -269,17 +675,27 @@ export default function TeachersPage() {
                         </p>
                       )}
 
-                      <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-400">
-                        <span>📍 {t.city ? `${t.city}, ${t.governorate}` : t.governorate}</span>
-                        <span>🎓 {t.experience} ans d'expérience</span>
+                      <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                        <span className="flex items-center gap-1">
+                          <IconUsers className="h-3.5 w-3.5 text-slate-400" />
+                          {t.city && t.governorate
+                            ? `${t.city}, ${t.governorate}`
+                            : t.governorate || t.city}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <IconClock className="h-3.5 w-3.5 text-slate-400" />
+                          {t.experience} ans d&apos;expérience
+                        </span>
                       </div>
                     </div>
 
-                    <div className="mt-6 border-t border-slate-100 pt-4 space-y-2">
+                    <div className="mt-5 border-t border-slate-100 pt-4 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <span className="text-xs text-slate-400">À partir de</span>
-                          <p className="text-lg font-bold text-[#0d8d78]">{t.rate} DT <span className="text-xs font-normal text-slate-500">/ h</span></p>
+                          <span className="text-[11px] text-slate-400">À partir de</span>
+                          <p className="text-lg font-bold text-[#0d8d78]">
+                            {t.rate} DT <span className="text-xs font-normal text-slate-500">/ h</span>
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <a
@@ -292,11 +708,27 @@ export default function TeachersPage() {
                             href={`/teachers/${t.slug}`}
                             className="rounded-xl bg-[#11233f] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#0d8d78]"
                           >
-                            Réserver →
+                            Réserver
                           </a>
                         </div>
                       </div>
-                      <p className="text-[10px] text-slate-400 text-right">Si vous souhaitez une offre spécifique, cliquez sur Discuter</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {t.online && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 px-2 py-0.5 text-[10px] font-bold text-[#0d8d78]">
+                              <IconVideo className="h-3 w-3" />
+                              En ligne
+                            </span>
+                          )}
+                          {t.inPerson && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                              <IconUsers className="h-3 w-3" />
+                              Présentiel
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-400">Cliquez sur Discuter pour une offre spécifique</span>
+                      </div>
                     </div>
                   </div>
                 ))}
