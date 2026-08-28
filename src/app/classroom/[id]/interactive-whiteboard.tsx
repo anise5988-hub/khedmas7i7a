@@ -307,14 +307,14 @@ export const InteractiveWhiteboard = forwardRef<WhiteboardHandle, InteractiveWhi
               }}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${tool === "pen" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700"}`}
             >
-              ✏️ Stylet
+              ✎ Stylet
             </button>
             <button
               type="button"
               onClick={toggleEraser}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${tool === "eraser" ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700"}`}
             >
-              🧹 Gomme
+              ⌫ Gomme
             </button>
             <button
               type="button"

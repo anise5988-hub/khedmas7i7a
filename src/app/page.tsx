@@ -15,6 +15,7 @@ import {
   IconBookOpen,
   IconCheck,
   IconAlertCircle,
+  IconMail,
 } from "@/components/icons";
 
 type ApprovedTeacher = {
@@ -439,9 +440,9 @@ export default function Home() {
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
                   >
                     <option value="">Toutes les notes</option>
-                    <option value="4">★ 4.0 et plus</option>
-                    <option value="4.5">★ 4.5 et plus</option>
-                    <option value="5">★ 5.0 (Excellent)</option>
+                    <option value="4"> 4.0 et plus</option>
+                    <option value="4.5"> 4.5 et plus</option>
+                    <option value="5"> 5.0 (Excellent)</option>
                   </select>
                 </div>
               </div>
@@ -579,8 +580,7 @@ export default function Home() {
 
           {featuredTeachers.length === 0 && teachersError ? (
             <div className="mt-10 rounded-3xl border border-white/10 bg-white/[.04] p-12 text-center">
-              <span className="text-4xl">⚠️</span>
-              <h3 className="mt-3 text-lg font-bold">Impossible de charger les professeurs.</h3>
+              <h3 className="text-lg font-bold">Impossible de charger les professeurs.</h3>
               <p className="mt-1 text-sm text-slate-400">
                 Veuillez réessayer ultérieurement.
               </p>
@@ -602,8 +602,7 @@ export default function Home() {
             </div>
           ) : featuredTeachers.length === 0 ? (
             <div className="mt-10 rounded-3xl border border-white/10 bg-white/[.04] p-12 text-center">
-              <span className="text-4xl">👨‍🏫</span>
-              <h3 className="mt-3 text-lg font-bold">Rejoignez notre communauté d'enseignants.</h3>
+              <h3 className="text-lg font-bold">Rejoignez notre communauté d'enseignants.</h3>
               <p className="mt-1 text-sm text-slate-400">
                 Vous êtes professeur ou tuteur ? Proposez vos cours dès aujourd'hui.
               </p>
@@ -650,7 +649,7 @@ export default function Home() {
                   </div>
 
                   <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-xs">
-                    <span className="text-slate-300 font-medium">📍 {teacher.city}</span>
+                    <span className="text-slate-300 font-medium"> {teacher.city}</span>
                     <span className="font-bold text-sm text-white">{teacher.rate} DT / h</span>
                   </div>
                 </Link>
@@ -666,7 +665,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e5f7f2] px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#0d8d78]">
-                <span>📚</span> E-Learning & Révision Autonome
+                E-Learning & Révision Autonome
               </span>
               <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
                 Nos Meilleurs Cours & Packs Vidéo.
@@ -688,12 +687,12 @@ export default function Home() {
           {/* Subject Filter Tabs */}
           <div className="mt-8 flex flex-wrap items-center gap-2">
             {[
-              { id: "ALL", label: "✨ Tous les packs" },
-              { id: "Mathématiques", label: "📐 Mathématiques" },
-              { id: "Physique-Chimie", label: "⚡ Physique-Chimie" },
-              { id: "Informatique", label: "💻 Informatique / Python" },
-              { id: "Français", label: "📖 Français" },
-              { id: "Économie / Gestion", label: "📊 Éco-Gestion" },
+              { id: "ALL", label: " Tous les packs" },
+              { id: "Mathématiques", label: " Mathématiques" },
+              { id: "Physique-Chimie", label: " Physique-Chimie" },
+              { id: "Informatique", label: " Informatique / Python" },
+              { id: "Français", label: " Français" },
+              { id: "Économie / Gestion", label: " Éco-Gestion" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -714,8 +713,7 @@ export default function Home() {
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-96 animate-pulse rounded-3xl bg-slate-100" />)}</div>
           ) : courses.length === 0 ? (
             <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-12 text-center">
-              <span className="text-4xl">📚</span>
-              <h3 className="mt-3 text-lg font-bold">Nouveaux cours et packs en cours de publication.</h3>
+              <h3 className="text-lg font-bold">Nouveaux cours et packs en cours de publication.</h3>
               <p className="mt-1 text-sm text-slate-500">
                 Nos professeurs préparent de nouveaux contenus de révision. Revenez bientôt !
               </p>
@@ -750,7 +748,7 @@ export default function Home() {
                           </span>
                           {course.visibility === "LOCKED" && (
                             <span className="rounded-xl bg-amber-500/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold text-white shadow-sm flex items-center gap-1">
-                              🔒 Pack Protégé
+                               Pack Protégé
                             </span>
                           )}
                           {course.visibility === "PUBLIC" && (
@@ -867,15 +865,14 @@ export default function Home() {
               onClick={() => setReviewModalOpen(true)}
               className="inline-flex items-center gap-2 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md transition hover:bg-[#0b7866] shrink-0"
             >
-              <span>✍️</span>
+              <IconStar className="h-4 w-4 fill-white" />
               <span>Laisser un avis d'élève satisfait</span>
             </button>
           </div>
 
           {reviews.length === 0 ? (
             <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <span className="text-3xl">⭐</span>
-              <h3 className="mt-3 font-bold text-base text-slate-800">Aucun avis pour le moment.</h3>
+              <h3 className="font-bold text-base text-slate-800">Aucun avis pour le moment.</h3>
               <p className="mt-1 text-xs text-slate-500">Soyez le premier élève à partager votre expérience de cours !</p>
               <button
                 type="button"
@@ -965,7 +962,7 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-6 py-4 border border-white/20 backdrop-blur-md">
-              <span className="text-2xl">✉️</span>
+              <IconMail className="h-6 w-6 text-[#72d6bf]" />
               <div>
                 <p className="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Email officiel support</p>
                 <a

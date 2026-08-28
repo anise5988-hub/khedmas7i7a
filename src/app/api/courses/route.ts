@@ -283,7 +283,7 @@ export async function POST(request: Request) {
     await notifyUser({
       userId: user.id,
       type: "COURSE_PUBLISHED",
-      title: "Cours publié avec succès ! 🚀",
+      title: "Cours publié avec succès ! ",
       message: `Votre cours "${title}" (${price > 0 ? `${price} DT` : "Gratuit"}) a été publié et est accessible sur la plateforme.`,
       emailSubject: `Votre cours "${title}" est en ligne sur Profy`,
       link: `/courses/${createdDbCourse.id}`,

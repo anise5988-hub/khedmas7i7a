@@ -192,7 +192,7 @@ export default function TeacherProfilePage() {
                 </span>
               ) : (
                 <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-xs font-bold text-slate-700">
-                  📝 À compléter
+                   À compléter
                 </span>
               )}
             </div>
@@ -238,7 +238,7 @@ export default function TeacherProfilePage() {
               <h2 className="text-lg font-bold">Photo de profil</h2>
               <p className="mt-1 text-xs text-slate-500">Ajoutez une photo professionnelle à votre fiche publique.</p>
               <div className="mt-4 flex-wrap items-center gap-4">
-                <div className="h-20 w-20 overflow-hidden rounded-2xl bg-[#e5f7f2] text-2xl font-bold text-[#0d8d78] flex items-center justify-center">{avatarUrl ? <img src={avatarUrl} alt="Votre photo" className="h-full w-full object-cover" /> : "👤"}</div>
+                <div className="h-20 w-20 overflow-hidden rounded-2xl bg-[#e5f7f2] text-2xl font-bold text-[#0d8d78] flex items-center justify-center">{avatarUrl ? <img src={avatarUrl} alt="Votre photo" className="h-full w-full object-cover" /> : ""}</div>
                 <label className="cursor-pointer rounded-xl border-[#0d8d78] px-4 py-2 text-xs font-bold text-[#0d8d78] hover:bg-[#e5f7f2]">{avatarUploading ? "Upload..." : "Choisir une photo"}<input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" /></label>
               </div>
             </div>
@@ -412,7 +412,7 @@ export default function TeacherProfilePage() {
                     onChange={(e) => setOnline(e.target.checked)}
                     className="h-4 w-4 rounded text-[#0d8d78]"
                   />
-                  <span>🌐 Cours en ligne (WebRTC)</span>
+                  <span> Cours en ligne (WebRTC)</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
@@ -422,7 +422,7 @@ export default function TeacherProfilePage() {
                     onChange={(e) => setInPerson(e.target.checked)}
                     className="h-4 w-4 rounded text-[#0d8d78]"
                   />
-                  <span>🏠 Cours en présentiel à domicile / local</span>
+                  <span> Cours en présentiel à domicile / local</span>
                 </label>
               </div>
             </div>

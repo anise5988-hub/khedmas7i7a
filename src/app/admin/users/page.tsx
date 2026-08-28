@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
                       >
                         <option value="STUDENT">Élève</option>
                         <option value="TEACHER">Professeur</option>
-                        <option value="ADMIN">👑 Administrateur</option>
+                        <option value="ADMIN"> Administrateur</option>
                       </select>
                     </td>
                     <td className="px-4 py-4 text-xs font-semibold text-white">

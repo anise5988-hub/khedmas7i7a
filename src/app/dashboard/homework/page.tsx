@@ -134,7 +134,7 @@ export default function StudentHomeworkPage() {
                   <p className="mt-3 text-sm text-slate-600">{h.description}</p>
                   {h.fileUrl && (
                     <a href={h.fileUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
-                      📎 {h.fileName || "Fichier joint par le professeur"}
+                       {h.fileName || "Fichier joint par le professeur"}
                     </a>
                   )}
 
@@ -144,7 +144,7 @@ export default function StudentHomeworkPage() {
                       {h.submission.comment && <p className="text-sm text-slate-700">{h.submission.comment}</p>}
                       {h.submission.fileUrl && (
                         <a href={h.submission.fileUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
-                          📎 {h.submission.fileName || "Votre fichier"}
+                           {h.submission.fileName || "Votre fichier"}
                         </a>
                       )}
                       {h.submission.feedback && (
@@ -177,7 +177,7 @@ export default function StudentHomeworkPage() {
                           disabled={uploadingId === h.id}
                           className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         >
-                          {uploadingId === h.id ? "Envoi..." : uploadedFiles[h.id] ? `📎 ${uploadedFiles[h.id].name}` : "Joindre un fichier"}
+                          {uploadingId === h.id ? "Envoi..." : uploadedFiles[h.id] ? ` ${uploadedFiles[h.id].name}` : "Joindre un fichier"}
                         </button>
                         <button
                           onClick={() => handleSubmit(h.id)}

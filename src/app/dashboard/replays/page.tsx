@@ -68,7 +68,6 @@ export default function ReplaysPage() {
           </div>
         ) : courses.length === 0 && pastBookings.length === 0 ? (
           <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm space-y-3">
-            <span className="text-4xl">📹</span>
             <h2 className="text-lg font-bold">Aucun replay disponible pour le moment.</h2>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
               Débloquez des packs de révision vidéo ou suivez des séances en direct pour retrouver vos contenus ici.
@@ -96,7 +95,7 @@ export default function ReplaysPage() {
                       </div>
 
                       <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-xs text-slate-400">📹 {c.totalLessons} vidéos ({c.durationMinutes} min)</span>
+                        <span className="text-xs text-slate-400"> {c.totalLessons} vidéos ({c.durationMinutes} min)</span>
                         <Link
                           href={`/courses/${c.id}`}
                           className="rounded-xl bg-[#0d8d78] px-4 py-2 text-xs font-bold text-white hover:bg-[#0b7866] transition"

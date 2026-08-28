@@ -67,7 +67,7 @@ export default function TeacherBookingsPage() {
                     <h3 className="font-bold text-base">{b.studentName}</h3>
                     <p className="text-xs text-[#0d8d78] font-bold">{b.subject}</p>
                     <p className="mt-1 text-xs text-slate-500">
-                      📅 {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long" })} à{" "}
+                       {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long" })} à{" "}
                       {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })} ({b.durationMinutes} min)
                     </p>
                     <p className="mt-0.5 text-xs text-slate-400">Gains pour ce cours : {b.amountTnd} DT</p>

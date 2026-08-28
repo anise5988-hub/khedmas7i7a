@@ -152,7 +152,7 @@ export async function GET(
           title: les.title,
           durationMinutes: les.durationMinutes,
           isFreePreview: false,
-          description: "🔒 Contenu réservé. Débloquez ce cours pour accéder à la leçon complète.",
+          description: " Contenu réservé. Débloquez ce cours pour accéder à la leçon complète.",
           videoUrl: undefined,
           resources: undefined,
         };

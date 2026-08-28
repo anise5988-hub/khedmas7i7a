@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconMoon, IconSun } from "@/components/icons";
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -40,7 +41,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
           : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 shadow-sm"
         } ${className}`}
     >
-      <span>{theme === "dark" ? "🌙" : "☀️"}</span>
+      {theme === "dark" ? <IconMoon className="h-3.5 w-3.5" /> : <IconSun className="h-3.5 w-3.5" />}
       <span className="hidden sm:inline">{theme === "dark" ? "Nuit" : "Jour"}</span>
     </button>
   );

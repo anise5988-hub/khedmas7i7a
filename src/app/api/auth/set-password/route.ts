@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       await notifyUser({
         userId: user.id,
         type: "PASSWORD_CHANGED",
-        title: "Mot de passe défini avec succès 🔒",
+        title: "Mot de passe défini avec succès ",
         message: "Votre mot de passe a été défini. Vous pouvez désormais vous connecter directement avec votre adresse email.",
         emailSubject: "Votre mot de passe a été configuré sur Profy",
         link: "/dashboard",

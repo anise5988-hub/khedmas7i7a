@@ -99,7 +99,7 @@ export default function AdminWalletsPage() {
             onClick={loadDeposits}
             className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold transition hover:bg-white/20"
           >
-            🔄 Actualiser
+             Actualiser
           </button>
         </div>
 

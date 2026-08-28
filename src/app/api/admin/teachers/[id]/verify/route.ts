@@ -52,7 +52,7 @@ export async function POST(
         await notifyUser({
           userId: updatedTeacher.userId,
           type: "PROFESSOR_VERIFIED",
-          title: "Compte Enseignant Vérifié ! 🎉",
+          title: "Compte Enseignant Vérifié ! ",
           message: "Félicitations, votre dossier enseignant a été validé. Votre profil est désormais vérifié sur Profy.",
           emailSubject: "Votre profil Professeur a été vérifié sur Profy",
           link: "/teacher/dashboard",

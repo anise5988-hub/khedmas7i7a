@@ -68,12 +68,12 @@ type RecommendedTeacher = {
 
 const links = [
   ["Vue d'ensemble", "/dashboard"],
-  ["💬 Messagerie (Chat)", "/dashboard/messages"],
+  ["Messagerie (Chat)", "/dashboard/messages"],
   ["Mes cours & packs", "/dashboard/classes"],
   ["Calendrier & planning", "/dashboard/calendar"],
   ["Portefeuille (Wallet)", "/dashboard/wallet"],
-  ["❤️ Mes favoris", "/dashboard/favorites"],
-  ["🔔 Notifications", "/dashboard/notifications"],
+  ["Mes favoris", "/dashboard/favorites"],
+  ["Notifications", "/dashboard/notifications"],
   ["Paramètres du compte", "/dashboard/settings"],
   ["Trouver un professeur", "/teachers"],
 ];
@@ -274,7 +274,7 @@ export default function StudentDashboard() {
                                   <h3 className="truncate font-bold text-sm">{booking.teacherName}</h3>
                                   <p className="text-xs text-[#0d8d78] font-semibold">{booking.subject}</p>
                                   <p className="text-xs text-slate-500">
-                                    📅 {new Date(booking.startsAt).toLocaleDateString("fr-TN", { weekday: "short", day: "numeric", month: "short" })} à{" "}
+                                     {new Date(booking.startsAt).toLocaleDateString("fr-TN", { weekday: "short", day: "numeric", month: "short" })} à{" "}
                                     {new Date(booking.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
                                   </p>
                                 </div>
@@ -415,8 +415,8 @@ export default function StudentDashboard() {
                       Une question sur vos cours ou un paiement ? L&apos;équipe support ProfySpace.tn est disponible.
                     </p>
                     <div className="mt-3 space-y-1 text-xs">
-                      <p className="font-semibold text-slate-700">📞 +216 58 249 938</p>
-                      <p className="text-slate-500">✉️ profyspace@gmail.com</p>
+                      <p className="font-semibold text-slate-700">+216 58 249 938</p>
+                      <p className="text-slate-500">profyspace@gmail.com</p>
                     </div>
                   </div>
                 </div>

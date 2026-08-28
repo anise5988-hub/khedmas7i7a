@@ -57,7 +57,7 @@ export default function TeacherReviewsPage() {
           <div className="flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-2.5">
             <IconStar className="h-5 w-5 fill-amber-500 text-amber-500" />
             <div>
-              <p className="font-bold text-base text-amber-950">★ {avgRating.toFixed(1)} / 5</p>
+              <p className="font-bold text-base text-amber-950"> {avgRating.toFixed(1)} / 5</p>
               <p className="text-[10px] text-amber-800">Note moyenne globale</p>
             </div>
           </div>

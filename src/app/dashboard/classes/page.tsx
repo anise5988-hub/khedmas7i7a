@@ -73,7 +73,7 @@ export default function StudentClassesPage() {
                 activeTab === "BOOKINGS" ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700"
               }`}
             >
-              📅 Séances Live ({bookings.length})
+               Séances Live ({bookings.length})
             </button>
             <button
               onClick={() => setActiveTab("COURSES")}
@@ -81,7 +81,7 @@ export default function StudentClassesPage() {
                 activeTab === "COURSES" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700"
               }`}
             >
-              📚 Packs & Cours ({purchasedCourses.length})
+               Packs & Cours ({purchasedCourses.length})
             </button>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function StudentClassesPage() {
                       <h3 className="font-bold text-base">{b.teacherName}</h3>
                       <p className="text-xs font-bold text-[#0d8d78]">{b.subject}</p>
                       <p className="mt-1 text-xs text-slate-500">
-                        📅 {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} à{" "}
+                         {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} à{" "}
                         {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-400">

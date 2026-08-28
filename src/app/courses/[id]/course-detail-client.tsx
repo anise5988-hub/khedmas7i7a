@@ -199,7 +199,7 @@ export function CourseDetailClient({ id }: { id: string }) {
         return;
       }
 
-      setUnlockSuccess("🎉 Félicitations ! Le cours est débloqué.");
+      setUnlockSuccess(" Félicitations ! Le cours est débloqué.");
       setHasAccess(true);
       fetchCourse();
     } catch {
@@ -257,10 +257,10 @@ export function CourseDetailClient({ id }: { id: string }) {
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-6 text-xs text-slate-300">
-              <span>👨‍🏫 Par <strong className="text-white">{course.teacherName}</strong></span>
-              <span>📚 {course.totalLessons} leçons ({course.durationMinutes} min)</span>
-              <span>⭐ {course.rating} ({course.reviewCount} avis)</span>
-              <span>👥 {course.studentCount} élèves inscrits</span>
+              <span> Par <strong className="text-white">{course.teacherName}</strong></span>
+              <span> {course.totalLessons} leçons ({course.durationMinutes} min)</span>
+              <span> {course.rating} ({course.reviewCount} avis)</span>
+              <span> {course.studentCount} élèves inscrits</span>
             </div>
           </div>
 
@@ -284,7 +284,7 @@ export function CourseDetailClient({ id }: { id: string }) {
                 </span>
               ) : (
                 <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-800">
-                  🔒 Contenu Protégé
+                   Contenu Protégé
                 </span>
               )}
             </div>
@@ -320,7 +320,7 @@ export function CourseDetailClient({ id }: { id: string }) {
 
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <Link href={`/dashboard/messages?teacherId=${course.teacherId}`} className="font-bold text-[#0d8d78] hover:underline">
-                💬 Contacter le prof
+                 Contacter le prof
               </Link>
               <span>Accès à vie</span>
             </div>
@@ -357,7 +357,7 @@ export function CourseDetailClient({ id }: { id: string }) {
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate min-w-0">
-                            <span>{isLocked ? "🔒" : "▶"}</span>
+                            <span>{isLocked ? "" : "▶"}</span>
                             <span className="truncate">{les.title}</span>
                           </div>
                           <span className={`text-[10px] shrink-0 ml-2 ${isActive ? "text-slate-100" : "text-slate-400"}`}>
@@ -397,7 +397,6 @@ export function CourseDetailClient({ id }: { id: string }) {
                     <VideoPlayer src={activeLesson.videoUrl} title={activeLesson.title} />
                   ) : (
                     <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center space-y-3">
-                      <span className="text-4xl">🔒</span>
                       <h4 className="text-base font-bold">Cette leçon est verrouillée</h4>
                       <p className="text-xs text-slate-300 max-w-md">
                         Pour visionner la leçon complète et télécharger les ressources d'exercices, débloquez ce cours.
@@ -428,7 +427,7 @@ export function CourseDetailClient({ id }: { id: string }) {
                               href={res.url}
                               className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-[#0d8d78] hover:bg-slate-100 flex items-center gap-1.5"
                             >
-                              📄 {res.name}
+                               {res.name}
                             </a>
                           ))}
                         </div>

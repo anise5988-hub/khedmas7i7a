@@ -135,7 +135,7 @@ export function CoursesCatalogPageClient() {
                       </span>
                       {course.visibility === "LOCKED" && (
                         <span className="rounded-xl bg-amber-500/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold text-white shadow-sm flex items-center gap-1">
-                          🔒 Cours Protégé
+                           Cours Protégé
                         </span>
                       )}
                     </div>

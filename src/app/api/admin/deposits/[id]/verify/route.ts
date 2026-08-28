@@ -99,7 +99,7 @@ export async function POST(
         await notifyUser({
           userId: depositWallet.userId,
           type: "PAYMENT_SUCCESS",
-          title: "Recharge portefeuille validée ! 💳",
+          title: "Recharge portefeuille validée ! ",
           message: `Votre recharge de ${(deposit.amountMillimes / 1000).toFixed(1)} DT a été validée et créditée à votre portefeuille.`,
           emailSubject: `Votre recharge de ${(deposit.amountMillimes / 1000).toFixed(1)} DT a été validée`,
           link: "/dashboard/wallet",

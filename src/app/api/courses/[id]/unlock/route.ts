@@ -117,7 +117,7 @@ export async function POST(
     notifyUser({
       userId: course.teacherId,
       type: "COURSE_PURCHASED",
-      title: "Nouvelle inscription à votre cours ! 🎉",
+      title: "Nouvelle inscription à votre cours ! ",
       message: `${user.firstName} ${user.lastName} vient d'acheter votre cours "${course.title}" (${course.priceTnd} DT).`,
       emailSubject: `Nouvel élève inscrit à votre cours "${course.title}"`,
       link: "/teacher/dashboard/courses",
@@ -126,7 +126,7 @@ export async function POST(
     notifyUser({
       userId: user.id,
       type: "COURSE_UNLOCKED",
-      title: "Cours débloqué avec succès ! 🔓",
+      title: "Cours débloqué avec succès ! ",
       message: `Vous avez désormais un accès illimité au cours "${course.title}". Bon apprentissage !`,
       emailSubject: `Votre cours "${course.title}" est maintenant disponible`,
       link: `/courses/${course.id}`,

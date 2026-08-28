@@ -10,6 +10,8 @@ import {
   IconFullscreen,
   IconFullscreenExit,
   IconVideo,
+  IconTeacher,
+  IconMonitor,
 } from "@/components/icons";
 
 const fallbackRtcConfig: RTCConfiguration = {
@@ -290,8 +292,8 @@ export function WebRTCRoom({ roomId, polite = true }: { roomId: string; polite?:
 
         {/* Fallback teacher badge/avatar if no video received yet */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-80">
-          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white/10 text-3xl font-bold text-[#72d6bf] backdrop-blur-md shadow-2xl">
-            👨‍🏫
+          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white/10 text-[#72d6bf] backdrop-blur-md shadow-2xl">
+            <IconTeacher className="h-10 w-10" />
           </div>
           <span className="mt-3 text-xs font-semibold text-slate-300">
             Espace Enseignant · Scène Principale
@@ -366,7 +368,7 @@ export function WebRTCRoom({ roomId, polite = true }: { roomId: string; polite?:
                 : "bg-white/10 text-white hover:bg-white/20"
             }`}
           >
-            <span>🖥️</span>
+            <IconMonitor className="h-4 w-4" />
             <span className="hidden sm:inline">{isScreenSharing ? "Partage Actif" : "Partager"}</span>
           </button>
 

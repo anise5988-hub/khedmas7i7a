@@ -160,7 +160,7 @@ export default function AdminTeacherVerificationsPage() {
             onClick={loadTeachers}
             className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold transition hover:bg-white/20"
           >
-            🔄 Actualiser
+             Actualiser
           </button>
         </div>
 
@@ -222,8 +222,7 @@ export default function AdminTeacherVerificationsPage() {
           </div>
         ) : filteredTeachers.length === 0 ? (
           <div className="mt-12 rounded-3xl border border-white/10 bg-white/[.03] py-16 text-center">
-            <span className="text-4xl">📭</span>
-            <p className="mt-3 text-lg font-bold">Aucune candidature dans cette catégorie.</p>
+            <p className="text-lg font-bold">Aucune candidature dans cette catégorie.</p>
             <p className="mt-1 text-sm text-slate-400">Les nouvelles inscriptions de professeurs apparaîtront ici.</p>
           </div>
         ) : (
@@ -253,11 +252,11 @@ export default function AdminTeacherVerificationsPage() {
                     </div>
                     <p className="mt-1 text-sm text-[#72d6bf] font-semibold">{t.title}</p>
                     <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-300">
-                      <span>📧 {t.email}</span>
-                      <span>📞 {t.phone}</span>
-                      <span>📍 {t.city ? `${t.city}, ${t.governorate}` : t.governorate}</span>
-                      <span>🎓 Expérience : {t.experienceYears} ans</span>
-                      <span>💰 Tarif : {t.hourlyRateTnd} DT / h</span>
+                      <span> {t.email}</span>
+                      <span> {t.phone}</span>
+                      <span> {t.city ? `${t.city}, ${t.governorate}` : t.governorate}</span>
+                      <span> Expérience : {t.experienceYears} ans</span>
+                      <span> Tarif : {t.hourlyRateTnd} DT / h</span>
                     </div>
                   </div>
 
@@ -269,7 +268,7 @@ export default function AdminTeacherVerificationsPage() {
                         disabled={actionLoading === t.id}
                         className="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:bg-emerald-400 disabled:opacity-50"
                       >
-                        ✅ Approuver
+                         Approuver
                       </button>
                     )}
 
@@ -279,7 +278,7 @@ export default function AdminTeacherVerificationsPage() {
                         disabled={actionLoading === t.id}
                         className="rounded-xl bg-blue-500/20 border border-blue-500/40 px-3.5 py-2.5 text-xs font-bold text-blue-300 transition hover:bg-blue-500/30 disabled:opacity-50"
                       >
-                        🔍 En examen
+                         En examen
                       </button>
                     )}
 
@@ -289,7 +288,7 @@ export default function AdminTeacherVerificationsPage() {
                         disabled={actionLoading === t.id}
                         className="rounded-xl bg-rose-500/20 border border-rose-500/40 px-3.5 py-2.5 text-xs font-bold text-rose-300 transition hover:bg-rose-500/30 disabled:opacity-50"
                       >
-                        ❌ Rejeter
+                         Rejeter
                       </button>
                     )}
 
@@ -308,7 +307,7 @@ export default function AdminTeacherVerificationsPage() {
                       onClick={() => toggleDocuments(t.id)}
                       className="rounded-xl bg-white/10 px-3.5 py-2.5 text-xs font-bold text-slate-300 transition hover:bg-white/20"
                     >
-                      📄 Documents {expandedTeacherId === t.id ? "▲" : "▼"}
+                       Documents {expandedTeacherId === t.id ? "▲" : "▼"}
                     </button>
                   </div>
                 </div>
@@ -374,8 +373,8 @@ export default function AdminTeacherVerificationsPage() {
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Formats acceptés</p>
                       <div className="mt-1 flex gap-2 text-xs">
-                        {t.online && <span className="rounded-lg bg-emerald-500/20 text-emerald-300 px-2.5 py-1">🌐 En ligne</span>}
-                        {t.inPerson && <span className="rounded-lg bg-blue-500/20 text-blue-300 px-2.5 py-1">🏠 Présentiel</span>}
+                        {t.online && <span className="rounded-lg bg-emerald-500/20 text-emerald-300 px-2.5 py-1"> En ligne</span>}
+                        {t.inPerson && <span className="rounded-lg bg-blue-500/20 text-blue-300 px-2.5 py-1"> Présentiel</span>}
                       </div>
                     </div>
                   </div>

@@ -159,7 +159,7 @@ export default function StudentFavoritesPage() {
                   )}
 
                   <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                    <span>📍 {teacher.city}</span>
+                    <span> {teacher.city}</span>
                     <span className="flex items-center gap-1 font-bold text-amber-700">
                       <IconStar className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
                       {teacher.rating.toFixed(1)} ({teacher.reviewsCount})

@@ -75,7 +75,7 @@ export default function TeacherStudentsPage() {
               <div key={s.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
                 <div>
                   <h3 className="font-bold text-base">{s.name}</h3>
-                  <p className="text-xs text-slate-500">📧 {s.email} · 📞 {s.phone}</p>
+                  <p className="text-xs text-slate-500"> {s.email} · {s.phone}</p>
                 </div>
                 <div className="text-right text-xs text-slate-400">
                   <span className="rounded-full bg-[#e5f7f2] text-[#0d8d78] px-3 py-1 font-bold">

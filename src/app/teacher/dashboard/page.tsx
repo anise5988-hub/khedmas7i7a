@@ -15,6 +15,7 @@ import {
   IconWallet,
   IconChevronRight,
   IconSparkles,
+  IconBookOpen,
 } from "@/components/icons";
 import { Course } from "@/lib/server/courses-store";
 
@@ -268,7 +269,7 @@ export default function TeacherDashboardPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-xl">
-                  📝
+                  
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[#11233f]">Compléter mon profil et envoyer une demande</h2>
@@ -313,7 +314,7 @@ export default function TeacherDashboardPage() {
           <div className="mt-6 rounded-3xl border border-rose-200 bg-rose-50 p-5 sm:p-6 text-rose-950 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-200 text-xl">
-                ❌
+                
               </div>
               <div>
                 <h2 className="text-lg font-bold">Candidature non validée</h2>
@@ -365,7 +366,7 @@ export default function TeacherDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider">Espace Enseignant</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold">
-              {greeting()}, {teacher ? teacher.firstName : "Professeur"} ! 👋
+              {greeting()}, {teacher ? teacher.firstName : "Professeur"} !
             </h1>
             <p className="mt-2 text-sm text-white/70 max-w-xl">
               {teacher?.title || "Professeur particulier"}
@@ -515,7 +516,7 @@ export default function TeacherDashboardPage() {
                               {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })} · {b.durationMinutes} min
                             </p>
                             {b.student.phone && (
-                              <p className="text-[11px] text-slate-400 mt-0.5">📞 {b.student.phone}</p>
+                              <p className="text-[11px] text-slate-400 mt-0.5"> {b.student.phone}</p>
                             )}
                           </div>
                         </div>
@@ -683,7 +684,7 @@ export default function TeacherDashboardPage() {
                   className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 hover:border-[#0d8d78] hover:bg-[#0d8d78]/5 transition group"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
-                    <span className="text-sm font-bold">📚</span>
+                    <IconBookOpen className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-bold text-[#11233f]">Mes cours & packs</p>

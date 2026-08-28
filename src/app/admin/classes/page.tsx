@@ -97,7 +97,7 @@ export default function AdminClassesPage() {
               onClick={loadCourses}
               className="rounded-xl border border-white/20 bg-white/10 px-3.5 py-2 text-xs font-bold hover:bg-white/20 transition"
             >
-              🔄
+              
             </button>
           </div>
         </div>

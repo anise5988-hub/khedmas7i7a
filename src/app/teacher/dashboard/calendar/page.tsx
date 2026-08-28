@@ -155,7 +155,7 @@ export default function TeacherCalendarPage() {
                         {b.subject || "Cours particulier"}
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
-                        📅{" "}
+                        {" "}
                         {sessionDate.toLocaleDateString("fr-TN", {
                           weekday: "long",
                           day: "numeric",

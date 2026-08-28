@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SiteNavbar } from "@/components/site-navbar";
-import { IconShield } from "@/components/icons";
+import { IconShield, IconPhone, IconMail } from "@/components/icons";
 import { SupportTicketsPanel } from "@/components/support-tickets-panel";
 
 const faqs = [
@@ -57,7 +57,7 @@ export default function StudentSupportPage() {
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-                📞
+                <IconPhone className="h-5 w-5" />
               </div>
               <h3 className="font-bold text-base">Support Téléphonique</h3>
               <p className="text-xs text-slate-500">Du Lundi au Samedi (8h - 20h)</p>
@@ -70,7 +70,7 @@ export default function StudentSupportPage() {
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
-                ✉️
+                <IconMail className="h-5 w-5" />
               </div>
               <h3 className="font-bold text-base">Email Officiel</h3>
               <p className="text-xs text-slate-500">Réponse garantie en moins de 24h</p>

@@ -153,8 +153,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
   if (error || !teacher) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#f8fafc] px-4 text-center">
-        <span className="text-4xl">👨‍🏫</span>
-        <h1 className="mt-4 text-2xl font-bold">Professeur introuvable</h1>
+        <h1 className="text-2xl font-bold">Professeur introuvable</h1>
         <p className="mt-2 text-sm text-slate-500">Ce professeur n&apos;existe pas ou sa candidature est en cours d&apos;examen.</p>
         <Link href="/teachers" className="mt-6 rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white">
           Explorer les professeurs vérifiés →
@@ -410,7 +409,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   <h2 className="text-xl font-bold text-[#11233f]">Avis des élèves ({teacher.reviewsCount})</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Évaluations certifiées après chaque séance</p>
                 </div>
-                <span className="font-bold text-[#0d8d78] text-lg">★ {teacher.rating.toFixed(1)} / 5</span>
+                <span className="font-bold text-[#0d8d78] text-lg"> {teacher.rating.toFixed(1)} / 5</span>
               </div>
 
               {teacher.reviews.length === 0 ? (
@@ -428,7 +427,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                           </div>
                           <span className="font-bold text-sm text-[#11233f]">{r.studentName}</span>
                         </div>
-                        <span className="text-xs font-bold text-amber-700">★ {r.rating}/5</span>
+                        <span className="text-xs font-bold text-amber-700"> {r.rating}/5</span>
                       </div>
                       {r.comment && <p className="mt-2 text-sm text-slate-600 leading-relaxed">{r.comment}</p>}
                       <span className="mt-1.5 block text-[11px] text-slate-400">
@@ -542,7 +541,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                           : "border-slate-200 bg-white text-slate-700"
                       }`}
                     >
-                      🌐 En ligne
+                       En ligne
                     </button>
                     <button
                       type="button"
@@ -554,7 +553,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                           : "border-slate-200 bg-white text-slate-700"
                       }`}
                     >
-                      🏠 Présentiel
+                       Présentiel
                     </button>
                   </div>
                 </div>

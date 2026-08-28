@@ -241,7 +241,7 @@ export default function TeacherHomeworkPage() {
                   disabled={uploading}
                   className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  {uploading ? "Envoi en cours..." : fileName ? `📎 ${fileName}` : "Choisir un fichier"}
+                  {uploading ? "Envoi en cours..." : fileName ? ` ${fileName}` : "Choisir un fichier"}
                 </button>
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function TeacherHomeworkPage() {
                 <p className="mt-3 text-sm text-slate-600">{h.description}</p>
                 {h.fileUrl && (
                   <a href={h.fileUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
-                    📎 {h.fileName || "Fichier joint"}
+                     {h.fileName || "Fichier joint"}
                   </a>
                 )}
 
@@ -291,7 +291,7 @@ export default function TeacherHomeworkPage() {
                     {h.submission.comment && <p className="text-sm text-slate-700">{h.submission.comment}</p>}
                     {h.submission.fileUrl && (
                       <a href={h.submission.fileUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
-                        📎 {h.submission.fileName || "Fichier soumis"}
+                         {h.submission.fileName || "Fichier soumis"}
                       </a>
                     )}
                     {h.submission.feedback ? (

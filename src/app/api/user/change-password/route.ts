@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     await notifyUser({
       userId: user.id,
       type: "PASSWORD_CHANGED",
-      title: "Sécurité : Mot de passe modifié 🔒",
+      title: "Sécurité : Mot de passe modifié ",
       message: "Le mot de passe de votre compte a été modifié avec succès. Si vous n'êtes pas à l'origine de cette modification, contactez le support.",
       emailSubject: "Votre mot de passe Profy a été modifié",
       link: "/dashboard",

@@ -25,6 +25,7 @@ import {
   IconFullscreen,
   IconFullscreenExit,
   IconStar,
+  IconEdit,
 } from "@/components/icons";
 
 type Message = {
@@ -459,7 +460,7 @@ export function ClassroomClient({
                 activeTab === "whiteboard" ? "bg-[#0d8d78] text-white" : "text-slate-400 hover:text-white"
               }`}
             >
-              <span>🎨</span>
+              <IconEdit className="h-3.5 w-3.5" />
               <span>Tableau</span>
             </button>
           </div>

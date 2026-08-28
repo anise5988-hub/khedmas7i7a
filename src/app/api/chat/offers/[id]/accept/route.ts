@@ -123,7 +123,7 @@ export async function POST(
     notifyUser({
       userId: existingOffer.teacherId,
       type: "OFFER_ACCEPTED",
-      title: "Offre acceptée & Cours réservé ! 🎉",
+      title: "Offre acceptée & Cours réservé ! ",
       message: `${user.firstName} ${user.lastName} a accepté votre offre pour "${existingOffer.subject}" (${existingOffer.amountTnd} DT).`,
       emailSubject: `Votre offre de cours "${existingOffer.subject}" a été acceptée`,
       link: "/teacher/dashboard/bookings",
@@ -132,7 +132,7 @@ export async function POST(
     notifyUser({
       userId: user.id,
       type: "BOOKING_CONFIRMED",
-      title: "Réservation confirmée ! ✅",
+      title: "Réservation confirmée ! ",
       message: `Votre séance pour "${existingOffer.subject}" avec ${existingOffer.teacherName} est confirmée.`,
       emailSubject: `Votre réservation pour "${existingOffer.subject}" est confirmée`,
       link: "/dashboard/bookings",
