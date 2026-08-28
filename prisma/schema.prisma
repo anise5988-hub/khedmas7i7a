@@ -94,6 +94,7 @@ model User {
   conversationsAsStudent Conversation[] @relation("ConversationsAsStudent")
   conversationsAsTeacher Conversation[] @relation("ConversationsAsTeacher")
   homeworkAsStudent      Homework[]
+  quizAttempts           QuizAttempt[]
 }
 
 model StudentProfile {
@@ -423,6 +424,7 @@ model Course {
   teacher         TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   accesses        CourseAccess[]
   progress        CourseProgress[]
+  quizzes         Quiz[]
   @@index([teacherId, visibility, createdAt])
   @@index([subject, level, visibility])
 }
@@ -617,4 +619,42 @@ model HomeworkSubmission {
   feedback    String?
   gradedAt    DateTime?
   homework    Homework  @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  courseId  String
+  title     String
+  createdAt DateTime @default(now())
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([courseId])
+}
+
+model QuizQuestion {
+  id           String @id @default(cuid())
+  quizId       String
+  text         String
+  options      Json
+  correctIndex Int
+  sortOrder    Int    @default(0)
+  quiz         Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId, sortOrder])
+}
+
+model QuizAttempt {
+  id             String   @id @default(cuid())
+  quizId         String
+  studentId      String
+  answers        Json
+  score          Int
+  totalQuestions Int
+  submittedAt    DateTime @default(now())
+  quiz           Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student        User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([quizId, studentId, submittedAt])
 }

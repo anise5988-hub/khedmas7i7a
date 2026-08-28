@@ -346,9 +346,14 @@ export default function TeacherCoursesPage() {
                 </div>
 
                 <div className="pt-2 flex items-center justify-between border-t border-slate-100 text-xs font-bold">
-                  <Link href={`/courses/${c.id}`} className="text-[#0d8d78] hover:underline">
-                    Aperçu élève ↗
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link href={`/courses/${c.id}`} className="text-[#0d8d78] hover:underline">
+                      Aperçu élève ↗
+                    </Link>
+                    <Link href={`/teacher/dashboard/courses/${c.id}/quizzes`} className="text-[#0d8d78] hover:underline">
+                      Quiz
+                    </Link>
+                  </div>
 
                   <button
                     onClick={() => handleDeleteCourse(c.id)}
