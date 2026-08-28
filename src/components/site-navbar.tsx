@@ -236,6 +236,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             <Link href="/admin/wallets" className={linkBaseClass("/admin/wallets")}>
               Paiements
             </Link>
+            <Link href="/admin/notifications" className={linkBaseClass("/admin/notifications")}>
+              Notifications
+            </Link>
             <Link href="/admin/settings" className={linkBaseClass("/admin/settings")}>
               Paramètres
             </Link>
@@ -518,6 +521,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 </Link>
                 <Link href="/admin/withdrawals" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Retraits Enseignants
+                </Link>
+                <Link href="/admin/notifications" onClick={() => setMobileMenuOpen(false)} className="py-1">
+                  Diffuser une notification
                 </Link>
                 <Link href="/admin/settings" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Paramètres Plateforme

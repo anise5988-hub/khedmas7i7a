@@ -620,6 +620,17 @@ export default function AdminPage() {
                     Historique des actions administratives.
                   </p>
                 </a>
+
+                <a
+                  href="/admin/notifications"
+                  className="rounded-2xl border border-white/10 bg-white/[.05] p-5 transition hover:border-[#72d6bf] hover:bg-white/[.08]"
+                >
+                  <IconBell className="h-6 w-6 text-[#72d6bf]" />
+                  <h3 className="mt-3 font-bold text-base">Diffuser une notification</h3>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Envoyer un message et un email à tous les professeurs ou élèves.
+                  </p>
+                </a>
               </div>
             </div>
           </div>
