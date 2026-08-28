@@ -25,7 +25,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
 
   const body = await request.json().catch(() => null);
   const subject = typeof body?.subject === "string" ? body.subject.trim() : "";
@@ -36,18 +35,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sujet et message obligatoires." }, { status: 400 });
   }
 
+  // A visitor who hasn't created an account yet can still open a ticket —
+  // the "chat with us" widget needs to work for prospective students and
+  // teachers who haven't signed up. They just need to give us a name and
+  // an email so we have somewhere to send the reply, since there's no
+  // account to notify in-app.
+  let guestName: string | null = null;
+  let guestEmail: string | null = null;
+  if (!user) {
+    guestName = typeof body?.guestName === "string" ? body.guestName.trim() : "";
+    guestEmail = typeof body?.guestEmail === "string" ? body.guestEmail.trim().toLowerCase() : "";
+    if (!guestName || !guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+      return NextResponse.json({ error: "Nom et email valides requis." }, { status: 400 });
+    }
+  }
+
+  const senderId = user ? user.id : `guest:${guestEmail}`;
+  const senderName = user ? `${user.firstName} ${user.lastName}` : guestName!;
+  const senderRole = user ? user.role : "GUEST";
+
   const ticket = await prisma.supportTicket.create({
     data: {
-      userId: user.id,
+      userId: user ? user.id : null,
+      guestName,
+      guestEmail,
       subject,
       category,
       messages: {
-        create: {
-          senderId: user.id,
-          senderName: `${user.firstName} ${user.lastName}`,
-          senderRole: user.role,
-          text,
-        },
+        create: { senderId, senderName, senderRole, text },
       },
     },
     include: { messages: true },
@@ -61,7 +76,7 @@ export async function POST(request: Request) {
         userId: admin.id,
         type: "SUPPORT_TICKET_CREATED",
         title: "Nouveau ticket de support",
-        message: `${user.firstName} ${user.lastName} a ouvert un ticket : "${subject}"`,
+        message: `${senderName} a ouvert un ticket : "${subject}"`,
         link: `/admin/support/${ticket.id}`,
         dedupeKey: `support_ticket_new:${ticket.id}`,
       }),

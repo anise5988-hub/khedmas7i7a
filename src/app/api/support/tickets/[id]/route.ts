@@ -5,9 +5,14 @@ import { logAdminAction } from "@/lib/server/audit-log";
 import type { TicketStatus, TicketPriority } from "@prisma/client";
 
 async function authorizeTicket(id: string, user: { id: string; role: string } | null) {
-  if (!user) return null;
   const ticket = await prisma.supportTicket.findUnique({ where: { id } });
   if (!ticket) return null;
+  // A guest ticket has no account to check ownership against — the
+  // unguessable cuid ticket id itself is the access credential, same
+  // model as an order-tracking link. An authenticated ticket still
+  // requires the real owner or an admin.
+  if (ticket.userId === null) return ticket;
+  if (!user) return null;
   if (ticket.userId !== user.id && user.role !== "ADMIN") return null;
   return ticket;
 }

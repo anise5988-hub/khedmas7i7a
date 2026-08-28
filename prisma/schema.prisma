@@ -317,16 +317,18 @@ enum TicketPriority {
 }
 
 model SupportTicket {
-  id        String         @id @default(cuid())
-  userId    String
-  subject   String
-  status    TicketStatus   @default(OPEN)
-  priority  TicketPriority @default(NORMAL)
-  category  String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages  SupportMessage[]
+  id         String         @id @default(cuid())
+  userId     String?
+  guestName  String?
+  guestEmail String?
+  subject    String
+  status     TicketStatus   @default(OPEN)
+  priority   TicketPriority @default(NORMAL)
+  category   String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  user       User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages   SupportMessage[]
   @@index([status, createdAt])
   @@index([userId, createdAt])
 }

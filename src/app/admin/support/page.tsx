@@ -13,9 +13,16 @@ type Ticket = {
   category: string | null;
   createdAt: string;
   updatedAt: string;
-  user: { firstName: string; lastName: string; email: string; role: string };
+  user: { firstName: string; lastName: string; email: string; role: string } | null;
+  guestName: string | null;
+  guestEmail: string | null;
   messages: { text: string; createdAt: string }[];
 };
+
+function ticketAuthorLabel(t: Pick<Ticket, "user" | "guestName" | "guestEmail">) {
+  if (t.user) return `${t.user.firstName} ${t.user.lastName} · ${t.user.role === "TEACHER" ? "Prof" : "Élève"}`;
+  return `${t.guestName || "Visiteur"} (invité) · ${t.guestEmail || ""}`;
+}
 
 type TicketMessage = {
   id: string;
@@ -151,9 +158,7 @@ export default function AdminSupportPage() {
                         {STATUS_LABELS[t.status]}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400">
-                      {t.user.firstName} {t.user.lastName} · {t.user.role === "TEACHER" ? "Prof" : "Élève"}
-                    </p>
+                    <p className="text-[11px] text-slate-400">{ticketAuthorLabel(t)}</p>
                   </button>
                 ))
               )}
@@ -172,7 +177,9 @@ export default function AdminSupportPage() {
                   <div>
                     <h2 className="text-base font-bold">{activeTicket.subject}</h2>
                     <p className="text-xs text-slate-400">
-                      {activeTicket.user.firstName} {activeTicket.user.lastName} ({activeTicket.user.email})
+                      {activeTicket.user
+                        ? `${activeTicket.user.firstName} ${activeTicket.user.lastName} (${activeTicket.user.email})`
+                        : `${activeTicket.guestName || "Visiteur"} (invité, ${activeTicket.guestEmail || "email inconnu"})`}
                     </p>
                   </div>
                   <select
