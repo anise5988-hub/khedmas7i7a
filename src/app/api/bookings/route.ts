@@ -109,8 +109,7 @@ export async function POST(request: Request) {
     }
 
     const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
-    const calculatedAmount = Math.round((teacher.hourlyRateMillimes * parsed.data.durationMinutes) / 60);
-    const amountToUse = parsed.data.amountInMillimes > 0 ? parsed.data.amountInMillimes : calculatedAmount;
+    const amountToUse = Math.round((teacher.hourlyRateMillimes * parsed.data.durationMinutes) / 60);
 
     const booking = await prisma.$transaction(async (tx) => {
       const newBooking = await tx.booking.create({
