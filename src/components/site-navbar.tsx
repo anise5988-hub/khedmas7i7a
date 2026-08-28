@@ -167,6 +167,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             <Link href="/dashboard/classes" className={linkBaseClass("/dashboard/classes")}>
               Mes Cours
             </Link>
+            <Link href="/dashboard/homework" className={linkBaseClass("/dashboard/homework")}>
+              Devoirs
+            </Link>
             <Link href="/dashboard/favorites" className={linkBaseClass("/dashboard/favorites")}>
               Favoris
             </Link>
@@ -193,6 +196,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             </Link>
             <Link href="/teacher/dashboard/messages" className={linkBaseClass("/teacher/dashboard/messages")}>
               Messages
+            </Link>
+            <Link href="/teacher/dashboard/homework" className={linkBaseClass("/teacher/dashboard/homework")}>
+              Devoirs
             </Link>
             <Link href="/teacher/dashboard/calendar" className={linkBaseClass("/teacher/dashboard/calendar")}>
               Planning
@@ -441,6 +447,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 <Link href="/dashboard/classes" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Mes Cours & Replays
                 </Link>
+                <Link href="/dashboard/homework" onClick={() => setMobileMenuOpen(false)} className="py-1">
+                  Mes Devoirs
+                </Link>
                 <Link href="/dashboard/favorites" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Mes Professeurs Favoris
                 </Link>
@@ -470,6 +479,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 </Link>
                 <Link href="/teacher/dashboard/messages" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Messagerie
+                </Link>
+                <Link href="/teacher/dashboard/homework" onClick={() => setMobileMenuOpen(false)} className="py-1">
+                  Devoirs
                 </Link>
                 <Link href="/teacher/dashboard/calendar" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Planning & Disponibilités

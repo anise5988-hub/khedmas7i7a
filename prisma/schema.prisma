@@ -93,6 +93,7 @@ model User {
   supportTickets SupportTicket[]
   conversationsAsStudent Conversation[] @relation("ConversationsAsStudent")
   conversationsAsTeacher Conversation[] @relation("ConversationsAsTeacher")
+  homeworkAsStudent      Homework[]
 }
 
 model StudentProfile {
@@ -129,6 +130,7 @@ model TeacherProfile {
   favorites          Favorite[]
   courses             Course[]
   verificationDocuments TeacherVerificationDocument[]
+  homework            Homework[]
 }
 
 model TeacherVerificationDocument {
@@ -181,6 +183,7 @@ model Booking {
   payment         Payment?
   classroomMessages ClassroomMessage[]
   classroomNotes    ClassroomNote[]
+  homework          Homework[]
   createdAt       DateTime @default(now())
   @@index([teacherId, startsAt])
   @@index([studentId, startsAt])
@@ -582,4 +585,36 @@ model ChatOffer {
   message         ChatMessage?
 
   @@index([conversationId])
+}
+
+model Homework {
+  id          String    @id @default(cuid())
+  teacherId   String
+  studentId   String
+  bookingId   String?
+  title       String
+  description String
+  fileUrl     String?
+  fileName    String?
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+  teacher     TeacherProfile      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student     User                @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  booking     Booking?            @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  submission  HomeworkSubmission?
+
+  @@index([teacherId, createdAt])
+  @@index([studentId, createdAt])
+}
+
+model HomeworkSubmission {
+  id          String    @id @default(cuid())
+  homeworkId  String    @unique
+  fileUrl     String?
+  fileName    String?
+  comment     String?
+  submittedAt DateTime  @default(now())
+  feedback    String?
+  gradedAt    DateTime?
+  homework    Homework  @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
 }
