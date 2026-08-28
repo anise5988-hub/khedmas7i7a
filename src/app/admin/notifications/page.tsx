@@ -6,7 +6,6 @@ export default function AdminNotificationsPage() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [targetRole, setTargetRole] = useState("ALL");
-  const [type, setType] = useState<"INFO" | "SUCCESS" | "WARNING" | "SYSTEM">("SYSTEM");
   const [link, setLink] = useState("");
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<{ type: "error" | "success"; message: string } | null>(null);
@@ -30,7 +29,6 @@ export default function AdminNotificationsPage() {
           title,
           message,
           targetRole: targetRole === "ALL" ? null : targetRole,
-          type,
           link: link.trim() || null,
         }),
       });
@@ -113,37 +111,19 @@ export default function AdminNotificationsPage() {
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
-                  Destinataires cibles
-                </label>
-                <select
-                  value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value)}
-                  className="w-full rounded-2xl border border-white/20 bg-[#17253b] p-3.5 text-sm text-white outline-none focus:border-[#72d6bf]"
-                >
-                  <option value="ALL">Tous les utilisateurs (Élèves & Profs)</option>
-                  <option value="STUDENT">Élèves / Parents uniquement</option>
-                  <option value="TEACHER">Professeurs uniquement</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
-                  Type / Style d'icône
-                </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as "INFO" | "SUCCESS" | "WARNING" | "SYSTEM")}
-                  className="w-full rounded-2xl border border-white/20 bg-[#17253b] p-3.5 text-sm text-white outline-none focus:border-[#72d6bf]"
-                >
-                  <option value="SYSTEM">🟣 Annonce Système / Violet</option>
-                  <option value="INFO">🔵 Information / Bleu</option>
-                  <option value="SUCCESS">🟢 Succès & Transaction / Vert</option>
-                  <option value="WARNING">🟠 Rappel & Avertissement / Orange</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                Destinataires cibles
+              </label>
+              <select
+                value={targetRole}
+                onChange={(e) => setTargetRole(e.target.value)}
+                className="w-full rounded-2xl border border-white/20 bg-[#17253b] p-3.5 text-sm text-white outline-none focus:border-[#72d6bf]"
+              >
+                <option value="ALL">Tous les utilisateurs (Élèves & Profs)</option>
+                <option value="STUDENT">Élèves / Parents uniquement</option>
+                <option value="TEACHER">Professeurs uniquement</option>
+              </select>
             </div>
 
             <div>

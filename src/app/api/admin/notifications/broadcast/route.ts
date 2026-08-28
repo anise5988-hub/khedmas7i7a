@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { notificationsStore } from "@/lib/server/notifications-store";
+import { prisma } from "@/lib/server/prisma";
+import { notifyUser } from "@/lib/server/notification-service";
+
+const VALID_ROLES = ["STUDENT", "TEACHER", "ADMIN"];
 
 export async function POST(request: Request) {
   const currentUser = await getCurrentUser(request);
@@ -13,18 +16,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Le titre et le message de la notification sont requis." }, { status: 400 });
   }
 
-  const notification = notificationsStore.addNotification({
-    userId: body.userId || null,
-    role: body.targetRole || null,
-    title: String(body.title).trim(),
-    message: String(body.message).trim(),
-    type: body.type || "SYSTEM",
-    link: body.link || null,
+  const title = String(body.title).trim();
+  const message = String(body.message).trim();
+  const link = body.link ? String(body.link) : undefined;
+  const targetRole = VALID_ROLES.includes(body.targetRole) ? body.targetRole : null;
+  const targetUserId = body.userId ? String(body.userId) : null;
+
+  const recipients = await prisma.user.findMany({
+    where: targetUserId ? { id: targetUserId } : targetRole ? { role: targetRole } : {},
+    select: { id: true },
   });
+
+  if (recipients.length === 0) {
+    return NextResponse.json({ error: "Aucun destinataire trouvé pour cette diffusion." }, { status: 400 });
+  }
+
+  const broadcastId = `broadcast_${Date.now()}`;
+  await Promise.all(
+    recipients.map((recipient) =>
+      notifyUser({
+        userId: recipient.id,
+        type: "ADMIN_ANNOUNCEMENT",
+        title,
+        message,
+        link,
+        dedupeKey: `${broadcastId}:${recipient.id}`,
+      }),
+    ),
+  );
 
   return NextResponse.json({
     success: true,
-    message: "Notification diffusée avec succès !",
-    notification,
+    message: `Notification diffusée à ${recipients.length} utilisateur(s).`,
+    recipientCount: recipients.length,
   });
 }
