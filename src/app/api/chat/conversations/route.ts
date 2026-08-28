@@ -41,6 +41,10 @@ export async function GET(request: Request) {
       }
     } catch {}
 
+    if (teacherUserId === user.id) {
+      return NextResponse.json({ error: "Vous ne pouvez pas démarrer une conversation avec vous-même." }, { status: 400 });
+    }
+
     const conv = await getOrCreateConversation({
       studentId: user.role === "TEACHER" ? teacherUserId : user.id,
       teacherId: user.role === "TEACHER" ? user.id : teacherUserId,

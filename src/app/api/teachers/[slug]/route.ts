@@ -32,6 +32,7 @@ export async function GET(
 
       return NextResponse.json({
         id: profile.id,
+        userId: profile.userId,
         slug: profile.slug,
         avatarUrl: profile.avatarUrl,
         name: `${profile.user.firstName} ${profile.user.lastName}`.trim(),
@@ -72,6 +73,7 @@ export async function GET(
 
     return NextResponse.json({
       id: t.id,
+      userId: t.userId,
       slug: t.slug,
       avatarUrl: t.avatarUrl,
       name,

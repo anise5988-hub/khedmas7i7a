@@ -108,6 +108,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Professeur non disponible ou non vérifié." }, { status: 404 });
     }
 
+    if (teacher.userId === user.id) {
+      return NextResponse.json({ error: "Vous ne pouvez pas réserver une séance avec vous-même." }, { status: 400 });
+    }
+
     const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
     const amountToUse = Math.round((teacher.hourlyRateMillimes * parsed.data.durationMinutes) / 60);
 

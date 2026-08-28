@@ -12,6 +12,7 @@ import {
 
 type TeacherData = {
   id: string;
+  userId: string;
   slug: string;
   avatarUrl?: string | null;
   name: string;
@@ -105,6 +106,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
   const [teacher, setTeacher] = useState<TeacherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
   const [mode, setMode] = useState<"ONLINE" | "IN_PERSON">("ONLINE");
@@ -130,6 +132,11 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
         setError(err.message || "Impossible de charger le professeur");
       })
       .finally(() => setLoading(false));
+
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setCurrentUserId(data?.user?.id || null))
+      .catch(() => {});
   }, [slug]);
 
   if (loading) {
@@ -157,6 +164,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
   }
 
   const calculatedPrice = Math.round((teacher.rateTnd * duration) / 60);
+  const isOwnProfile = currentUserId !== null && currentUserId === teacher.userId;
 
   async function handleBook(e: React.FormEvent) {
     e.preventDefault();
@@ -293,14 +301,23 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
               </div>
 
+              {isOwnProfile && (
+                <div className="mt-6 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-500">
+                  Ceci est votre profil public — c&apos;est ainsi que les élèves vous voient. Vous ne pouvez pas réserver ou vous
+                  envoyer un message à vous-même.
+                </div>
+              )}
+
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866]"
-                >
-                  <IconCalendar className="h-4 w-4" />
-                  Réserver une séance
-                </button>
+                {!isOwnProfile && (
+                  <button
+                    onClick={() => bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866]"
+                  >
+                    <IconCalendar className="h-4 w-4" />
+                    Réserver une séance
+                  </button>
+                )}
                 <button
                   onClick={() => availabilitiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
                   className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3.5 text-center text-sm font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
@@ -308,6 +325,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   <ClockIcon />
                   Voir les disponibilités
                 </button>
+                {!isOwnProfile && (
                 <Link
                   href={`/dashboard/messages?teacherId=${teacher.id}`}
                   className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white py-3.5 text-center text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
@@ -315,6 +333,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   <MessageIcon />
                   Envoyer un message
                 </Link>
+                )}
               </div>
             </div>
 
@@ -441,6 +460,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
               </div>
 
+              {!isOwnProfile && (
               <div className="space-y-1.5">
                 <a
                   href={`/dashboard/messages?teacherId=${teacher.id}`}
@@ -451,6 +471,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </a>
                 <p className="text-[11px] text-slate-400 text-center">Pour une offre spécifique ou un cours personnalisé</p>
               </div>
+              )}
 
               {bookingResult && (
                 <div
@@ -480,6 +501,11 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
               )}
 
+              {isOwnProfile ? (
+                <p className="border-t border-slate-100 pt-5 text-xs text-slate-400 text-center">
+                  Vous ne pouvez pas réserver une séance sur votre propre profil.
+                </p>
+              ) : (
               <form onSubmit={handleBook} className="space-y-4 border-t border-slate-100 pt-5">
                 <h3 className="font-bold text-base text-[#11233f]">Réserver une séance</h3>
 
@@ -600,11 +626,14 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   <span>{bookingLoading ? "Réservation en cours..." : `Confirmer et Réserver (${calculatedPrice} DT) →`}</span>
                 </button>
               </form>
+              )}
 
+              {!isOwnProfile && (
               <div className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400 pt-1">
                 <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
                 <span>Paiement sécurisé par Wallet ProfySpace.tn ou règlement direct</span>
               </div>
+              )}
             </div>
           </div>
         </div>

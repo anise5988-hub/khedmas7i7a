@@ -25,6 +25,9 @@ export async function POST(
   if (existingOffer.status !== "PENDING") {
     return NextResponse.json({ error: "Cette offre a déjà été traitée." }, { status: 409 });
   }
+  if (existingOffer.teacherId === user.id) {
+    return NextResponse.json({ error: "Vous ne pouvez pas réserver une séance avec vous-même." }, { status: 400 });
+  }
 
   // A suspended/rejected teacher must not be able to get paid just
   // because the offer flow doesn't share the same status check as direct
