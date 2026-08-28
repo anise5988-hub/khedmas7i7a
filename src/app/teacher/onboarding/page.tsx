@@ -38,6 +38,7 @@ export default function TeacherOnboardingPage() {
 
   const [title, setTitle] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [bio, setBio] = useState("");
   const [experienceYears, setExperienceYears] = useState(2);
   const [hourlyRate, setHourlyRate] = useState(25);
@@ -142,16 +143,27 @@ export default function TeacherOnboardingPage() {
     }).catch(() => {});
   }
 
-  function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setAvatarUrl(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) {
+      setMessage({ type: "error", text: "Veuillez choisir une image." });
+      return;
+    }
+    setAvatarUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", "image");
+    try {
+      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Envoi de la photo impossible.");
+      setAvatarUrl(data.url);
+    } catch (err) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Envoi de la photo impossible." });
+    } finally {
+      setAvatarUploading(false);
+    }
   }
 
   function toggleSubject(subj: string) {
@@ -336,10 +348,11 @@ export default function TeacherOnboardingPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50"
+                  disabled={avatarUploading}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 disabled:opacity-50"
                 >
                   <IconCamera className="h-4 w-4 text-[#0d8d78]" />
-                  <span>{avatarUrl ? "Modifier ma photo" : "Ajouter une photo de profil"}</span>
+                  <span>{avatarUploading ? "Envoi en cours..." : avatarUrl ? "Modifier ma photo" : "Ajouter une photo de profil"}</span>
                 </button>
                 <p className="text-xs text-slate-400">
                   Format JPG, PNG ou WebP. Une photo professionnelle augmente le taux de réservation.
