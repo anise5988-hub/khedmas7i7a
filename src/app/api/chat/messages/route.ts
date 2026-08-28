@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { chatStore, CustomOffer } from "@/lib/server/chat-store";
+import { getConversationById, sendMessage } from "@/lib/server/chat-repository";
 import { notifyUser } from "@/lib/server/notification-service";
 
 export async function POST(request: Request) {
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Conversation ID requis" }, { status: 400 });
   }
 
-  const conv = chatStore.getConversationById(body.conversationId);
+  const conv = await getConversationById(body.conversationId);
   if (!conv) {
     return NextResponse.json({ error: "Conversation introuvable" }, { status: 404 });
   }
@@ -22,38 +22,59 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Vous ne faites pas partie de cette conversation." }, { status: 403 });
   }
 
-  let offerObj: CustomOffer | null = null;
+  let offerParams: {
+    teacherId: string;
+    studentId: string;
+    subject: string;
+    startsAt: Date;
+    durationMinutes: number;
+    amountMillimes: number;
+  } | null = null;
+  let offerAmountTnd = 0;
+  let offerSubject = "";
 
   if (body.offer && user.role === "TEACHER") {
-    const amountTnd = Number(body.offer.amountTnd) || 0;
-    offerObj = {
-      id: `offer_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      conversationId: body.conversationId,
+    offerAmountTnd = Number(body.offer.amountTnd) || 0;
+    offerSubject = String(body.offer.subject || "Cours particulier").trim();
+    offerParams = {
       teacherId: user.id,
-      teacherName: `${user.firstName} ${user.lastName}`,
       studentId: conv.studentId,
-      studentName: conv.studentName,
-      subject: String(body.offer.subject || "Cours particulier").trim(),
-      startsAt: String(body.offer.startsAt || new Date().toISOString()),
+      subject: offerSubject,
+      startsAt: new Date(body.offer.startsAt || Date.now()),
       durationMinutes: Number(body.offer.durationMinutes) || 60,
-      amountTnd,
-      amountMillimes: Math.round(amountTnd * 1000),
-      status: "PENDING",
-      createdAt: new Date(),
+      amountMillimes: Math.round(offerAmountTnd * 1000),
     };
+  }
 
+  const text = body.text || (offerParams ? `Propose une offre de cours : ${offerSubject} à ${offerAmountTnd} DT` : "");
+  if (!text.trim()) {
+    return NextResponse.json({ error: "Message vide." }, { status: 400 });
+  }
+
+  const msg = await sendMessage({
+    conversationId: body.conversationId,
+    senderId: user.id,
+    text,
+    offer: offerParams,
+  });
+
+  if (!msg) {
+    return NextResponse.json({ error: "Impossible d'envoyer le message." }, { status: 500 });
+  }
+
+  if (msg.offer) {
     await notifyUser({
       userId: conv.studentId,
       type: "NEW_MESSAGE",
       title: "Nouvelle offre de cours reçue",
-      message: `${user.firstName} ${user.lastName} vous a envoyé une offre de cours pour ${amountTnd} DT.`,
+      message: `${user.firstName} ${user.lastName} vous a envoyé une offre de cours pour ${offerAmountTnd} DT.`,
       link: `/dashboard/messages?conversationId=${conv.id}`,
       emailSubject: "Vous avez reçu une nouvelle offre sur Profy",
-      dedupeKey: `offer:${offerObj.id}`,
+      dedupeKey: `offer:${msg.offer.id}`,
     });
-  } else if (body.text && body.text.trim()) {
+  } else {
     const recipientId = user.id === conv.studentId ? conv.teacherId : conv.studentId;
-    const previewText = body.text.trim().length > 80 ? body.text.trim().substring(0, 80) + "..." : body.text.trim();
+    const previewText = text.trim().length > 80 ? text.trim().substring(0, 80) + "..." : text.trim();
 
     await notifyUser({
       userId: recipientId,
@@ -63,18 +84,9 @@ export async function POST(request: Request) {
       emailMessage: `Message de ${user.firstName} ${user.lastName} : ${previewText}`,
       emailSubject: "Vous avez un nouveau message sur Profy",
       link: `/dashboard/messages?conversationId=${conv.id}`,
-      dedupeKey: `message:${body.conversationId}:${user.id}:${Date.now()}`,
+      dedupeKey: `message:${msg.id}`,
     });
   }
-
-  const msg = chatStore.sendMessage({
-    conversationId: body.conversationId,
-    senderId: user.id,
-    senderName: `${user.firstName} ${user.lastName}`,
-    senderRole: user.role === "TEACHER" ? "TEACHER" : "STUDENT",
-    text: body.text || (offerObj ? `Propose une offre de cours : ${offerObj.subject} à ${offerObj.amountTnd} DT` : ""),
-    offer: offerObj,
-  });
 
   return NextResponse.json({ success: true, message: msg });
 }

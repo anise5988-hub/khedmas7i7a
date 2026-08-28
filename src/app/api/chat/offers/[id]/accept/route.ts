@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { chatStore } from "@/lib/server/chat-store";
+import { getOfferById } from "@/lib/server/chat-repository";
 import { prisma } from "@/lib/server/prisma";
 import { notifyUser } from "@/lib/server/notification-service";
 import { creditTeacherEarning } from "@/lib/server/earnings";
@@ -15,12 +15,15 @@ export async function POST(
   }
 
   const { id: offerId } = await params;
-  const existingOffer = chatStore.getOfferById(offerId);
+  const existingOffer = await getOfferById(offerId);
   if (!existingOffer) {
     return NextResponse.json({ error: "Offre introuvable" }, { status: 404 });
   }
   if (existingOffer.studentId !== user.id) {
     return NextResponse.json({ error: "Vous n'êtes pas autorisé à accepter cette offre." }, { status: 403 });
+  }
+  if (existingOffer.status !== "PENDING") {
+    return NextResponse.json({ error: "Cette offre a déjà été traitée." }, { status: 409 });
   }
 
   // A suspended/rejected teacher must not be able to get paid just
@@ -35,106 +38,102 @@ export async function POST(
     }, { status: 409 });
   }
 
-  const updateRes = chatStore.updateOfferStatus(offerId, "ACCEPTED");
+  const requiredMillimes = existingOffer.amountMillimes;
 
-  if (!updateRes.success || !updateRes.offer) {
-    return NextResponse.json({ error: "Offre introuvable" }, { status: 404 });
-  }
-
-  const offer = updateRes.offer;
-
-  // Check student wallet balance
-  let studentWallet = null;
+  // The offer-status flip, wallet debit, booking creation and earnings
+  // credit all live in one transaction — either all of it lands or none
+  // of it does. The conditional updateMany calls (status must still be
+  // PENDING; balance must still cover the amount) close the race where
+  // two concurrent accepts, or an accept racing a balance change, could
+  // otherwise double-book or overdraft.
   try {
-    studentWallet = await prisma.wallet.findUnique({
-      where: { userId: user.id },
-    });
-  } catch {}
-
-  const currentAvailable = studentWallet ? studentWallet.availableMillimes : 0;
-  const requiredMillimes = offer.amountMillimes;
-
-  if (currentAvailable < requiredMillimes) {
-    // Revert status back to PENDING if balance insufficient
-    chatStore.updateOfferStatus(offerId, "PENDING");
-    return NextResponse.json({
-      error: `Solde insuffisant dans votre portefeuille (${(currentAvailable / 1000).toFixed(1)} DT disponibles). Veuillez recharger au moins ${offer.amountTnd} DT.`,
-      insufficientBalance: true,
-    }, { status: 400 });
-  }
-
-    // Deduct from student wallet, create the booking and credit the
-    // teacher's earnings atomically so partial failures never leave the
-    // student charged without a confirmed booking (or vice versa).
-    try {
-      await prisma.$transaction(async (tx) => {
-        const deduction = await tx.wallet.updateMany({
-          where: { userId: user.id, availableMillimes: { gte: requiredMillimes } },
-          data: { availableMillimes: { decrement: requiredMillimes } },
-        });
-
-        if (deduction.count !== 1) {
-          throw new Error("WALLET_BALANCE_CHANGED");
-        }
-
-        const updatedWallet = await tx.wallet.findUnique({ where: { userId: user.id } });
-        if (!updatedWallet) throw new Error("WALLET_NOT_FOUND");
-
-        await tx.walletTransaction.create({
-          data: {
-            walletId: updatedWallet.id,
-            type: "BOOKING_PAYMENT",
-            amountMillimes: -requiredMillimes,
-            reference: `OFFER-${offer.id}`,
-          },
-        });
-
-        if (teacherProfile) {
-          await tx.booking.create({
-            data: {
-              studentId: user.id,
-              teacherId: teacherProfile.id,
-              startsAt: new Date(offer.startsAt),
-              durationMinutes: offer.durationMinutes,
-              amountMillimes: offer.amountMillimes,
-              status: "CONFIRMED",
-            },
-          });
-
-          await creditTeacherEarning(tx, {
-            teacherUserId: teacherProfile.userId,
-            grossAmountMillimes: requiredMillimes,
-            reference: `EARN-OFFER-${offer.id}`,
-          });
-        }
+    await prisma.$transaction(async (tx) => {
+      const offerUpdate = await tx.chatOffer.updateMany({
+        where: { id: offerId, status: "PENDING" },
+        data: { status: "ACCEPTED" },
       });
-    } catch (dbErr) {
-      console.error("Offer acceptance payment failed", dbErr);
-      chatStore.updateOfferStatus(offerId, "PENDING");
+      if (offerUpdate.count !== 1) {
+        throw new Error("OFFER_ALREADY_HANDLED");
+      }
+
+      const deduction = await tx.wallet.updateMany({
+        where: { userId: user.id, availableMillimes: { gte: requiredMillimes } },
+        data: { availableMillimes: { decrement: requiredMillimes } },
+      });
+      if (deduction.count !== 1) {
+        throw new Error("INSUFFICIENT_BALANCE");
+      }
+
+      const updatedWallet = await tx.wallet.findUnique({ where: { userId: user.id } });
+      if (!updatedWallet) throw new Error("WALLET_NOT_FOUND");
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: updatedWallet.id,
+          type: "BOOKING_PAYMENT",
+          amountMillimes: -requiredMillimes,
+          reference: `OFFER-${offerId}`,
+        },
+      });
+
+      await tx.booking.create({
+        data: {
+          studentId: user.id,
+          teacherId: teacherProfile.id,
+          startsAt: new Date(existingOffer.startsAt),
+          durationMinutes: existingOffer.durationMinutes,
+          amountMillimes: existingOffer.amountMillimes,
+          status: "CONFIRMED",
+        },
+      });
+
+      await creditTeacherEarning(tx, {
+        teacherUserId: teacherProfile.userId,
+        grossAmountMillimes: requiredMillimes,
+        reference: `EARN-OFFER-${offerId}`,
+      });
+    });
+  } catch (dbErr) {
+    const reason = dbErr instanceof Error ? dbErr.message : "";
+
+    if (reason === "OFFER_ALREADY_HANDLED") {
+      return NextResponse.json({ error: "Cette offre a déjà été traitée." }, { status: 409 });
+    }
+    if (reason === "INSUFFICIENT_BALANCE") {
+      const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
+      const currentAvailable = wallet?.availableMillimes ?? 0;
       return NextResponse.json({
-        error: "Le paiement n'a pas pu être confirmé. Aucune séance n'a été réservée.",
-      }, { status: 502 });
+        error: `Solde insuffisant dans votre portefeuille (${(currentAvailable / 1000).toFixed(1)} DT disponibles). Veuillez recharger au moins ${existingOffer.amountTnd} DT.`,
+        insufficientBalance: true,
+      }, { status: 400 });
     }
 
-  // Send notifications and emails
+    console.error("Offer acceptance payment failed", dbErr);
+    return NextResponse.json({
+      error: "Le paiement n'a pas pu être confirmé. Aucune séance n'a été réservée.",
+    }, { status: 502 });
+  }
+
+  const offer = await getOfferById(offerId);
+
   await Promise.all([
     notifyUser({
-      userId: offer.teacherId,
+      userId: existingOffer.teacherId,
       type: "OFFER_ACCEPTED",
       title: "Offre acceptée & Cours réservé ! 🎉",
-      message: `${user.firstName} ${user.lastName} a accepté votre offre pour "${offer.subject}" (${offer.amountTnd} DT).`,
-      emailSubject: `Votre offre de cours "${offer.subject}" a été acceptée`,
+      message: `${user.firstName} ${user.lastName} a accepté votre offre pour "${existingOffer.subject}" (${existingOffer.amountTnd} DT).`,
+      emailSubject: `Votre offre de cours "${existingOffer.subject}" a été acceptée`,
       link: "/teacher/dashboard/bookings",
-      dedupeKey: `offer_accept_teacher:${offer.id}`,
+      dedupeKey: `offer_accept_teacher:${offerId}`,
     }),
     notifyUser({
       userId: user.id,
       type: "BOOKING_CONFIRMED",
       title: "Réservation confirmée ! ✅",
-      message: `Votre séance pour "${offer.subject}" avec ${offer.teacherName} est confirmée.`,
-      emailSubject: `Votre réservation pour "${offer.subject}" est confirmée`,
+      message: `Votre séance pour "${existingOffer.subject}" avec ${existingOffer.teacherName} est confirmée.`,
+      emailSubject: `Votre réservation pour "${existingOffer.subject}" est confirmée`,
       link: "/dashboard/bookings",
-      dedupeKey: `offer_accept_student:${offer.id}`,
+      dedupeKey: `offer_accept_student:${offerId}`,
     }),
   ]);
 
