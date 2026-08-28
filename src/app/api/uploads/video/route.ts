@@ -12,7 +12,6 @@ export async function POST(request: Request) {
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const bucket = process.env.SUPABASE_VIDEO_BUCKET || "course-videos";
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Le stockage vidéo n'est pas configuré." }, { status: 503 });
   }
@@ -23,6 +22,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Fichier vidéo manquant." }, { status: 400 });
   }
   const kind = String(formData.get("kind") || "video");
+  // Avatars must be publicly viewable by anyone browsing a teacher's
+  // profile, unlike paid lesson videos/PDFs — so they go in their own
+  // public bucket instead of the private course-videos bucket, whose
+  // getPublicUrl() output 404s for anonymous visitors.
+  const bucket = kind === "image" ? process.env.SUPABASE_AVATAR_BUCKET || "avatars" : process.env.SUPABASE_VIDEO_BUCKET || "course-videos";
   const allowed = kind === "pdf" ? file.type === "application/pdf" : kind === "image" ? file.type.startsWith("image/") : file.type.startsWith("video/");
   if (!allowed) {
     return NextResponse.json({ error: kind === "pdf" ? "Le fichier doit être un PDF." : kind === "image" ? "Le fichier doit être une image." : "Le fichier doit être une vidéo." }, { status: 400 });
