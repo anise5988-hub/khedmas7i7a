@@ -64,7 +64,7 @@ export async function ensureUserProfile(input: {
             slug,
             hourlyRateMillimes: 25000,
             experienceYears: 1,
-            verificationStatus: "APPROVED",
+            verificationStatus: "PENDING",
             online: true,
           },
         });
@@ -118,7 +118,7 @@ export async function ensureUserProfile(input: {
                     .replace(/^-|-$/g, ""),
                   hourlyRateMillimes: 25000,
                   experienceYears: 1,
-                  verificationStatus: "APPROVED",
+                  verificationStatus: "PENDING",
                   online: true,
                 },
               },
