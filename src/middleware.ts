@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { verifySessionToken } from "@/lib/server/session-token";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Identify protected route areas
@@ -13,9 +14,23 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Read authenticated session cookies
-  const userId = request.cookies.get("profy_user_id")?.value;
-  const role = request.cookies.get("profy_role")?.value;
+  // 2. Resolve identity/role from the signed session cookie — this is the
+  // only claim middleware can't have re-verified against the database (it
+  // runs on the Edge runtime, before any API route gets a chance to), so it
+  // must not trust the plain profy_user_id/profy_role cookies, which are
+  // trivially editable by anyone with browser devtools access.
+  const session = await verifySessionToken(request.cookies.get("profy_session")?.value);
+
+  // Sessions created before signed cookies existed only have the legacy
+  // unsigned cookies. Accept them as a fallback so those users aren't
+  // logged out immediately — they'll get a signed cookie on next login and
+  // this fallback can be removed once the 30-day cookie lifetime has passed.
+  const legacyUserId = request.cookies.get("profy_user_id")?.value;
+  const legacyRole = request.cookies.get("profy_role")?.value;
+
+  const userId = session?.userId ?? legacyUserId;
+  const role = session?.role ?? legacyRole;
+
   // 3. Unauthenticated access check
   if (!userId) {
     const loginUrl = new URL("/login", request.url);

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
+import { setSessionCookies } from "@/lib/server/session-cookies";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -38,10 +39,7 @@ export async function GET(request: Request) {
     },
   });
 
-  const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 60 * 60 * 24 * 30 };
-  response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
-  response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
-  response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+  await setSessionCookies(response, { id: user.id, role: user.role });
 
   return response;
 }

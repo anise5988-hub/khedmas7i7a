@@ -4,6 +4,7 @@ import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "./fallback-store";
 import { supabaseAuth } from "@/lib/server/supabase-auth";
 import { ensureUserProfile } from "./profile-sync";
+import { verifySessionToken } from "./session-token";
 
 export async function getCurrentUser(request?: Request) {
   let userId: string | undefined;
@@ -32,7 +33,9 @@ export async function getCurrentUser(request?: Request) {
             return [k, decodeURIComponent(v.join("="))];
           })
         );
-        userId = cookiesMap["profy_user_id"] || cookiesMap["profyspace_user_id"];
+
+        const session = await verifySessionToken(cookiesMap["profy_session"]);
+        userId = session?.userId || cookiesMap["profy_user_id"] || cookiesMap["profyspace_user_id"];
 
         if (!userId && cookiesMap["profy_supabase_access_token"] && supabaseAuth) {
           try {
@@ -63,7 +66,8 @@ export async function getCurrentUser(request?: Request) {
       }
 
       if (!userId) {
-        userId = cookieStore.get("profy_user_id")?.value || cookieStore.get("profyspace_user_id")?.value;
+        const session = await verifySessionToken(cookieStore.get("profy_session")?.value);
+        userId = session?.userId || cookieStore.get("profy_user_id")?.value || cookieStore.get("profyspace_user_id")?.value;
       }
     } catch {}
   }

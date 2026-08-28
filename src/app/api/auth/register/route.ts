@@ -6,6 +6,7 @@ import { registerSchema } from "@/lib/validation/auth";
 import { fallbackStore } from "@/lib/server/fallback-store";
 import { supabaseAuth } from "@/lib/server/supabase-auth";
 import { sendTransactionalEmail } from "@/lib/server/email";
+import { setSessionCookies } from "@/lib/server/session-cookies";
 
 export async function POST(request: Request) {
   const parsed = registerSchema.safeParse(await request.json().catch(() => null));
@@ -164,15 +165,7 @@ export async function POST(request: Request) {
       message: "Compte créé avec succès !",
     }, { status: 201 });
 
-    const cookieOptions = {
-      path: "/",
-      sameSite: "lax" as const,
-      maxAge: 60 * 60 * 24 * 30,
-    };
-
-    response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+    await setSessionCookies(response, { id: user.id, role: user.role });
 
     return response;
   } catch (error) {

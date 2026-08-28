@@ -3,6 +3,7 @@ import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
 import { supabaseAuth } from "@/lib/server/supabase-auth";
 import { ensureUserProfile } from "@/lib/server/profile-sync";
+import { setSessionCookies } from "@/lib/server/session-cookies";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -24,21 +25,13 @@ export async function POST(request: Request) {
       const response = NextResponse.json({ success: true, role: syncedUser.role, user: { id: syncedUser.id, firstName: syncedUser.firstName, lastName: syncedUser.lastName, email: syncedUser.email, role: syncedUser.role }, needsPasswordSetup: false });
       const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 60 * 60 * 24 * 30 };
       response.cookies.set("profy_supabase_access_token", String(body.accessToken), { ...cookieOptions, httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 });
-      response.cookies.set("profy_user_id", syncedUser.id, { ...cookieOptions, httpOnly: true });
-      response.cookies.set("profy_role", syncedUser.role, { ...cookieOptions, httpOnly: true });
-      response.cookies.set("profyspace_user_id", syncedUser.id, { ...cookieOptions, httpOnly: false });
+      await setSessionCookies(response, { id: syncedUser.id, role: syncedUser.role });
       return response;
     } catch (error) {
       console.error("Google profile synchronization failed", error);
       return NextResponse.json({ error: "Connexion Google réussie, mais votre profil n'a pas pu être initialisé. Réessayez." }, { status: 503 });
     }
   }
-
-  const cookieOptions = {
-    path: "/",
-    sameSite: "lax" as const,
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-  };
 
   try {
     let user = await prisma.user.findUnique({
@@ -110,9 +103,7 @@ export async function POST(request: Request) {
       needsPasswordSetup,
     });
 
-    response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+    await setSessionCookies(response, { id: user.id, role: user.role });
 
     return response;
   } catch (dbError) {
@@ -149,9 +140,7 @@ export async function POST(request: Request) {
     needsPasswordSetup,
   });
 
-  response.cookies.set("profy_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: true });
-  response.cookies.set("profy_role", fallbackUser.role, { ...cookieOptions, httpOnly: true });
-  response.cookies.set("profyspace_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: false });
+  await setSessionCookies(response, { id: fallbackUser.id, role: fallbackUser.role });
 
   return response;
 }

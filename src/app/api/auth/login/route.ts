@@ -5,6 +5,7 @@ import { loginSchema } from "@/lib/validation/login";
 import { fallbackStore } from "@/lib/server/fallback-store";
 import { supabaseAuth } from "@/lib/server/supabase-auth";
 import { ensureUserProfile } from "@/lib/server/profile-sync";
+import { setSessionCookies } from "@/lib/server/session-cookies";
 
 async function safeComparePassword(plainPassword: string, hashInDb?: string | null): Promise<boolean> {
   if (!hashInDb || hashInDb === "supabase_auth" || hashInDb === "google_oauth") return false;
@@ -83,9 +84,7 @@ export async function POST(request: Request) {
           user: userData,
         }, { status: 200 });
 
-        response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
-        response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
-        response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
+        await setSessionCookies(response, { id: user.id, role: user.role });
 
         return response;
       }
@@ -147,9 +146,7 @@ export async function POST(request: Request) {
           secure: process.env.NODE_ENV === "production",
           maxAge: 60 * 60,
         });
-        response.cookies.set("profy_user_id", profile.id, { ...cookieOptions, httpOnly: true });
-        response.cookies.set("profy_role", profile.role, { ...cookieOptions, httpOnly: true });
-        response.cookies.set("profyspace_user_id", profile.id, { ...cookieOptions, httpOnly: false });
+        await setSessionCookies(response, { id: profile.id, role: profile.role });
         return response;
       }
     } catch (supabaseErr) {
@@ -175,9 +172,7 @@ export async function POST(request: Request) {
       user: userData,
     }, { status: 200 });
 
-    response.cookies.set("profy_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profy_role", fallbackUser.role, { ...cookieOptions, httpOnly: true });
-    response.cookies.set("profyspace_user_id", fallbackUser.id, { ...cookieOptions, httpOnly: false });
+    await setSessionCookies(response, { id: fallbackUser.id, role: fallbackUser.role });
 
     return response;
   }

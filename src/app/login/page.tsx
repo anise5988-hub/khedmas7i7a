@@ -63,11 +63,6 @@ export default function LoginPage() {
     if (result.user?.id) {
       localStorage.setItem("profyspace_user_id", result.user.id);
       localStorage.setItem("profyspace_user", JSON.stringify(result.user));
-      if (typeof document !== "undefined") {
-        document.cookie = `profy_user_id=${result.user.id}; path=/; max-age=2592000; SameSite=Lax`;
-        document.cookie = `profy_role=${result.role}; path=/; max-age=2592000; SameSite=Lax`;
-        document.cookie = `profyspace_user_id=${result.user.id}; path=/; max-age=2592000; SameSite=Lax`;
-      }
     }
 
     // Redirect to the appropriate dashboard

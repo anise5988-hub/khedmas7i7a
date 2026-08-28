@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { compare } from "bcryptjs";
 import { z } from "zod";
+import { clearSessionCookies } from "@/lib/server/session-cookies";
 
 const deleteAccountSchema = z.object({
   password: z.string().min(1),
@@ -38,8 +39,7 @@ export async function POST(request: Request) {
       message: "Votre compte a été définitivement supprimé.",
     });
 
-    response.cookies.delete("profy_user_id");
-    response.cookies.delete("profy_role");
+    clearSessionCookies(response);
     return response;
   } catch (error) {
     console.error("Delete account failed", error);
