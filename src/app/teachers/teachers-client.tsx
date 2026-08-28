@@ -579,11 +579,11 @@ function FilterSidebar({
                   {sorted.map((t) => (
                   <div
                     key={t.id}
-                    className="group flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#72d6bf] hover:shadow-xl"
+                    className="group flex min-w-0 flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#72d6bf] hover:shadow-xl"
                   >
                     <div>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
                           <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78] overflow-hidden border border-[#0d8d78]/20">
                             {t.avatarUrl ? (
                               <img src={t.avatarUrl} alt={t.name} className="h-full w-full object-cover" />
@@ -642,7 +642,7 @@ function FilterSidebar({
                     </div>
 
                     <div className="mt-5 border-t border-slate-100 pt-4 space-y-3">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
                           <span className="text-[11px] text-slate-400">À partir de</span>
                           <p className="text-lg font-bold text-[#0d8d78]">
@@ -664,7 +664,7 @@ function FilterSidebar({
                           </a>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           {t.online && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 px-2 py-0.5 text-[10px] font-bold text-[#0d8d78]">
@@ -679,7 +679,7 @@ function FilterSidebar({
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400">Cliquez sur Discuter pour une offre spécifique</span>
+                        <span className="hidden text-[10px] text-slate-400 sm:inline">Cliquez sur Discuter pour une offre spécifique</span>
                       </div>
                     </div>
                   </div>
