@@ -13,8 +13,16 @@ const cookieOptions = {
 // alongside it only so sessions created before this change (which only
 // have the legacy cookies) keep working until they expire or re-login.
 export async function setSessionCookies(response: NextResponse, user: { id: string; role: string }) {
-  const session = await createSessionToken({ userId: user.id, role: user.role });
-  response.cookies.set("profy_session", session, { ...cookieOptions, httpOnly: true });
+  // If AUTH_SECRET isn't configured, signing throws. Don't let that break
+  // login/register/session-refresh for every user — fall back to the
+  // legacy unsigned cookies (same as before this change existed) and let
+  // middleware's own legacy fallback keep working until the secret is set.
+  try {
+    const session = await createSessionToken({ userId: user.id, role: user.role });
+    response.cookies.set("profy_session", session, { ...cookieOptions, httpOnly: true });
+  } catch (error) {
+    console.error("Failed to sign session cookie — is AUTH_SECRET configured?", error);
+  }
   response.cookies.set("profy_user_id", user.id, { ...cookieOptions, httpOnly: true });
   response.cookies.set("profy_role", user.role, { ...cookieOptions, httpOnly: true });
   response.cookies.set("profyspace_user_id", user.id, { ...cookieOptions, httpOnly: false });
