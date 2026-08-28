@@ -22,6 +22,13 @@ enum VerificationStatus {
   SUSPENDED
 }
 
+enum VerificationDocumentType {
+  NATIONAL_ID
+  DIPLOMA
+  CERTIFICATE
+  OTHER
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -119,6 +126,20 @@ model TeacherProfile {
   reviews            Review[]
   favorites          Favorite[]
   courses             Course[]
+  verificationDocuments TeacherVerificationDocument[]
+}
+
+model TeacherVerificationDocument {
+  id          String @id @default(cuid())
+  teacherId   String
+  type        VerificationDocumentType
+  storagePath String
+  fileName    String
+  mimeType    String
+  createdAt   DateTime @default(now())
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
 }
 
 model TeacherSubject {

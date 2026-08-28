@@ -6,6 +6,21 @@ import { useEffect, useState, useRef } from "react";
 import { subjects, governorates } from "@/lib/domain/catalog";
 import { IconCamera, IconCheck, IconShield, IconUser } from "@/components/icons";
 
+const documentTypeLabels: Record<string, string> = {
+  NATIONAL_ID: "Carte d'identité nationale (CIN)",
+  DIPLOMA: "Diplôme",
+  CERTIFICATE: "Certificat professionnel",
+  OTHER: "Autre document",
+};
+
+type VerificationDocument = {
+  id: string;
+  type: string;
+  fileName: string;
+  url: string | null;
+  createdAt: string;
+};
+
 const days = [
   { index: 0, label: "Lundi" },
   { index: 1, label: "Mardi" },
@@ -42,7 +57,20 @@ export default function TeacherOnboardingPage() {
   });
   const [currentStatus, setCurrentStatus] = useState<string | null>(null);
 
+  const [documents, setDocuments] = useState<VerificationDocument[]>([]);
+  const [documentType, setDocumentType] = useState("NATIONAL_ID");
+  const [documentUploading, setDocumentUploading] = useState(false);
+  const [documentMessage, setDocumentMessage] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
+
+  function loadDocuments() {
+    fetch("/api/teacher/verification-documents", { headers: getAuthHeaders() })
+      .then((res) => (res.ok ? res.json() : { documents: [] }))
+      .then((data) => setDocuments(data.documents || []))
+      .catch(() => {});
+  }
 
   function getAuthHeaders(): Record<string, string> {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
@@ -72,7 +100,47 @@ export default function TeacherOnboardingPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    loadDocuments();
   }, []);
+
+  async function handleDocumentUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDocumentUploading(true);
+    setDocumentMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", documentType);
+      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+      const res = await fetch("/api/teacher/verification-documents", {
+        method: "POST",
+        headers: userId ? { "x-user-id": userId } : undefined,
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setDocumentMessage("Document envoyé avec succès.");
+        loadDocuments();
+      } else {
+        setDocumentMessage(data.error || "Impossible d'envoyer le document.");
+      }
+    } catch {
+      setDocumentMessage("Erreur de connexion au serveur.");
+    } finally {
+      setDocumentUploading(false);
+      if (documentInputRef.current) documentInputRef.current.value = "";
+    }
+  }
+
+  async function handleDocumentDelete(id: string) {
+    setDocuments((prev) => prev.filter((d) => d.id !== id));
+    await fetch(`/api/teacher/verification-documents/${id}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    }).catch(() => {});
+  }
 
   function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -502,6 +570,80 @@ export default function TeacherOnboardingPage() {
                 );
               })}
             </div>
+          </section>
+
+          {/* Section 5: Documents de vérification */}
+          <section className="space-y-4">
+            <h2 className="text-lg font-bold border-b border-slate-100 pb-2">5. Documents de vérification</h2>
+            <p className="text-xs text-slate-500">
+              Ajoutez votre carte d&apos;identité et vos diplômes pour obtenir le badge &laquo; Professeur vérifié &raquo;.
+              Ces documents ne sont jamais publics : seule l&apos;équipe ProfySpace peut les consulter.
+            </p>
+
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:flex-row sm:items-center">
+              <select
+                value={documentType}
+                onChange={(e) => setDocumentType(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold outline-none focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+              >
+                {Object.entries(documentTypeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="file"
+                ref={documentInputRef}
+                onChange={handleDocumentUpload}
+                accept="application/pdf,image/jpeg,image/png,image/webp"
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => documentInputRef.current?.click()}
+                disabled={documentUploading}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-slate-300 px-4 py-3 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                {documentUploading ? "Envoi en cours..." : "Choisir un fichier (PDF, JPG, PNG)"}
+              </button>
+            </div>
+
+            {documentMessage && <p className="text-xs font-semibold text-slate-600">{documentMessage}</p>}
+
+            {documents.length > 0 && (
+              <ul className="space-y-2">
+                {documents.map((doc) => (
+                  <li
+                    key={doc.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm"
+                  >
+                    <div>
+                      <p className="font-semibold">{documentTypeLabels[doc.type] || doc.type}</p>
+                      {doc.url ? (
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-[#0d8d78] hover:underline"
+                        >
+                          {doc.fileName}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-slate-400">{doc.fileName}</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDocumentDelete(doc.id)}
+                      className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100"
+                    >
+                      Supprimer
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <div className="border-t border-slate-200 pt-6">

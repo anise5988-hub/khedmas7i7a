@@ -26,12 +26,46 @@ type TeacherApplicant = {
   createdAt: string;
 };
 
+type VerificationDocument = {
+  id: string;
+  type: string;
+  fileName: string;
+  url: string | null;
+  createdAt: string;
+};
+
+const documentTypeLabels: Record<string, string> = {
+  NATIONAL_ID: "Carte d'identité nationale (CIN)",
+  DIPLOMA: "Diplôme",
+  CERTIFICATE: "Certificat professionnel",
+  OTHER: "Autre document",
+};
+
 export default function AdminTeacherVerificationsPage() {
   const [teachers, setTeachers] = useState<TeacherApplicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("PENDING");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<string>("");
+  const [expandedTeacherId, setExpandedTeacherId] = useState<string | null>(null);
+  const [documentsByTeacher, setDocumentsByTeacher] = useState<Record<string, VerificationDocument[]>>({});
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+
+  function toggleDocuments(teacherId: string) {
+    if (expandedTeacherId === teacherId) {
+      setExpandedTeacherId(null);
+      return;
+    }
+    setExpandedTeacherId(teacherId);
+    if (!documentsByTeacher[teacherId]) {
+      setDocumentsLoading(true);
+      fetch(`/api/admin/teachers/${teacherId}/verification-documents`)
+        .then((res) => (res.ok ? res.json() : { documents: [] }))
+        .then((data) => setDocumentsByTeacher((prev) => ({ ...prev, [teacherId]: data.documents || [] })))
+        .catch(() => {})
+        .finally(() => setDocumentsLoading(false));
+    }
+  }
 
   function loadTeachers() {
     setLoading(true);
@@ -269,8 +303,48 @@ export default function AdminTeacherVerificationsPage() {
                         Fiche ↗
                       </a>
                     )}
+
+                    <button
+                      onClick={() => toggleDocuments(t.id)}
+                      className="rounded-xl bg-white/10 px-3.5 py-2.5 text-xs font-bold text-slate-300 transition hover:bg-white/20"
+                    >
+                      📄 Documents {expandedTeacherId === t.id ? "▲" : "▼"}
+                    </button>
                   </div>
                 </div>
+
+                {expandedTeacherId === t.id && (
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Documents soumis</p>
+                    {documentsLoading && !documentsByTeacher[t.id] ? (
+                      <p className="mt-2 text-xs text-slate-400">Chargement...</p>
+                    ) : (documentsByTeacher[t.id] || []).length === 0 ? (
+                      <p className="mt-2 text-xs text-slate-400">Aucun document soumis pour le moment.</p>
+                    ) : (
+                      <ul className="mt-2 space-y-1.5">
+                        {(documentsByTeacher[t.id] || []).map((doc) => (
+                          <li key={doc.id} className="flex items-center justify-between gap-3 text-xs">
+                            <span className="font-semibold text-slate-300">
+                              {documentTypeLabels[doc.type] || doc.type}
+                            </span>
+                            {doc.url ? (
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-lg bg-[#72d6bf]/20 px-2.5 py-1 font-bold text-[#72d6bf] hover:bg-[#72d6bf]/30"
+                              >
+                                Voir le fichier ↗
+                              </a>
+                            ) : (
+                              <span className="text-slate-500">Lien indisponible</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
 
                 {/* Details Section */}
                 <div className="mt-4 grid gap-4 lg:grid-cols-3 text-sm">

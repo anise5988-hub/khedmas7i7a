@@ -66,7 +66,7 @@ export async function POST(request: Request) {
           await prisma.studentProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id } });
         } else {
           const slug = `${input.firstName}-${input.lastName}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-          await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 25000, experienceYears: 1, verificationStatus: "APPROVED" } });
+          await prisma.teacherProfile.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, slug, hourlyRateMillimes: 25000, experienceYears: 1, verificationStatus: "PENDING" } });
         }
 
         // Sync fallback store
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
                     .replace(/^-|-$/g, ""),
                   hourlyRateMillimes: 25000,
                   experienceYears: 1,
-                  verificationStatus: "APPROVED",
+                  verificationStatus: "PENDING",
                 },
               },
             }),
