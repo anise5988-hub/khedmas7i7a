@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
+import { getCurrentUser } from "@/lib/server/auth";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
@@ -23,6 +24,17 @@ export async function GET(
         },
       },
     });
+
+    // Not yet approved by an admin: invisible to the public, same as a
+    // profile that doesn't exist — except to the teacher previewing their
+    // own pending profile, or an admin reviewing it.
+    if (profile && profile.verificationStatus !== "APPROVED") {
+      const viewer = await getCurrentUser(request);
+      const canPreview = viewer && (viewer.id === profile.userId || viewer.role === "ADMIN");
+      if (!canPreview) {
+        return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
+      }
+    }
 
     if (profile) {
       const avgRating =
@@ -68,6 +80,15 @@ export async function GET(
   const user = fallbackStore.getTeacherBySlug(slug);
   if (user && user.teacher) {
     const t = user.teacher;
+
+    if (t.verificationStatus !== "APPROVED") {
+      const viewer = await getCurrentUser(request);
+      const canPreview = viewer && (viewer.id === t.userId || viewer.role === "ADMIN");
+      if (!canPreview) {
+        return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
+      }
+    }
+
     const name = `${user.firstName} ${user.lastName}`.trim();
     const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
 

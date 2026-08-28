@@ -6,7 +6,11 @@ export async function GET() {
   try {
     const profiles = await prisma.teacherProfile.findMany({
       where: {
-        verificationStatus: { notIn: ["REJECTED", "SUSPENDED"] },
+        // A teacher isn't discoverable by students until an admin has
+        // actually reviewed and approved their application — PENDING and
+        // UNDER_REVIEW profiles stay invisible in search, same as
+        // REJECTED/SUSPENDED ones, until that happens.
+        verificationStatus: "APPROVED",
       },
       include: {
         user: { select: { firstName: true, lastName: true, email: true } },
@@ -66,7 +70,7 @@ export async function GET() {
   // Only use in-memory teachers when the database is unavailable.
   const fallbackUsers = fallbackStore.getAllTeachers();
   const fallbackTeachers = fallbackUsers
-    .filter((u) => u.teacher)
+    .filter((u) => u.teacher && u.teacher.verificationStatus === "APPROVED")
     .map((u) => {
       const t = u.teacher!;
       const initials = `${u.firstName?.[0] ?? "P"}${u.lastName?.[0] ?? "R"}`.toUpperCase();
