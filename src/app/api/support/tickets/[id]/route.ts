@@ -29,9 +29,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     where: { id },
     include: {
       user: { select: { firstName: true, lastName: true, email: true, role: true } },
-      messages: { orderBy: { createdAt: "asc" } },
+      // A conversation that's been open a while shouldn't make every
+      // fetch of it heavier forever — cap to the most recent messages,
+      // same tradeoff a real chat client makes before it bothers with
+      // "load older messages" pagination.
+      messages: { orderBy: { createdAt: "desc" }, take: 100 },
     },
   });
+
+  if (full) {
+    full.messages.reverse();
+  }
 
   return NextResponse.json({ ticket: full });
 }

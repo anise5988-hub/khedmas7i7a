@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,6 +8,8 @@ import {
   IconCreditCard,
   IconCheckCircle,
   IconShield,
+  IconUser,
+  IconCamera,
 } from "@/components/icons";
 
 type Settings = {
@@ -29,6 +32,12 @@ export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
+  const [profile, setProfile] = useState<{ firstName: string; lastName: string; email: string; phone: string; avatarUrl: string } | null>(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
   useEffect(() => {
     fetch("/api/admin/settings")
       .then((res) => (res.ok ? res.json() : null))
@@ -37,7 +46,70 @@ export default function AdminSettingsPage() {
       })
       .catch(() => setError("Impossible de charger les paramètres."))
       .finally(() => setLoading(false));
+
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.user) {
+          setProfile({
+            firstName: data.user.firstName || "",
+            lastName: data.user.lastName || "",
+            email: data.user.email || "",
+            phone: data.user.phone || "",
+            avatarUrl: data.user.avatarUrl || "",
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", "image");
+      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok) {
+        setProfile({ ...profile, avatarUrl: data.url });
+      } else {
+        setProfileError(data.error || "Envoi de la photo impossible.");
+      }
+    } catch {
+      setProfileError("Erreur de connexion.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
+
+  async function handleProfileSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setProfileSaving(true);
+    setProfileSaved(false);
+    setProfileError("");
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setProfileSaved(true);
+        setTimeout(() => setProfileSaved(false), 3000);
+      } else {
+        setProfileError(data.error || "Impossible d'enregistrer le profil.");
+      }
+    } catch {
+      setProfileError("Erreur de connexion au serveur.");
+    } finally {
+      setProfileSaving(false);
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -128,6 +200,83 @@ export default function AdminSettingsPage() {
             <IconCheckCircle className="h-4 w-4" />
             <span>Paramètres de la plateforme enregistrés avec succès !</span>
           </div>
+        )}
+
+        {/* Admin Identity — name + photo shown to visitors when replying via the chat widget */}
+        {profile && (
+          <form onSubmit={handleProfileSave} className="mt-8 rounded-3xl border border-white/10 bg-white/[.04] p-6 sm:p-8 shadow-xl">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#72d6bf]/10 text-[#72d6bf]">
+                <IconUser className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">Mon identité (support & chat)</h2>
+                <p className="text-xs text-slate-400">Votre nom et votre photo apparaissent aux élèves/profs quand vous répondez dans le chat.</p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col items-center gap-4 sm:flex-row">
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/10 bg-white/5">
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt="Votre photo" className="h-full w-full object-cover" />
+                ) : (
+                  <IconUser className="h-8 w-8 text-slate-500" />
+                )}
+              </div>
+              <div className="space-y-2 text-center sm:text-left">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/10">
+                  <IconCamera className="h-4 w-4 text-[#72d6bf]" />
+                  {avatarUploading ? "Envoi en cours..." : profile.avatarUrl ? "Modifier ma photo" : "Ajouter une photo"}
+                  <input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={avatarUploading} className="hidden" />
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Prénom</label>
+                <input
+                  type="text"
+                  value={profile.firstName}
+                  onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                  className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white outline-none focus:border-[#72d6bf]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Nom</label>
+                <input
+                  type="text"
+                  value={profile.lastName}
+                  onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                  className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white outline-none focus:border-[#72d6bf]"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={profile.email}
+                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                  className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white outline-none focus:border-[#72d6bf]"
+                />
+              </div>
+            </div>
+
+            {profileError && (
+              <p className="mt-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs font-bold text-rose-300">{profileError}</p>
+            )}
+            {profileSaved && (
+              <p className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-bold text-emerald-300">Identité mise à jour.</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={profileSaving}
+              className="mt-4 rounded-2xl bg-[#72d6bf] px-5 py-2.5 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] disabled:opacity-50"
+            >
+              {profileSaving ? "Enregistrement..." : "Enregistrer mon identité"}
+            </button>
+          </form>
         )}
 
         <form onSubmit={handleSave} className="mt-8 space-y-6">

@@ -23,16 +23,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const body = await request.json().catch(() => null);
   const text = typeof body?.text === "string" ? body.text.trim() : "";
-  if (!text) return NextResponse.json({ error: "Message vide." }, { status: 400 });
+  const attachmentUrl = typeof body?.attachmentUrl === "string" ? body.attachmentUrl.trim() : null;
+  const attachmentName = typeof body?.attachmentName === "string" ? body.attachmentName.trim() : null;
+  if (!text && !attachmentUrl) return NextResponse.json({ error: "Message vide." }, { status: 400 });
 
   const isAdminReply = !!user && user.role === "ADMIN" && ticket.userId !== user.id;
   const senderId = user ? user.id : `guest:${ticket.guestEmail}`;
   const senderName = user ? `${user.firstName} ${user.lastName}` : ticket.guestName || "Visiteur";
   const senderRole = user ? user.role : "GUEST";
+  const senderAvatarUrl = user?.avatarUrl || null;
 
   const [message] = await prisma.$transaction([
     prisma.supportMessage.create({
-      data: { ticketId: id, senderId, senderName, senderRole, text },
+      data: { ticketId: id, senderId, senderName, senderRole, senderAvatarUrl, text, attachmentUrl, attachmentName },
     }),
     prisma.supportTicket.update({
       where: { id },

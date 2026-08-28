@@ -30,8 +30,10 @@ export async function POST(request: Request) {
   const subject = typeof body?.subject === "string" ? body.subject.trim() : "";
   const text = typeof body?.message === "string" ? body.message.trim() : "";
   const category = typeof body?.category === "string" ? body.category.trim() : null;
+  const attachmentUrl = typeof body?.attachmentUrl === "string" ? body.attachmentUrl.trim() : null;
+  const attachmentName = typeof body?.attachmentName === "string" ? body.attachmentName.trim() : null;
 
-  if (!subject || !text) {
+  if (!subject || (!text && !attachmentUrl)) {
     return NextResponse.json({ error: "Sujet et message obligatoires." }, { status: 400 });
   }
 
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
   const senderId = user ? user.id : `guest:${guestEmail}`;
   const senderName = user ? `${user.firstName} ${user.lastName}` : guestName!;
   const senderRole = user ? user.role : "GUEST";
+  const senderAvatarUrl = user?.avatarUrl || null;
 
   const ticket = await prisma.supportTicket.create({
     data: {
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
       subject,
       category,
       messages: {
-        create: { senderId, senderName, senderRole, text },
+        create: { senderId, senderName, senderRole, senderAvatarUrl, text, attachmentUrl, attachmentName },
       },
     },
     include: { messages: true },

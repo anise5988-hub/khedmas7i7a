@@ -75,6 +75,7 @@ model User {
   firstName String
   lastName  String
   phone     String?
+  avatarUrl String?
   passwordHash String
   role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
@@ -334,14 +335,17 @@ model SupportTicket {
 }
 
 model SupportMessage {
-  id         String   @id @default(cuid())
-  ticketId   String
-  senderId   String
-  senderName String
-  senderRole String
-  text       String
-  createdAt  DateTime @default(now())
-  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  ticketId       String
+  senderId       String
+  senderName     String
+  senderRole     String
+  senderAvatarUrl String?
+  text           String
+  attachmentUrl  String?
+  attachmentName String?
+  createdAt      DateTime @default(now())
+  ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   @@index([ticketId, createdAt])
 }
 

@@ -1,8 +1,8 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
-import { IconMessageSquare, IconSend, IconPlus } from "@/components/icons";
+import { useEffect, useRef, useState } from "react";
+import { IconMessageSquare, IconSend, IconPlus, IconPaperclip, IconUser } from "@/components/icons";
 
 type Ticket = {
   id: string;
@@ -21,7 +21,10 @@ type TicketMessage = {
   senderId: string;
   senderName: string;
   senderRole: string;
+  senderAvatarUrl?: string | null;
   text: string;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
   createdAt: string;
 };
 
@@ -53,6 +56,9 @@ export function SupportTicketsPanel({ currentUserId }: { currentUserId: string }
   const [activeStatus, setActiveStatus] = useState("");
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
+  const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newSubject, setNewSubject] = useState("");
   const [newMessage, setNewMessage] = useState("");
@@ -83,20 +89,38 @@ export function SupportTicketsPanel({ currentUserId }: { currentUserId: string }
     }
   }
 
+  async function handleAttachmentSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAttachment(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", file.type.startsWith("image/") ? "image" : "pdf");
+      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok) setAttachment({ url: data.url, name: data.name || file.name });
+    } finally {
+      setUploadingAttachment(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   async function sendReply(e: React.FormEvent) {
     e.preventDefault();
-    if (!replyText.trim() || !activeTicketId) return;
+    if ((!replyText.trim() && !attachment) || !activeTicketId) return;
     setSending(true);
     try {
       const res = await fetch(`/api/support/tickets/${activeTicketId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: replyText.trim() }),
+        body: JSON.stringify({ text: replyText.trim(), attachmentUrl: attachment?.url || null, attachmentName: attachment?.name || null }),
       });
       if (res.ok) {
         const data = await res.json();
         setActiveMessages((prev) => [...prev, data.message]);
         setReplyText("");
+        setAttachment(null);
       }
     } finally {
       setSending(false);
@@ -148,12 +172,29 @@ export function SupportTicketsPanel({ currentUserId }: { currentUserId: string }
           {activeMessages.map((m) => {
             const isMe = m.senderId === currentUserId;
             return (
-              <div key={m.id} className={isMe ? "text-right" : "text-left"}>
-                <p className="mb-0.5 text-[10px] text-slate-400">
-                  {isMe ? "Vous" : m.senderRole === "ADMIN" ? "Support ProfySpace" : m.senderName} · {formatDate(m.createdAt)}
-                </p>
-                <div className={`inline-block max-w-[85%] rounded-2xl p-3.5 text-left text-xs leading-relaxed ${isMe ? "bg-[#0d8d78] text-white" : "bg-slate-100 text-slate-700"}`}>
-                  {m.text}
+              <div key={m.id} className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
+                {!isMe && (
+                  <div className="mb-4 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e5f7f2] text-[#0d8d78]">
+                    {m.senderAvatarUrl ? (
+                      <img src={m.senderAvatarUrl} alt={m.senderName} className="h-full w-full object-cover" />
+                    ) : (
+                      <IconUser className="h-3.5 w-3.5" />
+                    )}
+                  </div>
+                )}
+                <div className={isMe ? "text-right" : "text-left"}>
+                  <p className="mb-0.5 text-[10px] text-slate-400">
+                    {isMe ? "Vous" : m.senderName} · {formatDate(m.createdAt)}
+                  </p>
+                  <div className={`inline-block max-w-[85%] rounded-2xl p-3.5 text-left text-xs leading-relaxed ${isMe ? "bg-[#0d8d78] text-white" : "bg-slate-100 text-slate-700"}`}>
+                    {m.text && <p>{m.text}</p>}
+                    {m.attachmentUrl && (
+                      <a href={m.attachmentUrl} target="_blank" rel="noreferrer" className={`mt-1.5 flex items-center gap-1.5 underline ${isMe ? "text-white" : "text-[#0d8d78]"}`}>
+                        <IconPaperclip className="h-3 w-3 shrink-0" />
+                        {m.attachmentName || "Pièce jointe"}
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -161,6 +202,16 @@ export function SupportTicketsPanel({ currentUserId }: { currentUserId: string }
         </div>
 
         <form onSubmit={sendReply} className="flex items-center gap-2 border-t border-slate-100 p-4">
+          <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} accept="image/*,application/pdf" className="hidden" />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAttachment}
+            title={attachment ? attachment.name : "Joindre un fichier"}
+            className={`shrink-0 rounded-xl p-2.5 transition ${attachment ? "bg-[#e5f7f2] text-[#0d8d78]" : "text-slate-400 hover:bg-slate-100"}`}
+          >
+            <IconPaperclip className="h-4 w-4" />
+          </button>
           <input
             type="text"
             value={replyText}
@@ -170,7 +221,7 @@ export function SupportTicketsPanel({ currentUserId }: { currentUserId: string }
           />
           <button
             type="submit"
-            disabled={sending || !replyText.trim()}
+            disabled={sending || (!replyText.trim() && !attachment)}
             className="rounded-xl bg-[#0d8d78] p-2.5 text-white transition hover:bg-[#0b7866] disabled:opacity-50"
           >
             <IconSend className="h-4 w-4" />

@@ -8,6 +8,7 @@ const updateProfileSchema = z.object({
   lastName: z.string().trim().min(2).max(80),
   email: z.string().trim().email().transform((v) => v.toLowerCase()),
   phone: z.string().trim().optional().or(z.literal("")),
+  avatarUrl: z.string().trim().url().optional().or(z.literal("")),
 });
 
 export async function PATCH(request: Request) {
@@ -45,6 +46,7 @@ export async function PATCH(request: Request) {
         lastName: parsed.data.lastName,
         email: parsed.data.email,
         phone: parsed.data.phone || null,
+        ...(parsed.data.avatarUrl !== undefined ? { avatarUrl: parsed.data.avatarUrl || null } : {}),
       },
     });
 
@@ -57,6 +59,7 @@ export async function PATCH(request: Request) {
         lastName: updated.lastName,
         email: updated.email,
         phone: updated.phone,
+        avatarUrl: updated.avatarUrl,
       },
     });
   } catch (error) {

@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { IconSend } from "@/components/icons";
+import { IconSend, IconPaperclip, IconX } from "@/components/icons";
 
 type Ticket = {
   id: string;
@@ -30,6 +30,8 @@ type TicketMessage = {
   senderName: string;
   senderRole: string;
   text: string;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
   createdAt: string;
 };
 
@@ -54,6 +56,9 @@ export default function AdminSupportPage() {
   const [activeMessages, setActiveMessages] = useState<TicketMessage[]>([]);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
+  const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function loadTickets() {
     setLoading(true);
@@ -90,20 +95,38 @@ export default function AdminSupportPage() {
     loadTickets();
   }
 
+  async function handleAttachmentSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAttachment(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", file.type.startsWith("image/") ? "image" : "pdf");
+      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok) setAttachment({ url: data.url, name: data.name || file.name });
+    } finally {
+      setUploadingAttachment(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   async function sendReply(e: React.FormEvent) {
     e.preventDefault();
-    if (!replyText.trim() || !activeId) return;
+    if ((!replyText.trim() && !attachment) || !activeId) return;
     setSending(true);
     try {
       const res = await fetch(`/api/support/tickets/${activeId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: replyText.trim() }),
+        body: JSON.stringify({ text: replyText.trim(), attachmentUrl: attachment?.url || null, attachmentName: attachment?.name || null }),
       });
       if (res.ok) {
         const data = await res.json();
         setActiveMessages((prev) => [...prev, data.message]);
         setReplyText("");
+        setAttachment(null);
         loadTickets();
       }
     } finally {
@@ -205,13 +228,44 @@ export default function AdminSupportPage() {
                           m.senderRole === "ADMIN" ? "bg-[#0d8d78] text-white" : "bg-white/10 text-slate-200"
                         }`}
                       >
-                        {m.text}
+                        {m.text && <p>{m.text}</p>}
+                        {m.attachmentUrl && (
+                          <a
+                            href={m.attachmentUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`mt-1.5 flex items-center gap-1.5 underline ${m.senderRole === "ADMIN" ? "text-white" : "text-[#72d6bf]"}`}
+                          >
+                            <IconPaperclip className="h-3 w-3 shrink-0" />
+                            {m.attachmentName || "Pièce jointe"}
+                          </a>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
 
+                {attachment && (
+                  <div className="flex items-center justify-between gap-2 border-t border-white/10 px-4 py-2 text-xs">
+                    <span className="flex items-center gap-1.5 truncate text-[#72d6bf]">
+                      <IconPaperclip className="h-3.5 w-3.5 shrink-0" />
+                      {attachment.name}
+                    </span>
+                    <button type="button" onClick={() => setAttachment(null)} className="shrink-0 text-slate-400 hover:text-rose-400">
+                      <IconX className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
                 <form onSubmit={sendReply} className="flex items-center gap-2 border-t border-white/10 p-4">
+                  <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} accept="image/*,application/pdf" className="hidden" />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAttachment}
+                    className="shrink-0 rounded-xl p-2.5 text-slate-400 transition hover:bg-white/10"
+                  >
+                    <IconPaperclip className="h-4 w-4" />
+                  </button>
                   <input
                     type="text"
                     value={replyText}
@@ -221,7 +275,7 @@ export default function AdminSupportPage() {
                   />
                   <button
                     type="submit"
-                    disabled={sending || !replyText.trim()}
+                    disabled={sending || (!replyText.trim() && !attachment)}
                     className="rounded-xl bg-[#72d6bf] p-2.5 text-[#101b2d] transition hover:bg-[#5ec4ad] disabled:opacity-50"
                   >
                     <IconSend className="h-4 w-4" />
