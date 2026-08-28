@@ -12,7 +12,7 @@ import {
   IconVideo,
 } from "@/components/icons";
 
-const rtcConfig: RTCConfiguration = {
+const fallbackRtcConfig: RTCConfiguration = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
@@ -59,6 +59,11 @@ export function WebRTCRoom({ roomId, polite = true }: { roomId: string; polite?:
         if (mounted) setStatus("Salle active en mode direct.");
         return;
       }
+
+      const rtcConfig: RTCConfiguration = await fetch(`/api/classroom/${roomId}/ice-servers`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => (data?.iceServers ? { iceServers: data.iceServers } : fallbackRtcConfig))
+        .catch(() => fallbackRtcConfig);
 
       try {
         const room = supabase.channel(`classroom:${roomId}`, {
