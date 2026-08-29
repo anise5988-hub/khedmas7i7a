@@ -93,14 +93,7 @@ function ClockIcon() {
   );
 }
 
-function AwardIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="6" />
-      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-    </svg>
-  );
-}
+
 
 export function TeacherProfileClient({ slug }: { slug: string }) {
   const [teacher, setTeacher] = useState<TeacherData | null>(null);
@@ -564,6 +557,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                     <input
                       type="date"
                       required
+                      min={new Date().toISOString().split("T")[0]}
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                       className="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78] focus:ring-1 focus:ring-[#0d8d78] transition"

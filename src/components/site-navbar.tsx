@@ -95,17 +95,17 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
     const active = isActive(path);
     if (isDark) {
       return active
-        ? "text-[#72d6bf] font-bold"
-        : "text-slate-300 hover:text-white font-medium transition duration-150";
+        ? "text-[#72d6bf] font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-[#72d6bf]/30 shadow-xs"
+        : "text-slate-300 hover:text-white hover:bg-white/5 px-3 py-1.5 rounded-xl font-medium transition duration-150";
     }
     return active
-      ? "text-[#0d8d78] font-bold"
-      : "text-slate-600 hover:text-[#0d8d78] font-medium transition duration-150";
+      ? "text-[#0d8d78] font-bold bg-[#e5f7f2] px-3 py-1.5 rounded-xl border border-[#0d8d78]/20 shadow-xs"
+      : "text-slate-600 hover:text-[#0d8d78] hover:bg-slate-100/70 px-3 py-1.5 rounded-xl font-medium transition duration-150";
   };
 
   return (
-    <header className="relative w-full z-30">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3.5 lg:px-10">
+    <header className="relative w-full z-30 transition-all duration-300">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-10">
         {/* Brand Logo with Role-Specific Visual Identity */}
         <div className="flex items-center gap-3">
           <Link

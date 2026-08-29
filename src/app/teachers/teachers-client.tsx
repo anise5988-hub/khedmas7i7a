@@ -48,14 +48,7 @@ type Teacher = {
   verificationStatus?: string;
 };
 
-const PRIMARY = "#0d8d78";
-const PRIMARY_LIGHT = "#72d6bf";
-const PRIMARY_PALE = "#e5f7f2";
-const PRIMARY_PALE_HOVER = "#d4f2e9";
-const TEXT_DARK = "#11233f";
-const RATING_AMBER = "#f59e0b";
-const RATING_AMBER_BG = "#fffbeb";
-const RATING_AMBER_BORDER = "#fcd34d";
+
 
 function StarRating({ rating, reviewsCount }: { rating: number; reviewsCount: number }) {
   return (

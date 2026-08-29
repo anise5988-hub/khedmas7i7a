@@ -102,6 +102,7 @@ export default function TeacherOnboardingPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
     loadDocuments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleDocumentUpload(e: React.ChangeEvent<HTMLInputElement>) {

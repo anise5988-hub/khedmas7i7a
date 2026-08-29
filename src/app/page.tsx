@@ -563,6 +563,118 @@ export default function Home() {
         )}
       </section>
 
+      {/* Interactive Curriculum & Grade Explorer */}
+      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e5f7f2] px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#0d8d78]">
+              Programme Tunisien Officiel
+            </span>
+            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+              Trouvez votre niveau scolaire.
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-xl">
+              De l'enseignement de base au Baccalauréat tunisien et études supérieures, nos enseignants couvrent l'ensemble du cursus national.
+            </p>
+          </div>
+          <Link
+            href="/levels"
+            className="text-xs font-bold text-[#0d8d78] hover:text-[#0b7866] hover:underline shrink-0"
+          >
+            Voir tous les niveaux détaillés →
+          </Link>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/teachers?level=primaire"
+            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1.5 hover:border-[#0d8d78] hover:shadow-xl flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 font-bold text-xl mb-4 group-hover:scale-110 transition">
+                🎒
+              </div>
+              <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] transition">
+                Cycle Primaire
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                1ère à la 6ème année de base. Renforcement en Calcul, Français, Arabe et Éveil scientifique.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#0d8d78]">
+              <span>Explorer les profs</span>
+              <span>→</span>
+            </div>
+          </Link>
+
+          <Link
+            href="/teachers?level=college"
+            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1.5 hover:border-[#0d8d78] hover:shadow-xl flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 font-bold text-xl mb-4 group-hover:scale-110 transition">
+                📐
+              </div>
+              <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] transition">
+                Collège & 9ème
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                7ème, 8ème et 9ème année de base. Préparation intensive pour le Concours d'Entrée aux Lycées Pilotes.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#0d8d78]">
+              <span>Explorer les profs</span>
+              <span>→</span>
+            </div>
+          </Link>
+
+          <Link
+            href="/teachers?level=secondaire"
+            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1.5 hover:border-[#0d8d78] hover:shadow-xl flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-[#0d8d78] font-bold text-xl mb-4 group-hover:scale-110 transition">
+                🔬
+              </div>
+              <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] transition">
+                Lycée Secondaire
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                1ère, 2ème et 3ème année secondaire. Consolidation des bases scientifiques, littéraires et économiques.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#0d8d78]">
+              <span>Explorer les profs</span>
+              <span>→</span>
+            </div>
+          </Link>
+
+          <Link
+            href="/teachers?level=bac"
+            className="group rounded-3xl border-2 border-[#72d6bf] bg-gradient-to-br from-[#11233f] to-[#162e52] p-6 text-white shadow-xl transition hover:-translate-y-1.5 hover:shadow-2xl flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-2 right-2 rounded-full bg-[#72d6bf] text-[#11233f] text-[10px] font-black px-2 py-0.5 uppercase tracking-wider">
+              Priorité
+            </div>
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#72d6bf]/20 text-[#72d6bf] font-bold text-xl mb-4 group-hover:scale-110 transition">
+                🎓
+              </div>
+              <h3 className="font-bold text-lg text-white group-hover:text-[#72d6bf] transition">
+                Baccalauréat Tunisien
+              </h3>
+              <p className="mt-1 text-xs text-slate-300 leading-relaxed">
+                Toutes sections : Mathématiques, Sciences Exp, Économie-Gestion, Info, Technique, Lettres.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#72d6bf]">
+              <span>Section Bac →</span>
+              <span>→</span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* Featured Teachers */}
       <section id="teachers" className="bg-[#11233f] px-6 py-20 text-white lg:px-10">
         <div className="mx-auto max-w-7xl">
@@ -808,6 +920,62 @@ export default function Home() {
                 ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Trust & Guarantee Section */}
+      <section className="bg-slate-50 border-b border-slate-200 px-6 py-16 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0d8d78]/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#0d8d78]">
+              Sécurité & Excellence Pédagogique
+            </span>
+            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-2xl sm:text-3xl font-bold tracking-tight text-[#11233f]">
+              Pourquoi des milliers de familles tunisiennes choisissent ProfySpace.
+            </h2>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+                ✓
+              </div>
+              <h3 className="font-bold text-base text-[#11233f]">100% Vérifiés & Certifiés</h3>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                Chaque enseignant soumet sa pièce d'identité et ses diplômes officiels vérifiés manuellement par l'équipe d'administration.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+                💳
+              </div>
+              <h3 className="font-bold text-base text-[#11233f]">Paiement Tunisien Local</h3>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                Rechargez votre compte en Dinars Tunisiens par carte e-Dinar D17 (La Poste), Flouci ou virement bancaire instantané.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+                💻
+              </div>
+              <h3 className="font-bold text-base text-[#11233f]">Classe Virtuelle HD</h3>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                Visioconférence sécurisée WebRTC avec tableau blanc collaboratif, partage d'écran et messagerie en direct intégrée.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+                🎯
+              </div>
+              <h3 className="font-bold text-base text-[#11233f]">Garantie & Flexibilité</h3>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                Tarifs transparents à l'heure sans abonnement caché. Possibilité d'annuler ou reprogrammer vos séances en toute sérénité.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

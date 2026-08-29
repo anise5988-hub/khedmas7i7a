@@ -199,13 +199,19 @@ export default function TeacherDashboardPage() {
       .then((teacherJson) => {
         if (teacherJson?.teacher) setData(teacherJson.teacher);
         const teacherId = teacherJson?.teacher?.id;
-        if (!teacherId) return { courses: [] };
-        return fetch(`/api/courses?teacherId=${teacherId}`, { headers }).then((res) =>
-          res.ok ? res.json() : { courses: [] },
-        );
+        if (!teacherId) return Promise.all([{ courses: [] }, { reviews: [] }]);
+        return Promise.all([
+          fetch(`/api/courses?teacherId=${teacherId}`, { headers }).then((res) =>
+            res.ok ? res.json() : { courses: [] },
+          ),
+          fetch(`/api/reviews?teacherId=${teacherId}`, { headers }).then((res) =>
+            res.ok ? res.json() : { reviews: [] },
+          ),
+        ]);
       })
-      .then((coursesJson) => {
+      .then(([coursesJson, reviewsJson]) => {
         if (coursesJson?.courses) setCourses(coursesJson.courses);
+        if (reviewsJson?.reviews) setReviews(reviewsJson.reviews);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -269,7 +275,7 @@ export default function TeacherDashboardPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-xl">
-                  
+
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[#11233f]">Compléter mon profil et envoyer une demande</h2>
@@ -314,7 +320,7 @@ export default function TeacherDashboardPage() {
           <div className="mt-6 rounded-3xl border border-rose-200 bg-rose-50 p-5 sm:p-6 text-rose-950 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-200 text-xl">
-                
+
               </div>
               <div>
                 <h2 className="text-lg font-bold">Candidature non validée</h2>
