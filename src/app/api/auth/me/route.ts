@@ -15,6 +15,7 @@ export async function GET(request: Request) {
       firstName: user.firstName,
       lastName: user.lastName,
       phone: user.phone,
+      avatarUrl: user.avatarUrl,
       role: user.role,
       teacher: user.teacher
         ? {

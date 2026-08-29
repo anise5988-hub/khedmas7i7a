@@ -67,16 +67,36 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
     setAvatarUploading(true);
+    setProfileError("");
+    setProfileSaved(false);
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("kind", "image");
-      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
-      const data = await res.json();
-      if (res.ok) {
-        setProfile({ ...profile, avatarUrl: data.url });
+      const uploadRes = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) {
+        setProfileError(uploadData.error || "Envoi de la photo impossible.");
+        return;
+      }
+
+      // Save the new photo immediately rather than leaving it as an
+      // unsaved local preview the admin has to remember to commit with
+      // the separate "Enregistrer" button below — a photo upload should
+      // just be saved.
+      const updatedProfile = { ...profile, avatarUrl: uploadData.url };
+      const saveRes = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedProfile),
+      });
+      const saveData = await saveRes.json();
+      if (saveRes.ok) {
+        setProfile(updatedProfile);
+        setProfileSaved(true);
+        setTimeout(() => setProfileSaved(false), 3000);
       } else {
-        setProfileError(data.error || "Envoi de la photo impossible.");
+        setProfileError(saveData.error || "Photo envoyée mais impossible à enregistrer.");
       }
     } catch {
       setProfileError("Erreur de connexion.");
