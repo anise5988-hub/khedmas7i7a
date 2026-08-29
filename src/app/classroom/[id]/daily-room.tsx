@@ -257,10 +257,9 @@ export const DailyRoom = forwardRef<DailyRoomHandle, {
             </div>
           )}
           {local && (
-            <VideoTile
-              tile={local}
-              className="absolute bottom-3 right-3 h-28 w-40 sm:h-32 sm:w-48 shadow-2xl ring-2 ring-white/10"
-            />
+            <div className="absolute bottom-3 right-3 h-28 w-40 shadow-2xl sm:h-32 sm:w-48">
+              <VideoTile tile={local} className="h-full w-full ring-2 ring-white/10" />
+            </div>
           )}
         </div>
       )}

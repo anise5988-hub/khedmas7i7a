@@ -128,7 +128,7 @@ export function ClassroomClient({
 
   // One realtime channel per booking, shared by chat, notes, whiteboard sync
   // and mic/camera presence — kept separate from the video-call signaling
-  // channel in WebRTCRoom so neither feature can destabilize the other.
+  // channel in DailyRoom so neither feature can destabilize the other.
   useEffect(() => {
     if (!supabase) return;
     const room = supabase.channel(`classroom-data:${bookingId}`, { config: { broadcast: { self: false } } });
