@@ -109,7 +109,7 @@ export function ClassroomClient({
   const [deviceCheck, setDeviceCheck] = useState<DeviceCheck | null>(null);
   const [isCheckingDevices, setIsCheckingDevices] = useState(false);
   const [hasEnteredRoom, setHasEnteredRoom] = useState(false);
-  const [joinWindow, setJoinWindow] = useState<{ canJoin: boolean; isTooEarly: boolean; isTooLate: boolean; opensAt: string } | null>(null);
+  const [joinWindow, setJoinWindow] = useState<{ canJoin: boolean; opensAt: string; closesAt: string } | null>(null);
   const [nowTick, setNowTick] = useState(() => Date.now());
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -162,7 +162,7 @@ export function ClassroomClient({
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (!cancelled && data) {
-            setJoinWindow({ canJoin: data.canJoin, isTooEarly: data.isTooEarly, isTooLate: data.isTooLate, opensAt: data.opensAt });
+            setJoinWindow({ canJoin: data.canJoin, opensAt: data.opensAt, closesAt: data.closesAt });
           }
         })
         .catch(() => {});
@@ -376,6 +376,19 @@ export function ClassroomClient({
     },
   ];
 
+  // The server poll only refreshes every 15s, but the on-screen countdown
+  // ticks every second — deriving the actual open/closed state from the
+  // client clock against the server-supplied opensAt/closesAt keeps the
+  // button unlocking exactly when the countdown hits 00:00 instead of
+  // lagging up to 15s behind it. joinWindow.canJoin (which also covers the
+  // admin bypass) still wins if the server already says yes.
+  const effectiveCanJoin = joinWindow
+    ? joinWindow.canJoin ||
+      (nowTick >= new Date(joinWindow.opensAt).getTime() && nowTick <= new Date(joinWindow.closesAt).getTime())
+    : false;
+  const effectiveIsTooEarly = joinWindow ? !effectiveCanJoin && nowTick < new Date(joinWindow.opensAt).getTime() : false;
+  const effectiveIsTooLate = joinWindow ? !effectiveCanJoin && nowTick > new Date(joinWindow.closesAt).getTime() : false;
+
   if (!hasEnteredRoom) {
     return (
       <main className="min-h-screen bg-[#101b2d] text-white flex items-center justify-center p-4">
@@ -396,12 +409,12 @@ export function ClassroomClient({
                 {new Date(startsAt).toLocaleString("fr-TN", { dateStyle: "medium", timeStyle: "short" })} · {durationMinutes} min
               </span>
             </div>
-            {joinWindow?.isTooEarly && (
+            {effectiveIsTooEarly && (
               <div className="pt-2 border-t border-white/10 text-center">
                 <p className="text-[11px] text-amber-300 font-bold uppercase tracking-wider">La salle ouvre dans</p>
                 <p className="text-xl font-mono font-extrabold text-[#72d6bf]">
                   {(() => {
-                    const diffSec = Math.max(0, Math.floor((new Date(joinWindow.opensAt).getTime() - nowTick) / 1000));
+                    const diffSec = Math.max(0, Math.floor((new Date(joinWindow!.opensAt).getTime() - nowTick) / 1000));
                     const m = Math.floor(diffSec / 60).toString().padStart(2, "0");
                     const s = (diffSec % 60).toString().padStart(2, "0");
                     return `${m}:${s}`;
@@ -409,7 +422,7 @@ export function ClassroomClient({
                 </p>
               </div>
             )}
-            {joinWindow?.isTooLate && (
+            {effectiveIsTooLate && (
               <p className="pt-2 border-t border-white/10 text-center text-xs font-bold text-rose-300">
                 Cette séance est terminée et la salle n&apos;est plus accessible.
               </p>
@@ -457,10 +470,10 @@ export function ClassroomClient({
             )}
             <button
               onClick={enterRoom}
-              disabled={!deviceCheck || !deviceCheck.camera || !deviceCheck.microphone || (joinWindow ? !joinWindow.canJoin : false)}
+              disabled={!deviceCheck || !deviceCheck.camera || !deviceCheck.microphone || (joinWindow ? !effectiveCanJoin : false)}
               className="w-full rounded-2xl bg-[#72d6bf] px-6 py-3.5 font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {joinWindow?.isTooEarly ? "La salle n'est pas encore ouverte" : joinWindow?.isTooLate ? "Séance terminée" : "Rejoindre la classe"}
+              {effectiveIsTooEarly ? "La salle n'est pas encore ouverte" : effectiveIsTooLate ? "Séance terminée" : "Rejoindre la classe"}
             </button>
             <Link href="/dashboard" className="block text-center text-xs text-slate-400 hover:text-white transition">
               Retour au tableau de bord
