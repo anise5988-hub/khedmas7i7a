@@ -15,6 +15,44 @@ type Booking = {
   status: string;
 };
 
+function generateGoogleCalendarUrl(b: Booking) {
+  const start = new Date(b.startsAt);
+  const end = new Date(start.getTime() + b.durationMinutes * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const title = encodeURIComponent(`Cours ProfySpace : ${b.subject} avec ${b.teacherName}`);
+  const details = encodeURIComponent(`Séance de cours particulier sur ProfySpace.tn\nLien de la classe : https://profyspace.tn/classroom/${b.id}`);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(start)}/${fmt(end)}&details=${details}`;
+}
+
+function downloadIcsFile(b: Booking) {
+  const start = new Date(b.startsAt);
+  const end = new Date(start.getTime() + b.durationMinutes * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const icsContent = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//ProfySpace//Cours Particuliers//FR",
+    "BEGIN:VEVENT",
+    `UID:profyspace-booking-${b.id}@profyspace.tn`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:Cours ProfySpace : ${b.subject} avec ${b.teacherName}`,
+    `DESCRIPTION:Séance de cours particulier en direct sur ProfySpace.tn\\nSalle : https://profyspace.tn/classroom/${b.id}`,
+    "STATUS:CONFIRMED",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `cours-profyspace-${b.id}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function StudentCalendarPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,12 +119,29 @@ export default function StudentCalendarPage() {
                   </div>
                 </div>
 
-                <a
-                  href={`/classroom/${b.id}`}
-                  className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-center text-xs font-bold text-white transition hover:bg-[#0b7866]"
-                >
-                  Accéder à la classe →
-                </a>
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={generateGoogleCalendarUrl(b)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-center text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                  >
+                    + Google Agenda
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => downloadIcsFile(b)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-center text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                  >
+                    .iCal (Apple)
+                  </button>
+                  <a
+                    href={`/classroom/${b.id}`}
+                    className="rounded-xl bg-[#0d8d78] px-4 py-2 text-center text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                  >
+                    Accéder à la classe →
+                  </a>
+                </div>
               </div>
             ))}
           </div>

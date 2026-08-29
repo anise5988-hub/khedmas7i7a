@@ -117,18 +117,22 @@ export default function StudentHomeworkPage() {
                 <div key={h.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h3 className="font-bold text-base">{h.title}</h3>
+                      <h3 className="font-bold text-base text-[#11233f]">{h.title}</h3>
                       <p className="text-xs text-slate-500">
-                        Par {h.teacherName}
-                        {h.deadline && ` · À rendre avant le ${new Date(h.deadline).toLocaleDateString("fr-TN")}`}
+                        Assigné par <span className="font-semibold text-slate-700">{h.teacherName}</span>
+                        {h.deadline && (
+                          <span className={isOverdue ? "text-rose-600 font-bold ml-1" : "text-slate-600 ml-1"}>
+                            · Date limite : {new Date(h.deadline).toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                       h.submission
-                        ? h.submission.feedback ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
-                        : isOverdue ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-800"
+                        ? h.submission.feedback ? "bg-emerald-100 text-emerald-800 border border-emerald-200" : "bg-blue-100 text-blue-800 border border-blue-200"
+                        : isOverdue ? "bg-rose-100 text-rose-800 border border-rose-200" : "bg-amber-100 text-amber-800 border border-amber-200"
                     }`}>
-                      {h.submission ? (h.submission.feedback ? "Corrigé" : "Soumis") : isOverdue ? "En retard" : "À faire"}
+                      {h.submission ? (h.submission.feedback ? "✓ Corrigé & Noté" : "⏳ Soumis (En attente)") : isOverdue ? "⚠ En retard" : "📝 À faire"}
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-slate-600">{h.description}</p>

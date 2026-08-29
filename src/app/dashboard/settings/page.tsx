@@ -2,9 +2,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { SiteNavbar } from "@/components/site-navbar";
-import { IconCheck, IconShield, IconUser } from "@/components/icons";
+import { IconCheck, IconShield, IconUser, IconCamera } from "@/components/icons";
+import { Avatar } from "@/components/design-system/avatar";
 
 export default function StudentSettingsPage() {
   const [user, setUser] = useState<{
@@ -13,6 +14,7 @@ export default function StudentSettingsPage() {
     lastName: string;
     email: string;
     phone: string | null;
+    avatarUrl?: string | null;
   } | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -22,8 +24,12 @@ export default function StudentSettingsPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState({ type: "", text: "" });
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Password Form
   const [currentPassword, setCurrentPassword] = useState("");
@@ -55,6 +61,7 @@ export default function StudentSettingsPage() {
           setLastName(data.user.lastName || "");
           setEmail(data.user.email || "");
           setPhone(data.user.phone || "");
+          setAvatarUrl(data.user.avatarUrl || "");
         }
       })
       .catch(() => {})
@@ -70,11 +77,14 @@ export default function StudentSettingsPage() {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ firstName, lastName, email, phone }),
+        body: JSON.stringify({ firstName, lastName, email, phone, avatarUrl }),
       });
       const data = await res.json();
       if (res.ok) {
         setProfileMsg({ type: "success", text: "Profil mis à jour avec succès !" });
+        if (data.user) {
+          localStorage.setItem("profyspace_user", JSON.stringify(data.user));
+        }
       } else {
         setProfileMsg({ type: "error", text: data.error || "Erreur lors de la mise à jour." });
       }
@@ -82,6 +92,44 @@ export default function StudentSettingsPage() {
       setProfileMsg({ type: "error", text: "Erreur de connexion au serveur." });
     } finally {
       setProfileSaving(false);
+    }
+  }
+
+  async function handleAvatarSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    setProfileMsg({ type: "", text: "" });
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", "avatar");
+
+      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+      const res = await fetch("/api/uploads/video", {
+        method: "POST",
+        headers: userId ? { "x-user-id": userId } : undefined,
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAvatarUrl(data.url);
+        // Automatically save to profile in DB
+        await fetch("/api/user/profile", {
+          method: "PATCH",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ firstName, lastName, email, phone, avatarUrl: data.url }),
+        });
+        setProfileMsg({ type: "success", text: "Photo de profil mise à jour avec succès !" });
+      } else {
+        setProfileMsg({ type: "error", text: data.error || "Impossible de téléverser l'image." });
+      }
+    } catch {
+      setProfileMsg({ type: "error", text: "Erreur de connexion lors de l'envoi de la photo." });
+    } finally {
+      setAvatarUploading(false);
     }
   }
 
@@ -179,6 +227,37 @@ export default function StudentSettingsPage() {
                 <p>{profileMsg.text}</p>
               </div>
             )}
+
+            {/* Avatar Photo Section */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <input
+                type="file"
+                ref={avatarInputRef}
+                onChange={handleAvatarSelect}
+                accept="image/*"
+                className="hidden"
+              />
+              <Avatar
+                src={avatarUrl}
+                name={`${firstName} ${lastName}`.trim() || "User"}
+                size="xl"
+              />
+              <div className="text-center sm:text-left space-y-1.5 flex-1">
+                <p className="font-bold text-sm text-[#11233f]">Photo de profil</p>
+                <p className="text-xs text-slate-500">Formats acceptés : JPG, PNG, WEBP (Max 5 Mo)</p>
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={avatarUploading}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-xs hover:border-[#0d8d78] hover:text-[#0d8d78] transition disabled:opacity-50"
+                  >
+                    <IconCamera className="h-3.5 w-3.5 text-[#0d8d78]" />
+                    <span>{avatarUploading ? "Envoi en cours..." : "Changer la photo"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>

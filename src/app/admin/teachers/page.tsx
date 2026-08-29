@@ -32,6 +32,32 @@ export default function AdminTeachersPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  function exportToCsv() {
+    if (teachers.length === 0) return;
+    const headers = ["Nom", "Email", "Telephone", "Titre", "Experience (ans)", "Tarif TND", "Gouvernorat", "Statut", "Matieres", "Seances Reservees"];
+    const rows = teachers.map((t) => [
+      `"${t.name.replace(/"/g, '""')}"`,
+      `"${t.email}"`,
+      `"${t.phone || ""}"`,
+      `"${(t.title || "").replace(/"/g, '""')}"`,
+      t.experienceYears,
+      t.hourlyRateTnd,
+      `"${t.governorate}"`,
+      t.verificationStatus,
+      `"${t.subjects.join(", ")}"`,
+      t.bookingsCount,
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `professeurs-profyspace-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   function loadTeachers() {
     setLoading(true);
     fetch("/api/admin/teachers")
@@ -111,6 +137,13 @@ export default function AdminTeachersPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={exportToCsv}
+              className="rounded-xl border border-white/20 bg-emerald-600/20 px-3.5 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-600/30 transition"
+            >
+              📊 Exporter CSV
+            </button>
             <input
               type="text"
               value={search}

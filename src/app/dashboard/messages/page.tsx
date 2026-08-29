@@ -5,14 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SiteNavbar } from "@/components/site-navbar";
 import { Conversation, CustomOffer } from "@/lib/server/chat-store";
+import { IconPaperclip, IconFileText } from "@/components/icons";
 
 export default function MessagesPage() {
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [text, setText] = useState("");
+  const [attachedFile, setAttachedFile] = useState<{ url: string; name: string } | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setPending] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -119,12 +123,39 @@ export default function MessagesPage() {
     }
   }
 
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", file.type.startsWith("image/") ? "image" : "pdf");
+
+      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+      const res = await fetch("/api/uploads/video", {
+        method: "POST",
+        headers: userId ? { "x-user-id": userId } : undefined,
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAttachedFile({ url: data.url, name: file.name });
+      }
+    } catch {} finally {
+      setUploadingFile(false);
+    }
+  }
+
   async function handleSendMessage(e?: React.FormEvent) {
     if (e) e.preventDefault();
-    if (!text.trim() || !activeConv) return;
+    if ((!text.trim() && !attachedFile) || !activeConv) return;
 
-    const messageText = text.trim();
+    const messageText = text.trim() ? (attachedFile ? `${text.trim()}\n📎 ${attachedFile.name}: ${attachedFile.url}` : text.trim()) : `📎 ${attachedFile?.name}: ${attachedFile?.url}`;
     setText("");
+    setAttachedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setPending(true);
 
     try {
@@ -434,13 +465,49 @@ export default function MessagesPage() {
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Attached file preview */}
+              {attachedFile && (
+                <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 p-2 text-xs">
+                  <div className="flex items-center gap-2 truncate">
+                    <IconFileText className="h-4 w-4 text-[#0d8d78]" />
+                    <span className="font-semibold truncate">{attachedFile.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttachedFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="text-xs font-bold text-rose-500 hover:text-rose-700 px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
               {/* Input Form */}
               <form onSubmit={handleSendMessage} className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  accept="application/pdf,image/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingFile}
+                  title="Joindre un fichier (PDF ou Image)"
+                  className="rounded-2xl border border-slate-200 p-3 text-slate-500 hover:bg-slate-50 hover:text-[#0d8d78] transition shrink-0 disabled:opacity-50"
+                >
+                  <IconPaperclip className="h-4 w-4" />
+                </button>
                 <input
                   type="text"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="Écrivez votre message..."
+                  placeholder={uploadingFile ? "Envoi du fichier..." : "Écrivez votre message..."}
                   className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-800 outline-none focus:border-[#0d8d78] focus:bg-white transition"
                 />
                 {userRole === "TEACHER" && (

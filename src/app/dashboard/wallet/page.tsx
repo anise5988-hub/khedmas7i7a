@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { IconCreditCard, IconShield } from "@/components/icons";
+import { IconCreditCard, IconShield, IconDownload, IconFileText, IconX } from "@/components/icons";
 
 
 type Wallet = {
@@ -33,6 +33,7 @@ type Wallet = {
 export default function StudentWalletPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedReceipt, setSelectedReceipt] = useState<Wallet["deposits"][0] | null>(null);
 
   function getAuthHeaders(): Record<string, string> {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
@@ -142,7 +143,8 @@ export default function StudentWalletPage() {
                     <th className="py-3">Montant</th>
                     <th className="py-3">Référence</th>
                     <th className="py-3">Date</th>
-                    <th className="py-3 text-right">Statut</th>
+                    <th className="py-3 text-center">Statut</th>
+                    <th className="py-3 text-right">Reçu</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 text-xs">
@@ -154,7 +156,7 @@ export default function StudentWalletPage() {
                       <td className="py-3 text-slate-400">
                         {new Date(d.createdAt).toLocaleDateString("fr-TN")}
                       </td>
-                      <td className="py-3 text-right">
+                      <td className="py-3 text-center">
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                             d.status === "PAID"
@@ -167,6 +169,16 @@ export default function StudentWalletPage() {
                           {d.status === "PAID" ? "Validé" : d.status === "PENDING" ? "En attente" : "Refusé"}
                         </span>
                       </td>
+                      <td className="py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedReceipt(d)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:border-[#0d8d78] hover:text-[#0d8d78] transition shadow-2xs"
+                        >
+                          <IconFileText className="h-3 w-3" />
+                          <span>Reçu</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -175,6 +187,90 @@ export default function StudentWalletPage() {
           )}
         </div>
       </div>
+
+      {/* Receipt Printable Modal */}
+      {selectedReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print:p-0 print:bg-white">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5 print:shadow-none print:border-none print:max-w-none">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 print:hidden">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
+                Reçu de Transaction
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedReceipt(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold"
+              >
+                <IconX className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Printable Content */}
+            <div className="space-y-4">
+              <div className="text-center pb-2 border-b border-slate-100">
+                <h3 className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold text-[#11233f]">
+                  ProfySpace<span className="text-[#0d8d78]">.tn</span>
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">Marketplace Tunisienne de Cours Particuliers</p>
+                <p className="text-xs font-semibold text-slate-500 mt-1">Reçu Officiel de Rechargement</p>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                  <span>Numéro de Référence :</span>
+                  <span className="font-mono font-bold text-slate-800">{selectedReceipt.reference}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                  <span>Moyen de Paiement :</span>
+                  <span className="font-bold text-slate-800">{selectedReceipt.method}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                  <span>Date de l'opération :</span>
+                  <span className="font-semibold text-slate-800">
+                    {new Date(selectedReceipt.createdAt).toLocaleDateString("fr-TN", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                  <span>Statut :</span>
+                  <span className="font-bold text-emerald-700">{selectedReceipt.status === "PAID" ? "PAYÉ / VALIDÉ" : selectedReceipt.status}</span>
+                </div>
+                <div className="flex justify-between py-2 border-t border-slate-200 text-sm font-bold text-[#11233f]">
+                  <span>Montant Rechargé :</span>
+                  <span className="text-lg font-extrabold text-[#0d8d78]">{selectedReceipt.amountTnd.toFixed(3)} DT</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-3 text-[10px] text-slate-400 text-center leading-relaxed">
+                Ce reçu atteste du crédit ajouté à votre portefeuille pour les cours en ligne et en présentiel sur ProfySpace.tn.
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2 print:hidden">
+              <button
+                type="button"
+                onClick={() => setSelectedReceipt(null)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              >
+                Fermer
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0d8d78] px-5 py-2 text-xs font-bold text-white transition hover:bg-[#0b7866] shadow-sm"
+              >
+                <IconDownload className="h-3.5 w-3.5" />
+                <span>Imprimer / PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

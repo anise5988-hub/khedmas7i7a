@@ -132,6 +132,23 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
       .catch(() => {});
   }, [slug]);
 
+  const [copied, setCopied] = useState(false);
+
+  function copyProfileLink() {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  function shareWhatsApp() {
+    if (typeof window !== "undefined" && teacher) {
+      const text = encodeURIComponent(`Je vous recommande le professeur ${teacher.name} (${teacher.title}) sur ProfySpace.tn : ${window.location.href}`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+    }
+  }
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
@@ -326,6 +343,27 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   Envoyer un message
                 </Link>
                 )}
+              </div>
+
+              {/* Social Share Bar */}
+              <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="text-slate-400 font-medium">Recommander ce professeur :</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={copyProfileLink}
+                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-100 transition"
+                  >
+                    {copied ? "✓ Lien copié !" : "📋 Copier le lien"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={shareWhatsApp}
+                    className="inline-flex items-center gap-1 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 px-3 py-1.5 font-bold text-[#128C7E] hover:bg-[#25D366]/20 transition"
+                  >
+                    💬 Partager WhatsApp
+                  </button>
+                </div>
               </div>
             </div>
 

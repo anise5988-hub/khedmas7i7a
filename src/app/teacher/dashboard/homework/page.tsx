@@ -51,6 +51,7 @@ export default function TeacherHomeworkPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [feedbackDrafts, setFeedbackDrafts] = useState<Record<string, string>>({});
+  const [gradeDrafts, setGradeDrafts] = useState<Record<string, string>>({});
   const [feedbackPendingId, setFeedbackPendingId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -151,8 +152,11 @@ export default function TeacherHomeworkPage() {
   }
 
   async function handleSendFeedback(homeworkId: string) {
-    const feedback = (feedbackDrafts[homeworkId] || "").trim();
-    if (!feedback) return;
+    const rawFeedback = (feedbackDrafts[homeworkId] || "").trim();
+    const grade = (gradeDrafts[homeworkId] || "").trim();
+    if (!rawFeedback && !grade) return;
+
+    const feedback = grade ? `Note : ${grade}/20\n${rawFeedback}` : rawFeedback;
     setFeedbackPendingId(homeworkId);
     try {
       const res = await fetch(`/api/homework/${homeworkId}/feedback`, {
@@ -162,6 +166,7 @@ export default function TeacherHomeworkPage() {
       });
       if (res.ok) {
         setFeedbackDrafts((prev) => ({ ...prev, [homeworkId]: "" }));
+        setGradeDrafts((prev) => ({ ...prev, [homeworkId]: "" }));
         loadHomework();
       }
     } catch {} finally {
@@ -300,20 +305,30 @@ export default function TeacherHomeworkPage() {
                         <p className="text-sm text-emerald-800">{h.submission.feedback}</p>
                       </div>
                     ) : (
-                      <div className="mt-2 flex gap-2">
+                      <div className="mt-3 flex flex-wrap gap-2 items-center">
+                        <input
+                          type="number"
+                          min={0}
+                          max={20}
+                          step={0.5}
+                          value={gradeDrafts[h.id] || ""}
+                          onChange={(e) => setGradeDrafts((prev) => ({ ...prev, [h.id]: e.target.value }))}
+                          placeholder="Note /20"
+                          className="w-24 rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-[#0d8d78] outline-none focus:border-[#0d8d78]"
+                        />
                         <input
                           type="text"
                           value={feedbackDrafts[h.id] || ""}
                           onChange={(e) => setFeedbackDrafts((prev) => ({ ...prev, [h.id]: e.target.value }))}
-                          placeholder="Écrire une correction..."
-                          className="flex-1 rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78]"
+                          placeholder="Écrire une appréciation pédagogique..."
+                          className="flex-1 min-w-[200px] rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78]"
                         />
                         <button
                           onClick={() => handleSendFeedback(h.id)}
-                          disabled={feedbackPendingId === h.id || !(feedbackDrafts[h.id] || "").trim()}
+                          disabled={feedbackPendingId === h.id || (!(feedbackDrafts[h.id] || "").trim() && !(gradeDrafts[h.id] || "").trim())}
                           className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50"
                         >
-                          Corriger
+                          Valider la note & correction →
                         </button>
                       </div>
                     )}
