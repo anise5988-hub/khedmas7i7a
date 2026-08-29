@@ -1,13 +1,12 @@
-/* eslint-disable @next/next/no-location-assign-relative-destination, @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
 import { HomepageNews } from "@/components/homepage-news";
-import { educationLevels, subjects, academicSections, governorates } from "@/lib/domain/catalog";
+import { HeroNewsLandscape } from "@/components/hero-news-landscape";
 import {
-  IconSearch,
   IconStar,
   IconUser,
   IconTeacher,
@@ -85,14 +84,6 @@ function formatStat(value: number): string {
 }
 
 export default function Home() {
-  const [subject, setSubject] = useState("");
-  const [level, setLevel] = useState("");
-  const [bacSection, setBacSection] = useState("");
-  const [mode, setMode] = useState("");
-  const [governorate, setGovernorate] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [minRating, setMinRating] = useState("");
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [featuredTeachers, setFeaturedTeachers] = useState<ApprovedTeacher[]>([]);
   const [courses, setCourses] = useState<HomeCourse[]>([]);
   const [selectedCourseSubject, setSelectedCourseSubject] = useState("ALL");
@@ -213,20 +204,6 @@ export default function Home() {
     }
   }
 
-  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const params = new URLSearchParams();
-    if (subject) params.set("subject", subject);
-    if (level) params.set("level", level);
-    if (bacSection) params.set("bacSection", bacSection);
-    if (mode) params.set("mode", mode);
-    if (governorate) params.set("governorate", governorate);
-    if (maxPrice) params.set("maxPrice", maxPrice);
-    if (minRating) params.set("minRating", minRating);
-    if (verifiedOnly) params.set("verified", "1");
-    window.location.href = `/teachers?${params.toString()}`;
-  }
-
   return (
     <main className="min-h-screen overflow-hidden bg-[#f8fafc] text-[#11233f]">
       {/* Animated Homepage News Banner (Admin Controlled) */}
@@ -284,197 +261,28 @@ export default function Home() {
               </li>
             </ul>
 
-            <Link
-              href="/teachers"
-              className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#72d6bf] px-6 py-3.5 text-sm font-bold text-[#11233f] shadow-lg shadow-[#72d6bf]/20 transition hover:bg-[#5ec4ad]"
-            >
-              <IconUser className="h-5 w-5" />
-              Explorer tous les professeurs
-            </Link>
-          </div>
-
-          <form onSubmit={submitSearch} className="rounded-3xl bg-white p-5 text-[#11233f] shadow-2xl shadow-black/30 sm:p-7">
-            <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[.18em] text-[#0d8d78]">Recherche guidée</p>
-                <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">Affinez votre recherche</h2>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Matière
-                  </label>
-                  <select
-                    value={subject}
-                    onChange={(event) => setSubject(event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
-                  >
-                    <option value="">Toutes les matières</option>
-                    {subjects.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Niveau scolaire
-                  </label>
-                  <select
-                    value={level}
-                    onChange={(event) => {
-                      setLevel(event.target.value);
-                      setBacSection("");
-                    }}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
-                  >
-                    <option value="">Tous les niveaux</option>
-                    {educationLevels.map((item) => (
-                      <option key={item.slug} value={item.slug}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {level === "bac" && (
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Section Bac
-                  </label>
-                  <select
-                    value={bacSection}
-                    onChange={(event) => setBacSection(event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
-                  >
-                    <option value="">Toutes les sections</option>
-                    {academicSections.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Format
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setMode("ONLINE")}
-                      className={`flex items-center justify-center gap-1.5 rounded-2xl border p-3 text-xs font-bold transition ${
-                        mode === "ONLINE"
-                          ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
-                          : "border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100"
-                      }`}
-                    >
-                      En ligne
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMode("IN_PERSON")}
-                      className={`flex items-center justify-center gap-1.5 rounded-2xl border p-3 text-xs font-bold transition ${
-                        mode === "IN_PERSON"
-                          ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
-                          : "border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100"
-                      }`}
-                    >
-                      Présentiel
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Gouvernorat
-                  </label>
-                  <select
-                    value={governorate}
-                    onChange={(event) => setGovernorate(event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
-                  >
-                    <option value="">Toute la Tunisie</option>
-                    {governorates.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Tarif max / heure
-                  </label>
-                  <select
-                    value={maxPrice}
-                    onChange={(event) => setMaxPrice(event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
-                  >
-                    <option value="">Tous les tarifs</option>
-                    <option value="20">≤ 20 DT</option>
-                    <option value="30">≤ 30 DT</option>
-                    <option value="50">≤ 50 DT</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Note minimale
-                  </label>
-                  <select
-                    value={minRating}
-                    onChange={(event) => setMinRating(event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3 text-sm font-semibold outline-none transition focus:border-[#0d8d78] focus:bg-white focus:ring-2 focus:ring-[#d9f1e9]"
-                  >
-                    <option value="">Toutes les notes</option>
-                    <option value="4"> 4.0 et plus</option>
-                    <option value="4.5"> 4.5 et plus</option>
-                    <option value="5"> 5.0 (Excellent)</option>
-                  </select>
-                </div>
-              </div>
-
-              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 transition hover:bg-slate-100">
-                <input
-                  type="checkbox"
-                  checked={verifiedOnly}
-                  onChange={(event) => setVerifiedOnly(event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#0d8d78] accent-[#0d8d78] focus:ring-[#0d8d78]"
-                />
-                <span className="text-sm font-semibold text-slate-700">
-                  Afficher uniquement les profs vérifiés ✓
-                </span>
-              </label>
-
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition duration-300 hover:bg-[#0b7866] hover:shadow-xl"
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href="/teachers"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#72d6bf] px-6 py-3.5 text-sm font-bold text-[#11233f] shadow-lg shadow-[#72d6bf]/20 transition hover:bg-[#5ec4ad] active:scale-95"
               >
-                <IconSearch className="h-5 w-5" />
-                <span>Trouver un prof</span>
-              </button>
-
+                <IconUser className="h-5 w-5" />
+                Explorer tous les professeurs
+              </Link>
               <Link
                 href="/courses"
-                className="block text-center text-xs font-bold text-[#0d8d78] transition hover:text-[#0b7866] hover:underline"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 backdrop-blur px-6 py-3.5 text-sm font-bold text-white hover:bg-white/20 transition active:scale-95"
               >
-                Ou explorer les cours &amp; packs de révision →
+                <IconBookOpen className="h-5 w-5 text-[#72d6bf]" />
+                Cours & Packs vidéo
               </Link>
             </div>
-          </form>
+          </div>
+
+          {/* Right Hero: Animated Landscape News Carousel */}
+          <div className="self-center w-full">
+            <HeroNewsLandscape />
+          </div>
         </div>
       </section>
 
