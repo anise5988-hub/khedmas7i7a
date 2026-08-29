@@ -96,22 +96,22 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
     const active = isActive(path);
     if (isDark) {
       return active
-        ? "text-[#72d6bf] font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-[#72d6bf]/30 shadow-xs"
-        : "text-slate-300 hover:text-white hover:bg-white/5 px-3 py-1.5 rounded-xl font-medium transition duration-150";
+        ? "text-[#72d6bf] font-bold bg-white/10 px-2.5 lg:px-3 py-1.5 rounded-xl border border-[#72d6bf]/30 shadow-xs whitespace-nowrap"
+        : "text-slate-300 hover:text-white hover:bg-white/5 px-2.5 lg:px-3 py-1.5 rounded-xl font-medium transition duration-150 whitespace-nowrap";
     }
     return active
-      ? "text-[#0d8d78] font-bold bg-[#e5f7f2] px-3 py-1.5 rounded-xl border border-[#0d8d78]/20 shadow-xs"
-      : "text-slate-600 hover:text-[#0d8d78] hover:bg-slate-100/70 px-3 py-1.5 rounded-xl font-medium transition duration-150";
+      ? "text-[#0d8d78] font-bold bg-[#e5f7f2] px-2.5 lg:px-3 py-1.5 rounded-xl border border-[#0d8d78]/20 shadow-xs whitespace-nowrap"
+      : "text-slate-600 hover:text-[#0d8d78] hover:bg-slate-100/70 px-2.5 lg:px-3 py-1.5 rounded-xl font-medium transition duration-150 whitespace-nowrap";
   };
 
   return (
     <header className="relative w-full z-30 transition-all duration-300">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-10">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6 py-3 lg:px-8 gap-2 sm:gap-4">
         {/* Brand Logo with Role-Specific Visual Identity */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 shrink-0">
           <Link
             href="/"
-            className="group flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight transition duration-200"
+            className="group flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl sm:text-2xl font-bold tracking-tight transition duration-200 shrink-0"
           >
             <span className={isDark ? "text-white group-hover:text-slate-100" : "text-[#11233f] group-hover:text-[#0d8d78]"}>
               ProfySpace
@@ -130,26 +130,26 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
           </Link>
 
           {role === "TEACHER" && (
-            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#e5f7f2] border border-[#0d8d78]/25 px-2.5 py-0.5 text-[11px] font-bold text-[#0d8d78]">
+            <span className="hidden xl:inline-flex items-center gap-1 rounded-full bg-[#e5f7f2] border border-[#0d8d78]/25 px-2.5 py-0.5 text-[11px] font-bold text-[#0d8d78]">
               <IconTeacher className="h-3 w-3" />
-              <span>Espace Enseignant</span>
+              <span>Enseignant</span>
             </span>
           )}
 
           {role === "STUDENT" && (
-            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
-              <span>Espace Élève</span>
+            <span className="hidden xl:inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
+              <span>Élève</span>
             </span>
           )}
         </div>
 
         {/* ========================================================================= */}
-        {/* DESKTOP NAVIGATION: ROLE-SPECIFIC HEADERS (Strictly adhering to Rule 8)    */}
+        {/* DESKTOP NAVIGATION: ROLE-SPECIFIC HEADERS                                 */}
         {/* ========================================================================= */}
 
         {/* 1. STUDENT HEADER LINKS */}
         {!loading && role === "STUDENT" && (
-          <div className="hidden items-center gap-6 text-xs lg:text-sm md:flex">
+          <div className="hidden items-center gap-1.5 lg:gap-2 text-xs lg:text-sm md:flex">
             <Link href="/" className={linkBaseClass("/")}>
               Accueil
             </Link>
@@ -157,7 +157,10 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
               Professeurs
             </Link>
             <Link href="/courses" className={linkBaseClass("/courses")}>
-              Cours
+              Cours & Packs
+            </Link>
+            <Link href="/dashboard/classes" className={linkBaseClass("/dashboard/classes")}>
+              Mes Cours
             </Link>
             <Link href="/dashboard/messages" className={linkBaseClass("/dashboard/messages")}>
               Messages
@@ -165,29 +168,17 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             <Link href="/dashboard/calendar" className={linkBaseClass("/dashboard/calendar")}>
               Réservations
             </Link>
-            <Link href="/dashboard/classes" className={linkBaseClass("/dashboard/classes")}>
-              Mes Cours
-            </Link>
-            <Link href="/dashboard/homework" className={linkBaseClass("/dashboard/homework")}>
-              Devoirs
-            </Link>
-            <Link href="/dashboard/favorites" className={linkBaseClass("/dashboard/favorites")}>
-              Favoris
-            </Link>
           </div>
         )}
 
         {/* 2. PROFESSOR HEADER LINKS */}
         {!loading && role === "TEACHER" && (
-          <div className="hidden items-center gap-5 text-xs lg:text-sm md:flex">
+          <div className="hidden items-center gap-1.5 lg:gap-2 text-xs lg:text-sm md:flex">
             <Link href="/" className={linkBaseClass("/")}>
               Accueil
             </Link>
             <Link href="/teacher/dashboard" className={linkBaseClass("/teacher/dashboard")}>
               Dashboard
-            </Link>
-            <Link href="/teacher/dashboard/profile" className={linkBaseClass("/teacher/dashboard/profile")}>
-              Mon Profil
             </Link>
             <Link href="/teacher/dashboard/courses" className={linkBaseClass("/teacher/dashboard/courses")}>
               Mes Cours
@@ -198,21 +189,15 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             <Link href="/teacher/dashboard/messages" className={linkBaseClass("/teacher/dashboard/messages")}>
               Messages
             </Link>
-            <Link href="/teacher/dashboard/homework" className={linkBaseClass("/teacher/dashboard/homework")}>
-              Devoirs
-            </Link>
             <Link href="/teacher/dashboard/calendar" className={linkBaseClass("/teacher/dashboard/calendar")}>
               Planning
-            </Link>
-            <Link href="/teacher/dashboard/earnings" className={linkBaseClass("/teacher/dashboard/earnings")}>
-              Gains
             </Link>
           </div>
         )}
 
         {/* 3. ADMIN HEADER LINKS */}
         {!loading && role === "ADMIN" && (
-          <div className="hidden items-center gap-4 text-xs font-semibold lg:flex text-slate-300">
+          <div className="hidden items-center gap-1.5 lg:gap-2 text-xs font-semibold lg:flex text-slate-300">
             <Link href="/admin" className={linkBaseClass("/admin")}>
               Dashboard
             </Link>
@@ -225,43 +210,31 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             <Link href="/admin/teachers" className={linkBaseClass("/admin/teachers")}>
               Professeurs
             </Link>
-            <Link href="/admin/students" className={linkBaseClass("/admin/students")}>
-              Élèves
-            </Link>
             <Link href="/admin/news" className={linkBaseClass("/admin/news")}>
               Actualités
             </Link>
-            <Link href="/admin/bookings" className={linkBaseClass("/admin/bookings")}>
-              Réservations
-            </Link>
             <Link href="/admin/wallets" className={linkBaseClass("/admin/wallets")}>
               Paiements
-            </Link>
-            <Link href="/admin/notifications" className={linkBaseClass("/admin/notifications")}>
-              Notifications
-            </Link>
-            <Link href="/admin/settings" className={linkBaseClass("/admin/settings")}>
-              Paramètres
             </Link>
           </div>
         )}
 
         {/* 4. PUBLIC HEADER LINKS (When user is not authenticated) */}
         {!loading && !user && (
-          <div className={`hidden items-center gap-7 text-xs lg:text-sm md:flex ${isDark ? "text-slate-300" : "text-slate-600"}`}>
-            <Link href="/teachers" className="hover:text-[#0d8d78] transition duration-150">
+          <div className={`hidden items-center gap-3 lg:gap-5 text-xs lg:text-sm md:flex ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+            <Link href="/teachers" className="hover:text-[#0d8d78] transition duration-150 whitespace-nowrap">
               Explorer les professeurs
             </Link>
-            <Link href="/subjects" className="hover:text-[#0d8d78] transition duration-150">
-              Matières
-            </Link>
-            <Link href="/courses" className="hover:text-[#0d8d78] transition duration-150">
+            <Link href="/courses" className="hover:text-[#0d8d78] transition duration-150 whitespace-nowrap">
               Cours & Packs
             </Link>
-            <Link href="/#how" className="hover:text-[#0d8d78] transition duration-150">
+            <Link href="/subjects" className="hover:text-[#0d8d78] transition duration-150 whitespace-nowrap">
+              Matières
+            </Link>
+            <Link href="/#how" className="hover:text-[#0d8d78] transition duration-150 whitespace-nowrap">
               Comment ça marche
             </Link>
-            <Link href="/register?role=TEACHER" className="hover:text-[#0d8d78] font-bold text-[#0d8d78] transition duration-150">
+            <Link href="/register?role=TEACHER" className="hover:text-[#0d8d78] font-bold text-[#0d8d78] transition duration-150 whitespace-nowrap">
               Devenir professeur
             </Link>
           </div>
@@ -306,12 +279,12 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
 
               {/* Profile Menu Dropdown */}
               {profileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-slate-200 p-2 shadow-2xl text-[#11233f] z-50 animate-fade-in">
-                  <div className="px-3 py-2 border-b border-slate-100">
+                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#101b2d] border border-slate-200 dark:border-white/15 p-2 shadow-2xl text-[#11233f] dark:text-white z-50 animate-fade-in max-h-[85vh] overflow-y-auto">
+                  <div className="px-3 py-2.5 border-b border-slate-100 dark:border-white/10">
                     <p className="font-bold text-xs truncate">{user.firstName} {user.lastName}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
-                    <span className="mt-1.5 inline-block rounded-md bg-[#e5f7f2] px-2 py-0.5 text-[10px] font-bold text-[#0d8d78]">
-                      {role === "ADMIN" ? "Administrateur" : role === "TEACHER" ? "Professeur" : "Élève"}
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    <span className="mt-1.5 inline-block rounded-md bg-[#e5f7f2] dark:bg-[#72d6bf]/15 text-[#0d8d78] dark:text-[#72d6bf] px-2 py-0.5 text-[10px] font-bold">
+                      {role === "ADMIN" ? "Administrateur" : role === "TEACHER" ? "Professeur Certifié" : "Compte Élève"}
                     </span>
                   </div>
 
@@ -321,17 +294,49 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                         <Link
                           href="/dashboard"
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 transition"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
                         >
-                          <IconUser className="h-4 w-4 text-[#0d8d78]" />
+                          <IconUser className="h-4 w-4 text-[#0d8d78] dark:text-[#72d6bf]" />
                           <span>Mon Espace Élève</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/classes"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">📚</span>
+                          <span>Mes Cours & Replays</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/calendar"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">📅</span>
+                          <span>Mes Réservations</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/homework"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">📝</span>
+                          <span>Mes Devoirs</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/favorites"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">⭐</span>
+                          <span>Professeurs Favoris</span>
                         </Link>
                         <Link
                           href="/dashboard/settings"
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 transition"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
                         >
-                          <IconSettings className="h-4 w-4 text-slate-500" />
+                          <IconSettings className="h-4 w-4 text-slate-400" />
                           <span>Paramètres du compte</span>
                         </Link>
                       </>
@@ -342,17 +347,57 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                         <Link
                           href="/teacher/dashboard"
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 transition"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
                         >
-                          <IconTeacher className="h-4 w-4 text-[#0d8d78]" />
+                          <IconTeacher className="h-4 w-4 text-[#0d8d78] dark:text-[#72d6bf]" />
                           <span>Dashboard Enseignant</span>
+                        </Link>
+                        <Link
+                          href="/teacher/dashboard/profile"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <IconUser className="h-4 w-4 text-[#0d8d78] dark:text-[#72d6bf]" />
+                          <span>Mon Profil Enseignant</span>
+                        </Link>
+                        <Link
+                          href="/teacher/dashboard/courses"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">🎓</span>
+                          <span>Mes Cours & Formations</span>
+                        </Link>
+                        <Link
+                          href="/teacher/dashboard/homework"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">📝</span>
+                          <span>Devoirs & Exercices</span>
+                        </Link>
+                        <Link
+                          href="/teacher/dashboard/calendar"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">📅</span>
+                          <span>Planning & Disponibilités</span>
+                        </Link>
+                        <Link
+                          href="/teacher/dashboard/earnings"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">💰</span>
+                          <span>Gains & Retraits</span>
                         </Link>
                         <Link
                           href="/teacher/dashboard/settings"
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 transition"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
                         >
-                          <IconSettings className="h-4 w-4 text-slate-500" />
+                          <IconSettings className="h-4 w-4 text-slate-400" />
                           <span>Paramètres Enseignant</span>
                         </Link>
                       </>
@@ -363,31 +408,55 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                         <Link
                           href="/admin"
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 transition"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
                         >
-                          <IconShield className="h-4 w-4 text-[#0d8d78]" />
+                          <IconShield className="h-4 w-4 text-[#0d8d78] dark:text-[#72d6bf]" />
                           <span>Console Admin</span>
+                        </Link>
+                        <Link
+                          href="/admin/teacher-verifications"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">✅</span>
+                          <span>Vérification Candidatures</span>
+                        </Link>
+                        <Link
+                          href="/admin/withdrawals"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">💳</span>
+                          <span>Retraits Enseignants</span>
+                        </Link>
+                        <Link
+                          href="/admin/notifications"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">📢</span>
+                          <span>Diffuser Notification</span>
                         </Link>
                         <Link
                           href="/admin/settings"
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 transition"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
                         >
-                          <IconSettings className="h-4 w-4 text-slate-500" />
+                          <IconSettings className="h-4 w-4 text-slate-400" />
                           <span>Paramètres Plateforme</span>
                         </Link>
                       </>
                     )}
                   </div>
 
-                  <div className="pt-1 border-t border-slate-100">
+                  <div className="pt-1 border-t border-slate-100 dark:border-white/10">
                     <button
                       type="button"
                       onClick={() => {
                         setProfileDropdownOpen(false);
                         handleLogout();
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition"
                     >
                       <IconLogout className="h-4 w-4" />
                       <span>Se déconnecter</span>

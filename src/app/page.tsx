@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
-import { HomepageNews } from "@/components/homepage-news";
 import { HeroNewsLandscape } from "@/components/hero-news-landscape";
 import {
   IconStar,
@@ -206,9 +205,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
-      {/* Animated Homepage News Banner (Admin Controlled) */}
-      <HomepageNews />
-
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-[#11233f] text-white">
         <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:48px_48px]" />
