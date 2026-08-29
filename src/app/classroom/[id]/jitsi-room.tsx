@@ -93,7 +93,13 @@ export function JitsiRoom({
           height: "100%",
           userInfo: { displayName: currentUserName },
           configOverwrite: {
+            // prejoinPageEnabled is the deprecated flat key; current
+            // meet.jit.si builds only honor the nested prejoinConfig form.
+            // Our own pre-join lobby already handles the device check, so
+            // Jitsi's internal prejoin screen would just be a second,
+            // invisible-behind-our-overlay gate nothing ever clicks through.
             prejoinPageEnabled: false,
+            prejoinConfig: { enabled: false },
             disableDeepLinking: true,
           },
         });
