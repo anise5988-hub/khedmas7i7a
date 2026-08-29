@@ -6,7 +6,7 @@ export type MatchedTeacher = DirectoryTeacher & {
   matchReasons: string[];
 };
 
-type ParsedIntent = {
+export type ParsedIntent = {
   subjects: string[];
   levelCycle: "PRIMARY" | "BASIC" | "SECONDARY" | "UNIVERSITY" | "PROFESSIONAL" | null;
   wantsBac: boolean;
@@ -15,6 +15,17 @@ type ParsedIntent = {
   timeOfDay: "morning" | "afternoon" | "evening" | null;
   wantsWeekend: boolean;
   city: string | null;
+};
+
+export const EMPTY_INTENT: ParsedIntent = {
+  subjects: [],
+  levelCycle: null,
+  wantsBac: false,
+  budgetMax: null,
+  mode: null,
+  timeOfDay: null,
+  wantsWeekend: false,
+  city: null,
 };
 
 const SUBJECT_ALIASES: Record<string, string[]> = {
@@ -41,14 +52,14 @@ const CITY_HINTS = [
   "Kebili", "Zaghouan",
 ];
 
-function normalize(text: string): string {
+export function normalize(text: string): string {
   return text
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "");
 }
 
-function parseQuery(rawQuery: string): ParsedIntent {
+export function parseQuery(rawQuery: string): ParsedIntent {
   const query = normalize(rawQuery);
 
   const matchedSubjects = new Set<string>();
@@ -98,6 +109,33 @@ function parseQuery(rawQuery: string): ParsedIntent {
   }
 
   return { subjects: Array.from(matchedSubjects), levelCycle, wantsBac, budgetMax, mode, timeOfDay, wantsWeekend, city };
+}
+
+/** Folds a newly-parsed turn into the running conversation intent — later, more specific answers win, earlier ones are kept when the new turn is silent on that slot. */
+export function mergeIntent(base: ParsedIntent, incoming: ParsedIntent): ParsedIntent {
+  return {
+    subjects: incoming.subjects.length > 0 ? Array.from(new Set([...base.subjects, ...incoming.subjects])) : base.subjects,
+    levelCycle: incoming.levelCycle ?? base.levelCycle,
+    wantsBac: incoming.wantsBac || base.wantsBac,
+    budgetMax: incoming.budgetMax ?? base.budgetMax,
+    mode: incoming.mode ?? base.mode,
+    timeOfDay: incoming.timeOfDay ?? base.timeOfDay,
+    wantsWeekend: incoming.wantsWeekend || base.wantsWeekend,
+    city: incoming.city ?? base.city,
+  };
+}
+
+export function hasSignal(intent: ParsedIntent): boolean {
+  return (
+    intent.subjects.length > 0 ||
+    intent.levelCycle !== null ||
+    intent.wantsBac ||
+    intent.budgetMax !== null ||
+    intent.mode !== null ||
+    intent.timeOfDay !== null ||
+    intent.wantsWeekend ||
+    intent.city !== null
+  );
 }
 
 function cycleOfLevelSlug(slug: string): ParsedIntent["levelCycle"] {
@@ -198,9 +236,7 @@ function scoreTeacher(teacher: DirectoryTeacher, intent: ParsedIntent): { score:
   return { score: Math.max(0, Math.min(100, Math.round(score))), reasons };
 }
 
-export function matchTeachers(query: string, teachers: DirectoryTeacher[], limit = 6): MatchedTeacher[] {
-  const intent = parseQuery(query);
-
+export function matchTeachersByIntent(intent: ParsedIntent, teachers: DirectoryTeacher[], limit = 5): MatchedTeacher[] {
   return teachers
     .map((teacher) => {
       const { score, reasons } = scoreTeacher(teacher, intent);
@@ -208,4 +244,43 @@ export function matchTeachers(query: string, teachers: DirectoryTeacher[], limit
     })
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, limit);
+}
+
+export function matchTeachers(query: string, teachers: DirectoryTeacher[], limit = 6): MatchedTeacher[] {
+  return matchTeachersByIntent(parseQuery(query), teachers, limit);
+}
+
+/** What's still missing before we can search with confidence — drives the assistant's follow-up question. */
+export function missingSlots(intent: ParsedIntent): Array<"subject" | "level" | "mode" | "budget"> {
+  const missing: Array<"subject" | "level" | "mode" | "budget"> = [];
+  if (intent.subjects.length === 0) missing.push("subject");
+  if (!intent.levelCycle && !intent.wantsBac) missing.push("level");
+  if (!intent.mode) missing.push("mode");
+  if (intent.budgetMax === null) missing.push("budget");
+  return missing;
+}
+
+export function describeIntent(intent: ParsedIntent): string {
+  const parts: string[] = [];
+  if (intent.subjects.length > 0) parts.push(intent.subjects.join(", "));
+  if (intent.wantsBac) parts.push("niveau Bac");
+  else if (intent.levelCycle) {
+    const labels: Record<NonNullable<ParsedIntent["levelCycle"]>, string> = {
+      PRIMARY: "primaire",
+      BASIC: "collège",
+      SECONDARY: "secondaire",
+      UNIVERSITY: "université",
+      PROFESSIONAL: "formation professionnelle",
+    };
+    parts.push(`niveau ${labels[intent.levelCycle]}`);
+  }
+  if (intent.budgetMax !== null) parts.push(`budget ${intent.budgetMax} DT/h max`);
+  if (intent.mode === "online") parts.push("en ligne");
+  if (intent.mode === "in_person") parts.push("en présentiel");
+  if (intent.city) parts.push(`à ${intent.city}`);
+  if (intent.timeOfDay === "evening") parts.push("le soir");
+  if (intent.timeOfDay === "morning") parts.push("le matin");
+  if (intent.timeOfDay === "afternoon") parts.push("l'après-midi");
+  if (intent.wantsWeekend) parts.push("le week-end");
+  return parts.join(" · ");
 }
