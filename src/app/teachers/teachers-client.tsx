@@ -365,32 +365,32 @@ function FilterSidebar({
       {/* Premium Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#11233f] via-[#1a2d4d] to-[#0d8d78]">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0idXJsKCNncmFkKSIgZmlsbC1vcGFjaXR5PSIwLjEiLz48L3N2Zz4=')] opacity-30" />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-10">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#72d6bf]/20 border border-[#72d6bf]/30 px-3 py-1 text-xs font-bold text-[#72d6bf]">
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-20 lg:px-10">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#72d6bf]/20 border border-[#72d6bf]/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold text-[#72d6bf]">
               <IconSparkles className="h-3.5 w-3.5" />
               Marketplace certifiée Tunisie
             </span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <h1 className="text-2xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
             Trouvez le professeur idéal
           </h1>
-          <p className="mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">
+          <p className="mt-2 sm:mt-3 max-w-2xl text-xs sm:text-base text-slate-300 sm:text-lg">
             Des enseignants vérifiés par l&apos;administration, prêts à vous accompagner dans votre réussite scolaire.
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-300">
+          <div className="mt-4 sm:mt-6 flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-300">
             <div className="flex items-center gap-1.5">
-              <IconUsers className="h-4 w-4 text-[#72d6bf]" />
+              <IconUsers className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#72d6bf]" />
               <span><strong className="text-white font-bold">{teachers.length}+</strong> professeurs</span>
             </div>
             <div className="h-1 w-1 rounded-full bg-slate-500" />
             <div className="flex items-center gap-1.5">
-              <IconStar className="h-4 w-4 text-[#f59e0b]" />
+              <IconStar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#f59e0b]" />
               <span>Notes vérifiées</span>
             </div>
             <div className="h-1 w-1 rounded-full bg-slate-500" />
             <div className="flex items-center gap-1.5">
-              <IconShield className="h-4 w-4 text-[#72d6bf]" />
+              <IconShield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#72d6bf]" />
               <span>Professeurs certifiés</span>
             </div>
           </div>
@@ -568,30 +568,36 @@ function FilterSidebar({
                 onRetry={() => window.location.reload()}
                 loadingText="Chargement des professeurs..."
               >
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3.5 sm:gap-4 sm:grid-cols-2">
                   {sorted.map((t) => (
                   <div
                     key={t.id}
-                    className="group flex min-w-0 flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#72d6bf] hover:shadow-xl"
+                    className="group flex min-w-0 flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs transition duration-300 hover:-translate-y-1 hover:border-[#72d6bf] hover:shadow-lg"
                   >
                     <div>
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78] overflow-hidden border border-[#0d8d78]/20">
+                      {/* Card Header */}
+                      <div className="flex items-start justify-between gap-2.5">
+                        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                          <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#d9f1e9] to-[#bce8dc] text-base sm:text-lg font-bold text-[#0d8d78] overflow-hidden border border-[#0d8d78]/25 shadow-2xs">
                             {t.avatarUrl ? (
                               <img src={t.avatarUrl} alt={t.name} className="h-full w-full object-cover" />
                             ) : (
                               <span>{t.initials}</span>
                             )}
+                            {t.online && (
+                              <span className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                            )}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <h3 className="font-bold text-base text-[#11233f] truncate">{t.name}</h3>
+                              <a href={`/teachers/${t.slug}`} className="font-bold text-sm sm:text-base text-[#11233f] hover:text-[#0d8d78] transition truncate">
+                                {t.name}
+                              </a>
                               {t.verificationStatus === "APPROVED" && (
                                 <VerifiedBadge />
                               )}
                             </div>
-                            <p className="text-xs text-slate-500 truncate">{t.title}</p>
+                            <p className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">{t.title}</p>
                           </div>
                         </div>
 
@@ -600,79 +606,84 @@ function FilterSidebar({
                         </div>
                       </div>
 
-                      <div className="mt-4 flex flex-wrap gap-1.5">
+                      {/* Tags */}
+                      <div className="mt-3 flex flex-wrap gap-1.5">
                         {t.subjects.slice(0, 3).map((s) => (
-                          <span key={s} className="rounded-lg bg-[#e5f7f2] px-2.5 py-0.5 text-xs font-semibold text-[#0d8d78]">
+                          <span key={s} className="rounded-lg bg-[#e5f7f2] px-2 py-0.5 text-[11px] font-bold text-[#0d8d78]">
                             {s}
                           </span>
                         ))}
                         {t.levels.length > 0 && (
-                          <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                          <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
                             {levelName(t.levels[0])}
                             {t.levels.length > 1 ? ` +${t.levels.length - 1}` : ""}
                           </span>
                         )}
                       </div>
 
+                      {/* Bio */}
                       {t.bio && (
-                        <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                        <p className="mt-2.5 text-xs text-slate-600 line-clamp-2 leading-relaxed">
                           {t.bio}
                         </p>
                       )}
 
-                      <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                      {/* Meta */}
+                      <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] sm:text-xs text-slate-500">
                         <span className="flex items-center gap-1">
                           <IconUsers className="h-3.5 w-3.5 text-slate-400" />
                           {t.city && t.governorate
                             ? `${t.city}, ${t.governorate}`
-                            : t.governorate || t.city}
+                            : t.governorate || t.city || "Tunisie"}
                         </span>
                         <span className="flex items-center gap-1">
                           <IconClock className="h-3.5 w-3.5 text-slate-400" />
-                          {t.experience} ans d&apos;expérience
+                          {t.experience} ans d&apos;exp.
                         </span>
                       </div>
                     </div>
 
-                    <div className="mt-5 border-t border-slate-100 pt-4 space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
+                    {/* Bottom Pricing & CTAs */}
+                    <div className="mt-4 sm:mt-5 border-t border-slate-100 pt-3 sm:pt-4 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
                         <div>
-                          <span className="text-[11px] text-slate-400">À partir de</span>
-                          <p className="text-lg font-bold text-[#0d8d78]">
+                          <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium">À partir de</span>
+                          <p className="text-base sm:text-lg font-bold text-[#0d8d78] leading-tight">
                             {t.rate} DT <span className="text-xs font-normal text-slate-500">/ h</span>
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           <a
                             href={`/dashboard/messages?teacherId=${t.id}`}
-                            className="rounded-xl border border-[#0d8d78] bg-[#e5f7f2] px-3.5 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+                            className="rounded-xl border border-[#0d8d78] bg-[#e5f7f2] px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] active:scale-95"
                           >
                             Discuter
                           </a>
                           <a
                             href={`/teachers/${t.slug}`}
-                            className="rounded-xl bg-[#11233f] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#0d8d78]"
+                            className="rounded-xl bg-[#11233f] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white transition hover:bg-[#0d8d78] active:scale-95 shadow-2xs"
                           >
                             Réserver
                           </a>
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
+
+                      <div className="flex items-center justify-between gap-2 pt-0.5">
+                        <div className="flex items-center gap-1.5">
                           {t.online && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 px-2 py-0.5 text-[10px] font-bold text-[#0d8d78]">
+                            <span className="inline-flex items-center gap-1 rounded-md bg-[#e5f7f2] border border-[#0d8d78]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#0d8d78]">
                               <IconVideo className="h-3 w-3" />
                               En ligne
                             </span>
                           )}
                           {t.inPerson && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                            <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
                               <IconUsers className="h-3 w-3" />
                               Présentiel
                             </span>
                           )}
                         </div>
-                        <span className="hidden text-[10px] text-slate-400 sm:inline">Cliquez sur Discuter pour une offre spécifique</span>
+                        <span className="text-[10px] text-slate-400">Certifié ProfySpace</span>
                       </div>
                     </div>
                   </div>

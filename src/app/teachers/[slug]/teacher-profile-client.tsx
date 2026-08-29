@@ -227,73 +227,87 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/teachers" className="text-slate-500 hover:text-slate-800 text-sm font-semibold">
-              ← Tous les professeurs
+      <header className="border-b border-slate-200 bg-white px-4 py-3 sm:py-4 sm:px-6 sticky top-0 z-30 backdrop-blur-md bg-white/95">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Link href="/teachers" className="text-slate-500 hover:text-slate-800 text-xs sm:text-sm font-semibold shrink-0">
+              ← Professeurs
             </Link>
             <span className="text-slate-300">/</span>
-            <span className="font-bold text-sm">{teacher.name}</span>
+            <span className="font-bold text-xs sm:text-sm truncate text-[#11233f]">{teacher.name}</span>
           </div>
-          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-lg sm:text-xl font-bold tracking-tight shrink-0">
             <span>ProfySpace</span>
-            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-xs font-extrabold text-white">.tn</span>
+            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-white">.tn</span>
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-10">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 py-4 sm:py-8 lg:px-10 pb-28 lg:pb-12">
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Premium Profile Header */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-              <div className="flex flex-col sm:flex-row gap-6">
-                <div className="relative mx-auto sm:mx-0 shrink-0">
-                  <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-3xl bg-[#d9f1e9] text-3xl font-bold text-[#0d8d78] overflow-hidden border-2 border-[#0d8d78]/20 shadow-sm">
-                    {teacher.avatarUrl ? (
-                      <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span>{teacher.initials}</span>
-                    )}
-                  </div>
-                  {teacher.online && (
-                    <span className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 border-2 border-white shadow-sm">
-                      <span className="sr-only">En ligne</span>
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex-1 text-center sm:text-left">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-[#11233f]">{teacher.name}</h1>
-                    {teacher.verificationStatus === "APPROVED" && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-xs font-bold text-emerald-800 mx-auto sm:mx-0">
-                        <IconCheckCircle className="h-3.5 w-3.5" />
-                        Professeur Vérifié
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-8 shadow-sm">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                {/* Mobile Top Row: Avatar + Rating */}
+                <div className="flex items-start justify-between sm:block">
+                  <div className="relative shrink-0">
+                    <div className="flex h-20 w-20 sm:h-28 sm:w-28 items-center justify-center rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#d9f1e9] to-[#bce8dc] text-2xl sm:text-3xl font-bold text-[#0d8d78] overflow-hidden border-2 border-[#0d8d78]/25 shadow-sm">
+                      {teacher.avatarUrl ? (
+                        <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span>{teacher.initials}</span>
+                      )}
+                    </div>
+                    {teacher.online && (
+                      <span className="absolute bottom-1 right-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-sm" title="En ligne">
+                        <span className="sr-only">En ligne</span>
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-base text-[#0d8d78] font-semibold">{teacher.title}</p>
-                  <div className="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-slate-500">
+
+                  {/* Rating Badge shown on top-right on mobile */}
+                  <div className="sm:hidden shrink-0 rounded-2xl bg-amber-50 border border-amber-200/80 p-2.5 text-center min-w-[70px]">
+                    <span className="flex items-center justify-center gap-1 text-base font-black text-amber-900">
+                      <IconStar className="h-4 w-4 fill-amber-500 text-amber-500" />
+                      {teacher.rating.toFixed(1)}
+                    </span>
+                    <span className="block text-[10px] font-semibold text-amber-800">{teacher.reviewsCount} avis</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 text-left">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-xl sm:text-3xl font-bold text-[#11233f]">{teacher.name}</h1>
+                    {teacher.verificationStatus === "APPROVED" && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] sm:text-xs font-bold text-emerald-800">
+                        <IconCheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                        Vérifié
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm sm:text-base text-[#0d8d78] font-semibold">{teacher.title}</p>
+
+                  <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                     <span className="inline-flex items-center gap-1">
                       <MapPinIcon />
-                      {teacher.city ? `${teacher.city}, ${teacher.governorate}` : teacher.governorate}
+                      {teacher.city ? `${teacher.city}, ${teacher.governorate}` : teacher.governorate || "Tunisie"}
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <ClockIcon />
                       {teacher.experienceYears} ans d&apos;expérience
                     </span>
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2">
                     {teacher.online && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/20 px-3 py-1 text-xs font-bold text-[#0d8d78]">
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/20 px-2.5 py-1 text-xs font-bold text-[#0d8d78]">
                         <GlobeIcon />
                         En ligne
                       </span>
                     )}
                     {teacher.inPerson && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-800">
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-800">
                         <UsersIcon />
                         Présentiel
                       </span>
@@ -301,7 +315,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                <div className="mx-auto sm:mx-0 shrink-0 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center min-w-[100px]">
+                {/* Rating Box on Desktop */}
+                <div className="hidden sm:block shrink-0 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center min-w-[100px] self-start">
                   <span className="flex items-center justify-center gap-1 text-xl font-bold text-amber-900">
                     <IconStar className="h-5 w-5 fill-amber-500 text-amber-500" />
                     {teacher.rating.toFixed(1)}
@@ -311,17 +326,18 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               </div>
 
               {isOwnProfile && (
-                <div className="mt-6 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-500">
+                <div className="mt-5 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-500">
                   Ceci est votre profil public — c&apos;est ainsi que les élèves vous voient. Vous ne pouvez pas réserver ou vous
                   envoyer un message à vous-même.
                 </div>
               )}
 
-              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              {/* Action Buttons */}
+              <div className="mt-5 sm:mt-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 {!isOwnProfile && (
                   <button
                     onClick={() => bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866]"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] active:scale-95"
                   >
                     <IconCalendar className="h-4 w-4" />
                     Réserver une séance
@@ -329,15 +345,15 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 )}
                 <button
                   onClick={() => availabilitiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3.5 text-center text-sm font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3.5 text-center text-sm font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] active:scale-95"
                 >
                   <ClockIcon />
-                  Voir les disponibilités
+                  Disponibilités
                 </button>
                 {!isOwnProfile && (
                 <Link
                   href={`/dashboard/messages?teacherId=${teacher.id}`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white py-3.5 text-center text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white py-3.5 text-center text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-95"
                 >
                   <MessageIcon />
                   Envoyer un message
@@ -347,66 +363,66 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
               {/* Social Share Bar */}
               <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="text-slate-400 font-medium">Recommander ce professeur :</span>
+                <span className="text-slate-400 font-medium">Recommander ce prof :</span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={copyProfileLink}
-                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-100 transition"
+                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-100 transition active:scale-95"
                   >
-                    {copied ? "✓ Lien copié !" : "📋 Copier le lien"}
+                    {copied ? "✓ Copié !" : "📋 Copier le lien"}
                   </button>
                   <button
                     type="button"
                     onClick={shareWhatsApp}
-                    className="inline-flex items-center gap-1 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 px-3 py-1.5 font-bold text-[#128C7E] hover:bg-[#25D366]/20 transition"
+                    className="inline-flex items-center gap-1 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 px-3 py-1.5 font-bold text-[#128C7E] hover:bg-[#25D366]/20 transition active:scale-95"
                   >
-                    💬 Partager WhatsApp
+                    💬 WhatsApp
                   </button>
                 </div>
               </div>
             </div>
 
             {/* About Section */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-xl font-bold text-[#11233f]">À propos</h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600 whitespace-pre-line">
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
+              <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">À propos</h2>
+              <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm leading-relaxed text-slate-600 whitespace-pre-line">
                 {teacher.bio}
               </p>
             </div>
 
             {/* Quick Info Card */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-xl font-bold text-[#11233f]">Informations rapides</h2>
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
-                  <span className="block text-xs text-slate-400 mb-1">Expérience</span>
-                  <strong className="text-sm font-bold text-[#11233f]">{teacher.experienceYears} ans</strong>
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
+              <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Informations rapides</h2>
+              <div className="mt-3.5 sm:mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                  <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Expérience</span>
+                  <strong className="text-xs sm:text-sm font-bold text-[#11233f]">{teacher.experienceYears} ans</strong>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
-                  <span className="block text-xs text-slate-400 mb-1">Tarif horaire</span>
-                  <strong className="text-sm font-bold text-[#0d8d78]">{teacher.rateTnd} DT</strong>
+                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                  <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Tarif horaire</span>
+                  <strong className="text-xs sm:text-sm font-bold text-[#0d8d78]">{teacher.rateTnd} DT / h</strong>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
-                  <span className="block text-xs text-slate-400 mb-1">Format</span>
-                  <strong className="text-sm font-bold text-[#11233f]">
+                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                  <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Format</span>
+                  <strong className="text-xs sm:text-sm font-bold text-[#11233f]">
                     {teacher.online && teacher.inPerson ? "En ligne & Présentiel" : teacher.online ? "En ligne" : "Présentiel"}
                   </strong>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4 text-center border border-slate-100">
-                  <span className="block text-xs text-slate-400 mb-1">Classe virtuelle</span>
-                  <strong className="text-sm font-bold text-[#0d8d78]">WebRTC Direct</strong>
+                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                  <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Classe virtuelle</span>
+                  <strong className="text-xs sm:text-sm font-bold text-[#0d8d78]">WebRTC Direct</strong>
                 </div>
               </div>
             </div>
 
             {/* Specialties / Subjects */}
             {teacher.subjects.length > 0 && (
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-xl font-bold text-[#11233f]">Spécialités</h2>
-                <div className="mt-4 flex flex-wrap gap-2">
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
+                <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Spécialités</h2>
+                <div className="mt-3 sm:mt-4 flex flex-wrap gap-2">
                   {teacher.subjects.map((s) => (
-                    <span key={s} className="rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/10 px-4 py-2 text-xs font-bold text-[#0d8d78]">
+                    <span key={s} className="rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/10 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-[#0d8d78]">
                       {s}
                     </span>
                   ))}
@@ -415,14 +431,14 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
             )}
 
             {/* Availabilities */}
-            <div ref={availabilitiesRef} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-xl font-bold text-[#11233f]">Créneaux habituels de disponibilité</h2>
+            <div ref={availabilitiesRef} className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
+              <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Créneaux habituels de disponibilité</h2>
               <p className="mt-1 text-xs text-slate-500">Heures régulières durant lesquelles le professeur dispense ses cours.</p>
 
               {teacher.availabilities.length === 0 ? (
                 <p className="mt-4 text-xs text-slate-400">Disponibilités flexibles sur demande.</p>
               ) : (
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className="mt-3.5 sm:mt-4 grid gap-2 sm:grid-cols-2">
                   {teacher.availabilities.map((a) => (
                     <div key={a.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs border border-slate-100">
                       <span className="font-bold text-[#11233f]">{dayNames[a.dayOfWeek]}</span>
@@ -434,34 +450,34 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
             </div>
 
             {/* Reviews */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-[#11233f]">Avis des élèves ({teacher.reviewsCount})</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Avis des élèves ({teacher.reviewsCount})</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Évaluations certifiées après chaque séance</p>
                 </div>
-                <span className="font-bold text-[#0d8d78] text-lg"> {teacher.rating.toFixed(1)} / 5</span>
+                <span className="font-bold text-[#0d8d78] text-base sm:text-lg"> {teacher.rating.toFixed(1)} / 5</span>
               </div>
 
               {teacher.reviews.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-400">
+                <div className="py-6 sm:py-8 text-center text-xs text-slate-400">
                   Nouveau professeur vérifié. Soyez le premier à réserver et à donner votre avis !
                 </div>
               ) : (
-                <div className="mt-4 space-y-0">
+                <div className="mt-3 sm:mt-4 space-y-0">
                   {teacher.reviews.map((r) => (
-                    <div key={r.id} className="py-4 border-b border-slate-50 last:border-0">
+                    <div key={r.id} className="py-3 sm:py-4 border-b border-slate-50 last:border-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e5f7f2] text-xs font-bold text-[#0d8d78]">
                             {r.studentName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-bold text-sm text-[#11233f]">{r.studentName}</span>
+                          <span className="font-bold text-xs sm:text-sm text-[#11233f]">{r.studentName}</span>
                         </div>
                         <span className="text-xs font-bold text-amber-700"> {r.rating}/5</span>
                       </div>
-                      {r.comment && <p className="mt-2 text-sm text-slate-600 leading-relaxed">{r.comment}</p>}
-                      <span className="mt-1.5 block text-[11px] text-slate-400">
+                      {r.comment && <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">{r.comment}</p>}
+                      <span className="mt-1.5 block text-[10px] sm:text-[11px] text-slate-400">
                         {new Date(r.createdAt).toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })}
                       </span>
                     </div>
@@ -472,21 +488,21 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
           </div>
 
           {/* Booking Sidebar */}
-          <div ref={bookingRef}>
-            <div className="sticky top-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl space-y-5">
+          <div ref={bookingRef} id="booking-section">
+            <div className="sticky top-20 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xl space-y-4 sm:space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Tarif horaire</span>
-                  <p className="mt-1 text-3xl font-bold text-[#0d8d78]">
-                    {teacher.rateTnd} DT <span className="text-sm font-normal text-slate-500">/ heure</span>
+                  <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Tarif horaire</span>
+                  <p className="mt-0.5 sm:mt-1 text-2xl sm:text-3xl font-bold text-[#0d8d78]">
+                    {teacher.rateTnd} DT <span className="text-xs sm:text-sm font-normal text-slate-500">/ heure</span>
                   </p>
                 </div>
-                <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-center">
-                  <span className="flex items-center justify-center gap-1 text-sm font-bold text-amber-900">
-                    <IconStar className="h-4 w-4 fill-amber-500 text-amber-500" />
+                <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-1.5 sm:py-2 text-center">
+                  <span className="flex items-center justify-center gap-1 text-xs sm:text-sm font-bold text-amber-900">
+                    <IconStar className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
                     {teacher.rating.toFixed(1)}
                   </span>
-                  <span className="block text-[11px] text-amber-800">{teacher.reviewsCount} avis</span>
+                  <span className="block text-[10px] sm:text-[11px] text-amber-800">{teacher.reviewsCount} avis</span>
                 </div>
               </div>
 
@@ -494,12 +510,12 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               <div className="space-y-1.5">
                 <a
                   href={`/dashboard/messages?teacherId=${teacher.id}`}
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3 text-center text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9]"
+                  className="flex items-center justify-center gap-2 w-full rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-2.5 sm:py-3 text-center text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] active:scale-95"
                 >
                   <MessageIcon />
                   Envoyer un message
                 </a>
-                <p className="text-[11px] text-slate-400 text-center">Pour une offre spécifique ou un cours personnalisé</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-400 text-center">Pour une offre spécifique ou un cours personnalisé</p>
               </div>
               )}
 
@@ -532,22 +548,22 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               )}
 
               {isOwnProfile ? (
-                <p className="border-t border-slate-100 pt-5 text-xs text-slate-400 text-center">
+                <p className="border-t border-slate-100 pt-4 text-xs text-slate-400 text-center">
                   Vous ne pouvez pas réserver une séance sur votre propre profil.
                 </p>
               ) : (
-              <form onSubmit={handleBook} className="space-y-4 border-t border-slate-100 pt-5">
-                <h3 className="font-bold text-base text-[#11233f]">Réserver une séance</h3>
+              <form onSubmit={handleBook} className="space-y-4 border-t border-slate-100 pt-4">
+                <h3 className="font-bold text-sm sm:text-base text-[#11233f]">Réserver une séance</h3>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Durée du cours</label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1.5">Durée du cours</label>
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                     {([30, 60, 90, 120] as const).map((d) => (
                       <button
                         type="button"
                         key={d}
                         onClick={() => setDuration(d)}
-                        className={`rounded-xl border py-2.5 text-xs font-bold transition ${
+                        className={`rounded-xl border py-2 sm:py-2.5 text-xs font-bold transition active:scale-95 ${
                           duration === d
                             ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
                             : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
@@ -560,38 +576,38 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Format</label>
+                  <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1.5">Format</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       disabled={!teacher.online}
                       onClick={() => setMode("ONLINE")}
-                      className={`rounded-xl border p-2.5 text-xs font-bold transition disabled:opacity-30 ${
+                      className={`rounded-xl border p-2.5 text-xs font-bold transition active:scale-95 disabled:opacity-30 ${
                         mode === "ONLINE"
                           ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
                           : "border-slate-200 bg-white text-slate-700"
                       }`}
                     >
-                       En ligne
+                       💻 En ligne
                     </button>
                     <button
                       type="button"
                       disabled={!teacher.inPerson}
                       onClick={() => setMode("IN_PERSON")}
-                      className={`rounded-xl border p-2.5 text-xs font-bold transition disabled:opacity-30 ${
+                      className={`rounded-xl border p-2.5 text-xs font-bold transition active:scale-95 disabled:opacity-30 ${
                         mode === "IN_PERSON"
                           ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
                           : "border-slate-200 bg-white text-slate-700"
                       }`}
                     >
-                       Présentiel
+                       🏫 Présentiel
                     </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Date</label>
+                    <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
                     <input
                       type="date"
                       required
@@ -602,7 +618,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Heure</label>
+                    <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1">Heure</label>
                     <input
                       type="time"
                       required
@@ -614,14 +630,14 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Créneaux suggérés</label>
-                  <div className="grid grid-cols-5 gap-1.5">
+                  <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1.5">Créneaux suggérés</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                     {timeSlots.map((t) => (
                       <button
                         key={t}
                         type="button"
                         onClick={() => setSelectedTime(t)}
-                        className={`rounded-lg border py-1.5 text-[11px] font-bold transition ${
+                        className={`rounded-lg border py-1.5 text-[11px] font-bold transition active:scale-95 ${
                           selectedTime === t
                             ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
                             : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
@@ -633,7 +649,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4 text-xs space-y-2 border border-slate-100">
+                <div className="rounded-2xl bg-slate-50 p-3.5 sm:p-4 text-xs space-y-2 border border-slate-100">
                   <div className="flex justify-between text-slate-500">
                     <span>Durée sélectionnée :</span>
                     <span className="font-bold text-[#11233f]">{duration} minutes</span>
@@ -644,31 +660,65 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   </div>
                   <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-sm text-[#11233f]">
                     <span>Total à régler :</span>
-                    <span className="text-[#0d8d78] text-base">{calculatedPrice} DT</span>
+                    <span className="text-[#0d8d78] text-base font-black">{calculatedPrice} DT</span>
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={bookingLoading}
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[#0d8d78] py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[#0d8d78] py-3.5 sm:py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] active:scale-95 disabled:opacity-50"
                 >
                   <IconCalendar className="h-4 w-4" />
-                  <span>{bookingLoading ? "Réservation en cours..." : `Confirmer et Réserver (${calculatedPrice} DT) →`}</span>
+                  <span>{bookingLoading ? "Réservation en cours..." : `Confirmer (${calculatedPrice} DT) →`}</span>
                 </button>
               </form>
               )}
 
               {!isOwnProfile && (
-              <div className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400 pt-1">
+              <div className="flex items-center justify-center gap-1.5 text-center text-[10px] sm:text-[11px] text-slate-400 pt-1">
                 <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
-                <span>Paiement sécurisé par Wallet ProfySpace.tn ou règlement direct</span>
+                <span>Paiement sécurisé · ProfySpace.tn</span>
               </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Floating Bottom Booking Action Bar for Mobile Viewports */}
+      {!isOwnProfile && (
+        <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+          <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+            <div>
+              <p className="text-xs text-slate-400 font-medium leading-none">Tarif horaire</p>
+              <p className="text-lg font-black text-[#0d8d78] mt-0.5">
+                {teacher.rateTnd} DT <span className="text-[11px] font-normal text-slate-500">/ h</span>
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href={`/dashboard/messages?teacherId=${teacher.id}`}
+                className="rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] p-2.5 text-[#0d8d78] transition hover:bg-[#d4f2e9] active:scale-95"
+                aria-label="Discuter"
+              >
+                <MessageIcon />
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#0d8d78]/25 transition hover:bg-[#0b7866] active:scale-95 flex items-center gap-1.5"
+              >
+                <IconCalendar className="h-4 w-4" />
+                <span>Réserver maintenant</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

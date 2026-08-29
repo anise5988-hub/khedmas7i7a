@@ -534,43 +534,43 @@ export default function Home() {
               </Link>
             </div>
           ) : (
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 sm:mt-10 grid gap-3.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {featuredTeachers.map((teacher) => (
                 <Link
                   href={`/teachers/${teacher.slug}`}
                   key={teacher.id}
-                  className="rounded-3xl border border-white/10 bg-white/[.07] p-6 transition duration-300 hover:-translate-y-1.5 hover:bg-white/[.12] hover:border-[#72d6bf]/50 shadow-xl flex flex-col justify-between"
+                  className="rounded-3xl border border-white/15 bg-white/[.08] p-4 sm:p-6 transition duration-300 hover:-translate-y-1.5 hover:bg-white/[.14] hover:border-[#72d6bf]/50 shadow-xl flex flex-col justify-between active:scale-95"
                 >
                   <div>
-                    <div className="flex items-center gap-4">
-                      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#72d6bf] font-bold text-lg text-[#11233f] overflow-hidden">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#72d6bf] to-[#0d8d78] font-bold text-base sm:text-lg text-[#11233f] overflow-hidden shadow-xs">
                         {teacher.avatarUrl ? (
                           <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
                         ) : (
                           <span>{teacher.initials}</span>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-base">{teacher.name}</h3>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-bold text-sm sm:text-base text-white truncate">{teacher.name}</h3>
                           {teacher.verificationStatus === "APPROVED" && (
-                            <span className="rounded-full bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 px-1.5 py-0.2 text-[10px] font-bold">
+                            <span className="rounded-full bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold">
                               ✓ Vérifié
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-300">{teacher.subject}</p>
+                        <p className="text-xs text-slate-300 truncate mt-0.5">{teacher.subject}</p>
                       </div>
-                      <span className="flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-1 text-xs font-bold text-amber-300">
+                      <span className="shrink-0 flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-bold text-amber-300">
                         <IconStar className="h-3 w-3 fill-amber-300" />
                         {teacher.rating.toFixed(1)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-xs">
-                    <span className="text-slate-300 font-medium"> {teacher.city}</span>
-                    <span className="font-bold text-sm text-white">{teacher.rate} DT / h</span>
+                  <div className="mt-4 sm:mt-6 flex items-center justify-between border-t border-white/10 pt-3.5 sm:pt-4 text-xs">
+                    <span className="text-slate-300 font-medium">📍 {teacher.city || "Tunisie"}</span>
+                    <span className="font-bold text-sm text-[#72d6bf]">{teacher.rate} DT <span className="text-slate-300 text-xs font-normal">/ h</span></span>
                   </div>
                 </Link>
               ))}
