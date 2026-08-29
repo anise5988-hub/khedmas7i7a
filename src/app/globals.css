@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #0d1726;
-  --foreground: #f1f5f9;
+  --background: #f8fafc;
+  --foreground: #11233f;
+  --primary: #0d8d78;
+  --primary-hover: #0b7866;
+  --primary-light: #e5f7f2;
+  --accent: #72d6bf;
+}
+
+:root.dark,
+html.dark {
+  --background: #0c1626;
+  --foreground: #f8fafc;
   --primary: #0d8d78;
   --primary-hover: #0b7866;
   --primary-light: #16383b;

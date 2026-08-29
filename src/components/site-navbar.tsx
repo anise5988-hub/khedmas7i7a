@@ -14,6 +14,7 @@ import {
   IconX,
 } from "./icons";
 import { NotificationCenter } from "./notification-center";
+import { ThemeToggle } from "./theme-toggle";
 import { supabase } from "@/lib/client/supabase";
 
 export type UserSession = {
@@ -267,9 +268,17 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
         )}
 
         {/* ========================================================================= */}
-        {/* RIGHT ACTIONS: NOTIFICATIONS + ROLE PROFILE MENU                          */}
+        {/* RIGHT ACTIONS: NOTIFICATIONS + THEME TOGGLE + ROLE PROFILE MENU            */}
         {/* ========================================================================= */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Theme Toggle (Desktop Pill & Mobile Compact) */}
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
+          <div className="sm:hidden">
+            <ThemeToggle compact={true} />
+          </div>
+
           {!loading && user && (
             <NotificationCenter dark={isDark} />
           )}
@@ -428,6 +437,11 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
             isDark ? "bg-[#101b2d]/95 border-white/10 text-white" : "bg-white/95 border-slate-200 text-[#11233f]"
           }`}
         >
+          <div className="flex items-center justify-between py-2 border-b border-slate-200/20 mb-3">
+            <span className="text-xs font-bold opacity-80">Mode d'affichage</span>
+            <ThemeToggle />
+          </div>
+
           <div className="flex flex-col space-y-3 text-xs sm:text-sm font-bold">
             {/* Student Mobile Links */}
             {user && role === "STUDENT" && (
