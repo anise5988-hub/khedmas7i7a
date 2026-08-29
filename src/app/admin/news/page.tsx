@@ -1,7 +1,7 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   IconPlus,
@@ -11,6 +11,7 @@ import {
   IconAlertCircle,
   IconNewspaper,
   IconX,
+  IconImage,
 } from "@/components/icons";
 
 type NewsItem = {
@@ -40,6 +41,32 @@ export default function AdminNewsPage() {
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setNotification({ type: "error", text: "Veuillez choisir un fichier image." });
+      return;
+    }
+    setImageUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", "image");
+    try {
+      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Envoi de l'image impossible.");
+      setImageUrl(data.url);
+    } catch (error) {
+      setNotification({ type: "error", text: error instanceof Error ? error.message : "Envoi de l'image impossible." });
+    } finally {
+      setImageUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  }
 
   function loadNews() {
     setLoading(true);
@@ -417,15 +444,54 @@ export default function AdminNewsPage() {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    URL d'une image (Optionnel)
+                    Image de l'actualité (Optionnel)
                   </label>
                   <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full rounded-2xl border border-white/20 bg-white/5 p-3.5 text-sm text-white outline-none focus:border-[#72d6bf] focus:ring-1 focus:ring-[#72d6bf]"
+                    type="file"
+                    ref={imageInputRef}
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
                   />
+                  {imageUrl ? (
+                    <div className="group relative overflow-hidden rounded-2xl border border-white/20">
+                      <img src={imageUrl} alt="Aperçu de l'actualité" className="h-40 w-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition group-hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => imageInputRef.current?.click()}
+                          disabled={imageUploading}
+                          className="rounded-xl bg-white/90 px-3 py-1.5 text-xs font-bold text-slate-900 transition hover:bg-white disabled:opacity-50"
+                        >
+                          {imageUploading ? "Envoi..." : "Changer l'image"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageUrl("")}
+                          className="rounded-xl bg-rose-500/90 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-rose-500"
+                        >
+                          Retirer
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={imageUploading}
+                      className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-8 text-center transition hover:border-[#72d6bf]/50 hover:bg-white/10 disabled:opacity-50"
+                    >
+                      {imageUploading ? (
+                        <span className="h-6 w-6 animate-spin rounded-full border-2 border-[#72d6bf] border-t-transparent" />
+                      ) : (
+                        <IconImage className="h-6 w-6 text-slate-400" />
+                      )}
+                      <span className="text-xs font-bold text-slate-300">
+                        {imageUploading ? "Envoi en cours..." : "Cliquez pour choisir une image"}
+                      </span>
+                      <span className="text-[10px] text-slate-500">JPG, PNG jusqu'à 10 MB</span>
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">

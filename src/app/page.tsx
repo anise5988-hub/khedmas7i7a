@@ -14,6 +14,18 @@ import {
   IconCheck,
   IconAlertCircle,
   IconMail,
+  IconBackpack,
+  IconRuler,
+  IconMicroscope,
+  IconGraduationCap,
+  IconMapPin,
+  IconSparkles,
+  IconMonitor,
+  IconBarChart,
+  IconLock,
+  IconCreditCard,
+  IconVideo,
+  IconTarget,
 } from "@/components/icons";
 
 type ApprovedTeacher = {
@@ -395,8 +407,8 @@ export default function Home() {
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl dark:backdrop-blur-md transition hover:-translate-y-1.5 hover:border-[#0d8d78] dark:hover:border-[#72d6bf]/60 dark:hover:bg-white/[.10] flex flex-col justify-between"
           >
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300 font-bold text-xl mb-4 group-hover:scale-110 transition dark:border dark:border-amber-400/30">
-                🎒
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300 mb-4 group-hover:scale-110 transition dark:border dark:border-amber-400/30">
+                <IconBackpack className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] dark:text-white dark:group-hover:text-[#72d6bf] transition">
                 Cycle Primaire
@@ -416,8 +428,8 @@ export default function Home() {
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl dark:backdrop-blur-md transition hover:-translate-y-1.5 hover:border-[#0d8d78] dark:hover:border-[#72d6bf]/60 dark:hover:bg-white/[.10] flex flex-col justify-between"
           >
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-400/20 dark:text-blue-300 font-bold text-xl mb-4 group-hover:scale-110 transition dark:border dark:border-blue-400/30">
-                📐
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-400/20 dark:text-blue-300 mb-4 group-hover:scale-110 transition dark:border dark:border-blue-400/30">
+                <IconRuler className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] dark:text-white dark:group-hover:text-[#72d6bf] transition">
                 Collège & 9ème
@@ -437,8 +449,8 @@ export default function Home() {
             className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl dark:backdrop-blur-md transition hover:-translate-y-1.5 hover:border-[#0d8d78] dark:hover:border-[#72d6bf]/60 dark:hover:bg-white/[.10] flex flex-col justify-between"
           >
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-[#0d8d78] dark:bg-[#0d8d78]/30 dark:text-[#72d6bf] font-bold text-xl mb-4 group-hover:scale-110 transition dark:border dark:border-[#0d8d78]/40">
-                🔬
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-[#0d8d78] dark:bg-[#0d8d78]/30 dark:text-[#72d6bf] mb-4 group-hover:scale-110 transition dark:border dark:border-[#0d8d78]/40">
+                <IconMicroscope className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] dark:text-white dark:group-hover:text-[#72d6bf] transition">
                 Lycée Secondaire
@@ -461,8 +473,8 @@ export default function Home() {
               Priorité
             </div>
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#72d6bf]/20 text-[#72d6bf] font-bold text-xl mb-4 group-hover:scale-110 transition">
-                🎓
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#72d6bf]/20 text-[#72d6bf] mb-4 group-hover:scale-110 transition">
+                <IconGraduationCap className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-lg text-white group-hover:text-[#72d6bf] transition">
                 Baccalauréat Tunisien
@@ -565,7 +577,9 @@ export default function Home() {
                   </div>
 
                   <div className="mt-4 sm:mt-6 flex items-center justify-between border-t border-white/10 pt-3.5 sm:pt-4 text-xs">
-                    <span className="text-slate-300 font-medium">📍 {teacher.city || "Tunisie"}</span>
+                    <span className="inline-flex items-center gap-1 text-slate-300 font-medium">
+                      <IconMapPin className="h-3.5 w-3.5" /> {teacher.city || "Tunisie"}
+                    </span>
                     <span className="font-bold text-sm text-[#72d6bf]">{teacher.rate} DT <span className="text-slate-300 text-xs font-normal">/ h</span></span>
                   </div>
                 </Link>
@@ -603,23 +617,24 @@ export default function Home() {
           {/* Subject Filter Tabs */}
           <div className="mt-8 flex flex-wrap items-center gap-2">
             {[
-              { id: "ALL", label: "✨ Tous les packs" },
-              { id: "Mathématiques", label: "📐 Mathématiques" },
-              { id: "Physique-Chimie", label: "🔬 Physique-Chimie" },
-              { id: "Informatique", label: "💻 Informatique / Python" },
-              { id: "Français", label: "📚 Français" },
-              { id: "Économie / Gestion", label: "📊 Éco-Gestion" },
+              { id: "ALL", label: "Tous les packs", Icon: IconSparkles },
+              { id: "Mathématiques", label: "Mathématiques", Icon: IconRuler },
+              { id: "Physique-Chimie", label: "Physique-Chimie", Icon: IconMicroscope },
+              { id: "Informatique", label: "Informatique / Python", Icon: IconMonitor },
+              { id: "Français", label: "Français", Icon: IconBookOpen },
+              { id: "Économie / Gestion", label: "Éco-Gestion", Icon: IconBarChart },
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setSelectedCourseSubject(tab.id)}
-                className={`rounded-2xl px-4 py-2 text-xs font-bold transition duration-200 active:scale-95 ${
+                className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-xs font-bold transition duration-200 active:scale-95 ${
                   selectedCourseSubject === tab.id
                     ? "bg-[#0d8d78] text-white shadow-md shadow-[#0d8d78]/25 border border-[#72d6bf]/30"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/15 dark:border dark:border-white/10"
                 }`}
               >
+                <tab.Icon className="h-3.5 w-3.5" />
                 {tab.label}
               </button>
             ))}
@@ -664,7 +679,7 @@ export default function Home() {
                           </span>
                           {course.visibility === "LOCKED" && (
                             <span className="rounded-xl bg-amber-500/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold text-white shadow-sm flex items-center gap-1">
-                              🔒 Pack Protégé
+                              <IconLock className="h-3 w-3" /> Pack Protégé
                             </span>
                           )}
                           {course.visibility === "PUBLIC" && (
@@ -741,8 +756,8 @@ export default function Home() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs text-[#11233f] dark:border-white/10 dark:bg-white/[.05] dark:text-white dark:shadow-xl dark:backdrop-blur-md">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 font-bold text-xl mb-4">
-                ✓
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 mb-4">
+                <IconCheck className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-base text-[#11233f] dark:text-white">100% Vérifiés & Certifiés</h3>
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-300 leading-relaxed">
@@ -751,8 +766,8 @@ export default function Home() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs text-[#11233f] dark:border-white/10 dark:bg-white/[.05] dark:text-white dark:shadow-xl dark:backdrop-blur-md">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 font-bold text-xl mb-4">
-                💳
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 mb-4">
+                <IconCreditCard className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-base text-[#11233f] dark:text-white">Paiement Tunisien Local</h3>
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-300 leading-relaxed">
@@ -761,8 +776,8 @@ export default function Home() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs text-[#11233f] dark:border-white/10 dark:bg-white/[.05] dark:text-white dark:shadow-xl dark:backdrop-blur-md">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 font-bold text-xl mb-4">
-                💻
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 mb-4">
+                <IconVideo className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-base text-[#11233f] dark:text-white">Classe Virtuelle HD</h3>
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-300 leading-relaxed">
@@ -771,8 +786,8 @@ export default function Home() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs text-[#11233f] dark:border-white/10 dark:bg-white/[.05] dark:text-white dark:shadow-xl dark:backdrop-blur-md">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 font-bold text-xl mb-4">
-                🎯
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf] dark:border dark:border-[#72d6bf]/30 mb-4">
+                <IconTarget className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-base text-[#11233f] dark:text-white">Garantie & Flexibilité</h3>
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-300 leading-relaxed">

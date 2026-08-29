@@ -25,6 +25,20 @@ function levelName(slug: string): string {
   return educationLevels.find((l) => l.slug === slug)?.name ?? slug;
 }
 
+/**
+ * The homepage's cycle cards link here with a whole-cycle keyword
+ * ("primaire", "college", "secondaire") instead of one exact level slug —
+ * expand those into every matching slug so the filter actually finds
+ * teachers, the same way the AI matcher already reasons by cycle instead
+ * of by raw slug equality.
+ */
+function levelSlugsForFilter(levelFilter: string): string[] {
+  if (levelFilter === "primaire") return educationLevels.filter((l) => l.cycle === "PRIMARY").map((l) => l.slug);
+  if (levelFilter === "college") return educationLevels.filter((l) => l.cycle === "BASIC").map((l) => l.slug);
+  if (levelFilter === "secondaire") return educationLevels.filter((l) => l.slug.startsWith("secondaire-")).map((l) => l.slug);
+  return [levelFilter];
+}
+
 type Teacher = {
   id: string;
   slug: string;
@@ -134,7 +148,7 @@ export function TeachersPageClient() {
     if (subject && !t.subjects.some((s) => s.toLowerCase() === subject.toLowerCase()) && t.subject !== subject) {
       return false;
     }
-    if (level && !t.levels.includes(level)) {
+    if (level && !levelSlugsForFilter(level).some((slug) => t.levels.includes(slug))) {
       return false;
     }
     if (governorate && t.governorate !== governorate && t.city !== governorate) {
@@ -255,6 +269,9 @@ function FilterSidebar({
             className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-[#11233f] outline-none transition focus:border-[#0d8d78] dark:border-white/20 dark:bg-[#162844] dark:text-white dark:focus:border-[#72d6bf]"
           >
             <option value="" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">Tous les niveaux</option>
+            <option value="primaire" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">Tout le cycle primaire</option>
+            <option value="college" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">Tout le collège (7-9ème)</option>
+            <option value="secondaire" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">Tout le secondaire (1-3ème)</option>
             {educationLevels.map((l) => (
               <option key={l.slug} value={l.slug} className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">
                 {l.name}
