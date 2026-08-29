@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Manrope } from "next/font/google";
 import "./globals.css";
 import { ChatWidget } from "@/components/chat-widget";
+import { AiTeacherFinder } from "@/components/ai-teacher-finder";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <AiTeacherFinder />
         <ChatWidget />
       </body>
     </html>
