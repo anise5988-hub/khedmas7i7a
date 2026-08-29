@@ -8,6 +8,7 @@ vi.mock("@/lib/server/auth", () => ({
 const teacherProfileFindFirst = vi.fn();
 const walletFindUnique = vi.fn();
 const bookingCreate = vi.fn();
+const bookingFindMany = vi.fn();
 const walletUpdate = vi.fn();
 const walletUpsert = vi.fn();
 const walletTransactionCreate = vi.fn();
@@ -23,7 +24,7 @@ vi.mock("@/lib/server/prisma", () => ({
     wallet: { findUnique: (...args: unknown[]) => walletFindUnique(...args) },
     $transaction: async (fn: (tx: unknown) => unknown) =>
       fn({
-        booking: { create: bookingCreate },
+        booking: { create: bookingCreate, findMany: bookingFindMany },
         wallet: { update: walletUpdate, upsert: walletUpsert },
         walletTransaction: { create: walletTransactionCreate },
         payment: { create: paymentCreate },
@@ -62,6 +63,7 @@ describe("POST /api/bookings", () => {
     teacherProfileFindUnique.mockReset();
     walletFindUnique.mockReset();
     bookingCreate.mockReset();
+    bookingFindMany.mockReset();
     walletUpdate.mockReset();
     walletUpsert.mockReset();
     walletTransactionCreate.mockReset();
@@ -72,6 +74,7 @@ describe("POST /api/bookings", () => {
     teacherProfileFindUnique.mockResolvedValue({ userId: TEACHER.userId });
     walletFindUnique.mockResolvedValue({ id: "wallet_1", userId: STUDENT.id, availableMillimes: 1_000_000 });
     walletUpsert.mockResolvedValue({ id: "teacher_wallet_1", userId: TEACHER.userId });
+    bookingFindMany.mockResolvedValue([]);
     bookingCreate.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
       Promise.resolve({ id: "booking_1", ...data }),
     );

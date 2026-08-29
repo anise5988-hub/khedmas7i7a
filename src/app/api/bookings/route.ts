@@ -123,60 +123,106 @@ export async function POST(request: Request) {
     const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
     const amountToUse = Math.round((teacher.hourlyRateMillimes * parsed.data.durationMinutes) / 60);
 
-    const booking = await prisma.$transaction(async (tx) => {
-      const newBooking = await tx.booking.create({
-        data: {
-          studentId: user.id,
-          teacherId: teacher.id,
-          startsAt: parsed.data.startsAt,
-          durationMinutes: parsed.data.durationMinutes,
-          amountMillimes: amountToUse,
-          status: "CONFIRMED",
+    const newStart = parsed.data.startsAt;
+    const newEnd = new Date(newStart.getTime() + parsed.data.durationMinutes * 60_000);
+    // Longest bookable session is 120min (see bookingRequestSchema) — any
+    // existing booking starting before that can't possibly still be
+    // running by newStart, so it's a safe lower bound for the candidate scan.
+    const MAX_DURATION_MS = 120 * 60_000;
+
+    let booking;
+    try {
+      booking = await prisma.$transaction(
+        async (tx) => {
+          const candidates = await tx.booking.findMany({
+            where: {
+              teacherId: teacher.id,
+              status: "CONFIRMED",
+              startsAt: { lt: newEnd, gte: new Date(newStart.getTime() - MAX_DURATION_MS) },
+            },
+            select: { startsAt: true, durationMinutes: true },
+          });
+          const hasOverlap = candidates.some((b) => {
+            const existingEnd = new Date(b.startsAt.getTime() + b.durationMinutes * 60_000);
+            return b.startsAt < newEnd && existingEnd > newStart;
+          });
+          if (hasOverlap) {
+            throw new Error("SLOT_CONFLICT");
+          }
+
+          const newBooking = await tx.booking.create({
+            data: {
+              studentId: user.id,
+              teacherId: teacher.id,
+              startsAt: parsed.data.startsAt,
+              durationMinutes: parsed.data.durationMinutes,
+              amountMillimes: amountToUse,
+              status: "CONFIRMED",
+            },
+          });
+
+          if (wallet && wallet.availableMillimes >= amountToUse) {
+            await tx.wallet.update({
+              where: { id: wallet.id },
+              data: { availableMillimes: { decrement: amountToUse } },
+            });
+
+            await tx.walletTransaction.create({
+              data: {
+                walletId: wallet.id,
+                type: "BOOKING_PAYMENT",
+                amountMillimes: -amountToUse,
+                reference: `BOOK-${newBooking.id.slice(-6).toUpperCase()}`,
+              },
+            });
+
+            await tx.payment.create({
+              data: {
+                bookingId: newBooking.id,
+                amountMillimes: amountToUse,
+                status: "PAID",
+                idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
+              },
+            });
+
+            await creditTeacherEarning(tx, {
+              teacherUserId: teacher.userId,
+              grossAmountMillimes: amountToUse,
+              reference: `EARN-BOOK-${newBooking.id}`,
+            });
+          } else {
+            await tx.payment.create({
+              data: {
+                bookingId: newBooking.id,
+                amountMillimes: amountToUse,
+                status: "PENDING",
+                idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
+              },
+            });
+          }
+
+          return newBooking;
         },
-      });
-
-      if (wallet && wallet.availableMillimes >= amountToUse) {
-        await tx.wallet.update({
-          where: { id: wallet.id },
-          data: { availableMillimes: { decrement: amountToUse } },
-        });
-
-        await tx.walletTransaction.create({
-          data: {
-            walletId: wallet.id,
-            type: "BOOKING_PAYMENT",
-            amountMillimes: -amountToUse,
-            reference: `BOOK-${newBooking.id.slice(-6).toUpperCase()}`,
-          },
-        });
-
-        await tx.payment.create({
-          data: {
-            bookingId: newBooking.id,
-            amountMillimes: amountToUse,
-            status: "PAID",
-            idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
-          },
-        });
-
-        await creditTeacherEarning(tx, {
-          teacherUserId: teacher.userId,
-          grossAmountMillimes: amountToUse,
-          reference: `EARN-BOOK-${newBooking.id}`,
-        });
-      } else {
-        await tx.payment.create({
-          data: {
-            bookingId: newBooking.id,
-            amountMillimes: amountToUse,
-            status: "PENDING",
-            idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
-          },
-        });
+        { isolationLevel: "Serializable" },
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message === "SLOT_CONFLICT") {
+        return NextResponse.json(
+          { error: "Ce créneau vient d'être réservé par un autre élève. Veuillez choisir un autre horaire." },
+          { status: 409 },
+        );
       }
-
-      return newBooking;
-    });
+      // Serializable isolation surfaces real concurrent conflicts as a
+      // Prisma write-conflict error (P2034) rather than our own check —
+      // treat it the same way rather than a generic 500.
+      if (typeof error === "object" && error !== null && "code" in error && error.code === "P2034") {
+        return NextResponse.json(
+          { error: "Ce créneau vient d'être réservé par un autre élève. Veuillez réessayer." },
+          { status: 409 },
+        );
+      }
+      throw error;
+    }
 
     const teacherUser = await prisma.teacherProfile.findUnique({ where: { id: teacher.id }, select: { userId: true } });
     const bookingLink = `/dashboard/bookings?bookingId=${booking.id}`;
