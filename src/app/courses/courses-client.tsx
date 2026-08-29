@@ -42,13 +42,13 @@ export function CoursesCatalogPageClient() {
   }, [search, subjectFilter, levelFilter]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-      <SiteNavbar />
+    <div className="min-h-screen bg-[#0c1626] text-white flex flex-col">
+      <SiteNavbar dark={true} />
 
       {/* Hero Header */}
-      <section className="bg-[#11233f] text-white py-12 px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-br from-[#11233f] via-[#101b2d] to-[#0c1626] text-white py-12 px-4 sm:px-6 lg:px-8 border-b border-white/10">
         <div className="mx-auto max-w-7xl space-y-4">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-[#72d6bf] bg-white/10 px-3 py-1 rounded-full border border-white/10">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-[#72d6bf] bg-[#72d6bf]/15 px-3 py-1 rounded-full border border-[#72d6bf]/30">
             Catalogue de Cours & Packs de Révision ProfySpace
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
@@ -65,16 +65,16 @@ export function CoursesCatalogPageClient() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher un cours, un chapitre, un prof ou une matière..."
-              className="flex-1 rounded-2xl bg-white/10 border border-white/20 p-4 text-xs sm:text-sm text-white placeholder-slate-400 outline-none focus:bg-white focus:text-slate-800 transition"
+              className="flex-1 rounded-2xl bg-white/10 border border-white/20 p-4 text-xs sm:text-sm text-white placeholder-slate-400 outline-none focus:bg-white/15 focus:border-[#72d6bf] transition"
             />
             <select
               value={subjectFilter}
               onChange={(e) => setSubjectFilter(e.target.value)}
-              className="rounded-2xl bg-white/10 border border-white/20 p-4 text-xs font-bold text-white outline-none focus:bg-white focus:text-slate-800 transition"
+              className="rounded-2xl bg-[#11233f] border border-white/20 p-4 text-xs font-bold text-white outline-none focus:border-[#72d6bf] transition"
             >
-              <option value="" className="text-slate-800">Toutes les matières</option>
+              <option value="" className="bg-[#11233f] text-white">Toutes les matières</option>
               {allCatalogSubjects.map((s) => (
-                <option key={s} value={s} className="text-slate-800">
+                <option key={s} value={s} className="bg-[#11233f] text-white">
                   {s}
                 </option>
               ))}
@@ -85,8 +85,8 @@ export function CoursesCatalogPageClient() {
 
       {/* Main Grid */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <p className="text-xs font-bold text-slate-500">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <p className="text-xs font-bold text-slate-400">
             {loading ? "Chargement..." : `${courses.length} cours disponible${courses.length > 1 ? "s" : ""}`}
           </p>
           {(search || subjectFilter || levelFilter) && (
@@ -96,7 +96,7 @@ export function CoursesCatalogPageClient() {
                 setSubjectFilter("");
                 setLevelFilter("");
               }}
-              className="text-xs font-bold text-[#0d8d78] hover:underline"
+              className="text-xs font-bold text-[#72d6bf] hover:underline"
             >
               Réinitialiser les filtres ✕
             </button>
@@ -106,66 +106,66 @@ export function CoursesCatalogPageClient() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="h-80 rounded-3xl bg-slate-200 animate-pulse" />
+              <div key={n} className="h-80 rounded-3xl bg-white/10 animate-pulse" />
             ))}
           </div>
         ) : courses.length === 0 ? (
-          <div className="py-20 text-center rounded-3xl bg-white border border-slate-200 p-8 space-y-3 shadow-sm">
-            <p className="text-base font-bold text-[#11233f]">Aucun cours disponible pour le moment.</p>
-            <p className="text-xs text-slate-500">Les cours et packs publiés par les enseignants apparaîtront ici.</p>
+          <div className="py-20 text-center rounded-3xl bg-white/[.05] border border-white/10 p-8 space-y-3 shadow-xl">
+            <p className="text-base font-bold text-white">Aucun cours disponible pour le moment.</p>
+            <p className="text-xs text-slate-400">Les cours et packs publiés par les enseignants apparaîtront ici.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {courses.map((course) => (
               <div
                 key={course.id}
-                className="group rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                className="group rounded-3xl bg-[#101b2d] border border-white/15 overflow-hidden shadow-xl hover:shadow-2xl hover:border-[#72d6bf]/60 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   {/* Thumbnail */}
-                  <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                  <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-white/10">
                     <img
                       src={course.thumbnailUrl}
                       alt={course.title}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                      <span className="rounded-xl bg-[#11233f]/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white shadow-sm">
+                      <span className="rounded-xl bg-[#11233f]/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white shadow-sm border border-white/10">
                         {course.subject}
                       </span>
                       {course.visibility === "LOCKED" && (
                         <span className="rounded-xl bg-amber-500/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold text-white shadow-sm flex items-center gap-1">
-                           Cours Protégé
+                          🔒 Cours Protégé
                         </span>
                       )}
                     </div>
 
-                    <div className="absolute bottom-3 right-3 rounded-xl bg-white/95 backdrop-blur-md px-3 py-1 text-xs font-black text-[#0d8d78] shadow-md">
+                    <div className="absolute bottom-3 right-3 rounded-xl bg-[#11233f]/95 backdrop-blur-md border border-[#72d6bf]/40 px-3 py-1 text-xs font-black text-[#72d6bf] shadow-md">
                       {course.priceTnd > 0 ? `${course.priceTnd} DT` : "GRATUIT"}
                     </div>
                   </div>
 
                   {/* Body */}
                   <div className="p-6 space-y-3">
-                    <span className="text-[11px] font-semibold text-slate-400 block">
+                    <span className="text-[11px] font-semibold text-[#72d6bf] block">
                       {course.level}
                     </span>
 
-                    <h2 className="text-base font-bold text-[#11233f] group-hover:text-[#0d8d78] transition duration-200 line-clamp-2">
+                    <h2 className="text-base font-bold text-white group-hover:text-[#72d6bf] transition duration-200 line-clamp-2">
                       {course.title}
                     </h2>
 
-                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
                       {course.description}
                     </p>
 
                     {/* Teacher Info */}
-                    <div className="pt-2 flex items-center gap-3 border-t border-slate-100">
-                      <div className="h-8 w-8 rounded-full bg-[#0d8d78] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    <div className="pt-2 flex items-center gap-3 border-t border-white/10">
+                      <div className="h-8 w-8 rounded-full bg-[#72d6bf]/20 text-[#72d6bf] flex items-center justify-center font-bold text-xs shrink-0 border border-[#72d6bf]/30">
                         {course.teacherName.charAt(0)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-slate-700 truncate">{course.teacherName}</p>
+                        <p className="text-xs font-bold text-white truncate">{course.teacherName}</p>
                         <p className="text-[10px] text-slate-400">{course.totalLessons} leçons • {course.durationMinutes} min</p>
                       </div>
                     </div>
@@ -176,7 +176,7 @@ export function CoursesCatalogPageClient() {
                 <div className="p-6 pt-0">
                   <Link
                     href={`/courses/${course.id}`}
-                    className="block w-full text-center rounded-2xl bg-[#0d8d78] py-3 text-xs font-bold text-white shadow-md transition duration-200 hover:bg-[#0b7866]"
+                    className="block w-full text-center rounded-2xl bg-[#0d8d78] py-3 text-xs font-bold text-white shadow-md transition duration-200 hover:bg-[#0b7866] active:scale-95"
                   >
                     {course.visibility === "LOCKED" && course.priceTnd > 0 ? "Débloquer le cours →" : "Voir le cours →"}
                   </Link>

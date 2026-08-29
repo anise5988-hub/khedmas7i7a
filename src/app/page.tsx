@@ -205,7 +205,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen overflow-hidden bg-[#0c1626] text-white">
       {/* Animated Homepage News Banner (Admin Controlled) */}
       <HomepageNews />
 
@@ -287,10 +287,10 @@ export default function Home() {
       </section>
 
       {/* Real Live Database Stats Bar */}
-      <section className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+      <section className="border-b border-white/10 bg-[#0f1d32] text-white">
         {statsError && (
           <div className="mx-auto max-w-7xl px-5 pt-4 sm:px-8 lg:px-10">
-            <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800">
+            <div className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-xs font-semibold text-amber-300">
               <IconAlertCircle className="h-4 w-4 shrink-0" />
               {statsError}
             </div>
@@ -300,10 +300,10 @@ export default function Home() {
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 px-5 py-9 sm:grid-cols-3 lg:grid-cols-5 lg:px-10">
             {[1, 2, 3, 4, 5].map((item) => (
               <div key={item} className="flex items-center gap-3">
-                <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-slate-200" />
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-white/10" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-5 w-16 animate-pulse rounded bg-slate-200" />
-                  <div className="h-3 w-20 animate-pulse rounded bg-slate-100" />
+                  <div className="h-5 w-16 animate-pulse rounded bg-white/10" />
+                  <div className="h-3 w-20 animate-pulse rounded bg-white/5" />
                 </div>
               </div>
             ))}
@@ -311,60 +311,60 @@ export default function Home() {
         ) : (
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 px-5 py-9 sm:grid-cols-3 lg:grid-cols-5 lg:px-10">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#72d6bf]/15 text-[#72d6bf] border border-[#72d6bf]/20">
                 <IconUser className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#11233f]">
+                <p className="text-2xl font-bold text-white">
                   {stats ? formatStat(stats.studentsCount) : "0"}
                 </p>
-                <p className="text-xs text-slate-500">Élèves inscrits</p>
+                <p className="text-xs text-slate-400">Élèves inscrits</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#72d6bf]/15 text-[#72d6bf] border border-[#72d6bf]/20">
                 <IconTeacher className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#11233f]">
+                <p className="text-2xl font-bold text-white">
                   {stats ? formatStat(stats.teachersCount) : "0"}
                 </p>
-                <p className="text-xs text-slate-500">Professeurs certifiés</p>
+                <p className="text-xs text-slate-400">Professeurs certifiés</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#72d6bf]/15 text-[#72d6bf] border border-[#72d6bf]/20">
                 <IconClock className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#11233f]">
+                <p className="text-2xl font-bold text-white">
                   {stats ? `${formatStat(stats.hoursTaught)} h` : "0 h"}
                 </p>
-                <p className="text-xs text-slate-500">Heures de cours</p>
+                <p className="text-xs text-slate-400">Heures de cours</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#72d6bf]/15 text-[#72d6bf] border border-[#72d6bf]/20">
                 <IconBookOpen className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#11233f]">{courses.length}</p>
-                <p className="text-xs text-slate-500">Cours &amp; packs</p>
+                <p className="text-2xl font-bold text-white">{courses.length}</p>
+                <p className="text-xs text-slate-400">Cours &amp; packs</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fff7e6] text-amber-500">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-400/15 text-amber-300 border border-amber-400/20">
                 <IconStar className="h-6 w-6 fill-amber-400 text-amber-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#11233f]">
+                <p className="text-2xl font-bold text-white">
                   {stats ? `${stats.satisfactionRate}%` : "0%"}
                 </p>
-                <p className="text-xs text-slate-500">Taux de satisfaction</p>
+                <p className="text-xs text-slate-400">Taux de satisfaction</p>
               </div>
             </div>
           </div>
@@ -375,19 +375,19 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e5f7f2] px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#0d8d78]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#72d6bf]/15 border border-[#72d6bf]/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#72d6bf]">
               Programme Tunisien Officiel
             </span>
-            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-white">
               Trouvez votre niveau scolaire.
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-xl">
+            <p className="mt-2 text-xs sm:text-sm text-slate-300 max-w-xl">
               De l'enseignement de base au Baccalauréat tunisien et études supérieures, nos enseignants couvrent l'ensemble du cursus national.
             </p>
           </div>
           <Link
             href="/levels"
-            className="text-xs font-bold text-[#0d8d78] hover:text-[#0b7866] hover:underline shrink-0"
+            className="text-xs font-bold text-[#72d6bf] hover:text-[#5ec4ad] hover:underline shrink-0"
           >
             Voir tous les niveaux détaillés →
           </Link>
@@ -396,20 +396,20 @@ export default function Home() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/teachers?level=primaire"
-            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1.5 hover:border-[#0d8d78] hover:shadow-xl flex flex-col justify-between"
+            className="group rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md transition hover:-translate-y-1.5 hover:border-[#72d6bf]/60 hover:bg-white/[.10] flex flex-col justify-between"
           >
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 font-bold text-xl mb-4 group-hover:scale-110 transition">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/20 text-amber-300 font-bold text-xl mb-4 group-hover:scale-110 transition border border-amber-400/30">
                 🎒
               </div>
-              <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] transition">
+              <h3 className="font-bold text-lg text-white group-hover:text-[#72d6bf] transition">
                 Cycle Primaire
               </h3>
-              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+              <p className="mt-1 text-xs text-slate-300 leading-relaxed">
                 1ère à la 6ème année de base. Renforcement en Calcul, Français, Arabe et Éveil scientifique.
               </p>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#0d8d78]">
+            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#72d6bf]">
               <span>Explorer les profs</span>
               <span>→</span>
             </div>
@@ -417,20 +417,20 @@ export default function Home() {
 
           <Link
             href="/teachers?level=college"
-            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1.5 hover:border-[#0d8d78] hover:shadow-xl flex flex-col justify-between"
+            className="group rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md transition hover:-translate-y-1.5 hover:border-[#72d6bf]/60 hover:bg-white/[.10] flex flex-col justify-between"
           >
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 font-bold text-xl mb-4 group-hover:scale-110 transition">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-400/20 text-blue-300 font-bold text-xl mb-4 group-hover:scale-110 transition border border-blue-400/30">
                 📐
               </div>
-              <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] transition">
+              <h3 className="font-bold text-lg text-white group-hover:text-[#72d6bf] transition">
                 Collège & 9ème
               </h3>
-              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+              <p className="mt-1 text-xs text-slate-300 leading-relaxed">
                 7ème, 8ème et 9ème année de base. Préparation intensive pour le Concours d'Entrée aux Lycées Pilotes.
               </p>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#0d8d78]">
+            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#72d6bf]">
               <span>Explorer les profs</span>
               <span>→</span>
             </div>
@@ -438,20 +438,20 @@ export default function Home() {
 
           <Link
             href="/teachers?level=secondaire"
-            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1.5 hover:border-[#0d8d78] hover:shadow-xl flex flex-col justify-between"
+            className="group rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md transition hover:-translate-y-1.5 hover:border-[#72d6bf]/60 hover:bg-white/[.10] flex flex-col justify-between"
           >
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-[#0d8d78] font-bold text-xl mb-4 group-hover:scale-110 transition">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/30 text-[#72d6bf] font-bold text-xl mb-4 group-hover:scale-110 transition border border-[#0d8d78]/40">
                 🔬
               </div>
-              <h3 className="font-bold text-lg text-[#11233f] group-hover:text-[#0d8d78] transition">
+              <h3 className="font-bold text-lg text-white group-hover:text-[#72d6bf] transition">
                 Lycée Secondaire
               </h3>
-              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+              <p className="mt-1 text-xs text-slate-300 leading-relaxed">
                 1ère, 2ème et 3ème année secondaire. Consolidation des bases scientifiques, littéraires et économiques.
               </p>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#0d8d78]">
+            <div className="mt-6 flex items-center justify-between text-xs font-bold text-[#72d6bf]">
               <span>Explorer les profs</span>
               <span>→</span>
             </div>
@@ -580,24 +580,24 @@ export default function Home() {
       </section>
 
       {/* Featured Courses & Revision Packs Section */}
-      <section id="courses" className="bg-white px-6 py-20 text-[#11233f] lg:px-10 border-b border-slate-200">
+      <section id="courses" className="bg-[#0c1626] px-6 py-20 text-white lg:px-10 border-t border-white/10">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e5f7f2] px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#0d8d78]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#72d6bf]/15 border border-[#72d6bf]/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#72d6bf]">
                 E-Learning & Révision Autonome
               </span>
-              <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+              <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-white">
                 Nos Meilleurs Cours & Packs Vidéo.
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
+              <p className="mt-2 text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
                 Apprenez à votre rythme avec des vidéos HD, des synthèses de cours et des séries d'exercices type Baccalauréat tunisien corrigés pas à pas par des enseignants réputés.
               </p>
             </div>
 
             <Link
               href="/courses"
-              className="inline-flex items-center gap-1 text-sm font-bold text-[#0d8d78] transition hover:text-[#0b7866] hover:underline shrink-0"
+              className="inline-flex items-center gap-1 text-sm font-bold text-[#72d6bf] transition hover:text-[#5ec4ad] hover:underline shrink-0"
             >
               <span>Explorer tout le catalogue ({courses.length}+)</span>
               <span>→</span>
@@ -607,21 +607,21 @@ export default function Home() {
           {/* Subject Filter Tabs */}
           <div className="mt-8 flex flex-wrap items-center gap-2">
             {[
-              { id: "ALL", label: " Tous les packs" },
-              { id: "Mathématiques", label: " Mathématiques" },
-              { id: "Physique-Chimie", label: " Physique-Chimie" },
-              { id: "Informatique", label: " Informatique / Python" },
-              { id: "Français", label: " Français" },
-              { id: "Économie / Gestion", label: " Éco-Gestion" },
+              { id: "ALL", label: "✨ Tous les packs" },
+              { id: "Mathématiques", label: "📐 Mathématiques" },
+              { id: "Physique-Chimie", label: "🔬 Physique-Chimie" },
+              { id: "Informatique", label: "💻 Informatique / Python" },
+              { id: "Français", label: "📚 Français" },
+              { id: "Économie / Gestion", label: "📊 Éco-Gestion" },
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setSelectedCourseSubject(tab.id)}
-                className={`rounded-2xl px-4 py-2 text-xs font-bold transition duration-200 ${
+                className={`rounded-2xl px-4 py-2 text-xs font-bold transition duration-200 active:scale-95 ${
                   selectedCourseSubject === tab.id
-                    ? "bg-[#0d8d78] text-white shadow-md shadow-[#0d8d78]/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-[#0d8d78] text-white shadow-md shadow-[#0d8d78]/25 border border-[#72d6bf]/30"
+                    : "bg-white/10 text-slate-300 hover:bg-white/15 border border-white/10"
                 }`}
               >
                 {tab.label}
@@ -630,16 +630,16 @@ export default function Home() {
           </div>
 
           {coursesLoading ? (
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-96 animate-pulse rounded-3xl bg-slate-100" />)}</div>
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-96 animate-pulse rounded-3xl bg-white/10" />)}</div>
           ) : courses.length === 0 ? (
-            <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-12 text-center">
+            <div className="mt-10 rounded-3xl border border-white/10 bg-white/[.04] p-12 text-center">
               <h3 className="text-lg font-bold">Nouveaux cours et packs en cours de publication.</h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-400">
                 Nos professeurs préparent de nouveaux contenus de révision. Revenez bientôt !
               </p>
               <Link
                 href="/courses"
-                className="mt-5 inline-block rounded-full bg-[#0d8d78] px-6 py-3 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                className="mt-5 inline-block rounded-full bg-[#72d6bf] px-6 py-3 text-xs font-bold text-[#11233f] transition hover:bg-[#5ec4ad]"
               >
                 Accéder au catalogue →
               </Link>
@@ -652,23 +652,23 @@ export default function Home() {
                 .map((course) => (
                   <div
                     key={course.id}
-                    className="group flex flex-col justify-between rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-[#72d6bf] overflow-hidden"
+                    className="group flex flex-col justify-between rounded-3xl border border-white/15 bg-[#101b2d] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:border-[#72d6bf]/60 overflow-hidden"
                   >
                     <div>
                       {/* Image Thumbnail with Overlay Badges */}
-                      <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                      <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-white/10">
                         <img
                           src={course.thumbnailUrl}
                           alt={course.title}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                          <span className="rounded-xl bg-[#11233f]/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white shadow-sm">
+                          <span className="rounded-xl bg-[#11233f]/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white shadow-sm border border-white/10">
                             {course.subject}
                           </span>
                           {course.visibility === "LOCKED" && (
                             <span className="rounded-xl bg-amber-500/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold text-white shadow-sm flex items-center gap-1">
-                               Pack Protégé
+                              🔒 Pack Protégé
                             </span>
                           )}
                           {course.visibility === "PUBLIC" && (
@@ -678,32 +678,32 @@ export default function Home() {
                           )}
                         </div>
 
-                        <div className="absolute bottom-3 right-3 rounded-xl bg-white/95 backdrop-blur-md px-3 py-1 text-xs font-black text-[#0d8d78] shadow-md">
+                        <div className="absolute bottom-3 right-3 rounded-xl bg-[#11233f]/95 backdrop-blur-md border border-[#72d6bf]/40 px-3 py-1 text-xs font-black text-[#72d6bf] shadow-md">
                           {course.priceTnd > 0 ? `${course.priceTnd} DT` : "GRATUIT"}
                         </div>
                       </div>
 
                       {/* Content Details */}
                       <div className="p-6 space-y-3">
-                        <span className="text-[11px] font-semibold text-slate-400 block">
+                        <span className="text-[11px] font-semibold text-[#72d6bf] block">
                           {course.level}
                         </span>
 
-                        <h3 className="text-base font-bold text-[#11233f] group-hover:text-[#0d8d78] transition duration-200 line-clamp-2 leading-snug">
+                        <h3 className="text-base font-bold text-white group-hover:text-[#72d6bf] transition duration-200 line-clamp-2 leading-snug">
                           {course.title}
                         </h3>
 
-                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                        <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
                           {course.description}
                         </p>
 
                         {/* Teacher and Metrics */}
-                        <div className="pt-3 flex items-center justify-between border-t border-slate-100 text-xs">
+                        <div className="pt-3 flex items-center justify-between border-t border-white/10 text-xs text-slate-300">
                           <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 rounded-full bg-[#e5f7f2] text-[#0d8d78] font-bold flex items-center justify-center text-xs">
+                            <div className="h-7 w-7 rounded-full bg-[#72d6bf]/20 text-[#72d6bf] font-bold flex items-center justify-center text-xs border border-[#72d6bf]/30">
                               {course.teacherName.charAt(0)}
                             </div>
-                            <span className="font-semibold text-slate-700 truncate max-w-[130px]">
+                            <span className="font-semibold text-slate-200 truncate max-w-[130px]">
                               {course.teacherName}
                             </span>
                           </div>
@@ -719,7 +719,7 @@ export default function Home() {
                     <div className="p-6 pt-0">
                       <Link
                         href={`/courses/${course.id}`}
-                        className="block w-full text-center rounded-2xl bg-[#0d8d78] py-3.5 text-xs font-bold text-white shadow-md shadow-[#0d8d78]/20 transition duration-200 hover:bg-[#0b7866]"
+                        className="block w-full text-center rounded-2xl bg-[#0d8d78] py-3.5 text-xs font-bold text-white shadow-md shadow-[#0d8d78]/20 transition duration-200 hover:bg-[#0b7866] active:scale-95"
                       >
                         {course.priceTnd > 0 ? `Débloquer ce pack (${course.priceTnd} DT) →` : "Accéder gratuitement au cours →"}
                       </Link>
@@ -732,54 +732,54 @@ export default function Home() {
       </section>
 
       {/* Trust & Guarantee Section */}
-      <section className="bg-slate-50 border-b border-slate-200 px-6 py-16 lg:px-10">
+      <section className="bg-[#0f1d32] border-t border-white/10 px-6 py-16 lg:px-10 text-white">
         <div className="mx-auto max-w-7xl">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0d8d78]/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#0d8d78]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#72d6bf]/15 border border-[#72d6bf]/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#72d6bf]">
               Sécurité & Excellence Pédagogique
             </span>
-            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-2xl sm:text-3xl font-bold tracking-tight text-[#11233f]">
+            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Pourquoi des milliers de familles tunisiennes choisissent ProfySpace.
             </h2>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 font-bold text-xl mb-4">
                 ✓
               </div>
-              <h3 className="font-bold text-base text-[#11233f]">100% Vérifiés & Certifiés</h3>
-              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+              <h3 className="font-bold text-base text-white">100% Vérifiés & Certifiés</h3>
+              <p className="mt-2 text-xs text-slate-300 leading-relaxed">
                 Chaque enseignant soumet sa pièce d'identité et ses diplômes officiels vérifiés manuellement par l'équipe d'administration.
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 font-bold text-xl mb-4">
                 💳
               </div>
-              <h3 className="font-bold text-base text-[#11233f]">Paiement Tunisien Local</h3>
-              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+              <h3 className="font-bold text-base text-white">Paiement Tunisien Local</h3>
+              <p className="mt-2 text-xs text-slate-300 leading-relaxed">
                 Rechargez votre compte en Dinars Tunisiens par carte e-Dinar D17 (La Poste), Flouci ou virement bancaire instantané.
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 font-bold text-xl mb-4">
                 💻
               </div>
-              <h3 className="font-bold text-base text-[#11233f]">Classe Virtuelle HD</h3>
-              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+              <h3 className="font-bold text-base text-white">Classe Virtuelle HD</h3>
+              <p className="mt-2 text-xs text-slate-300 leading-relaxed">
                 Visioconférence sécurisée WebRTC avec tableau blanc collaboratif, partage d'écran et messagerie en direct intégrée.
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold text-xl mb-4">
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 font-bold text-xl mb-4">
                 🎯
               </div>
-              <h3 className="font-bold text-base text-[#11233f]">Garantie & Flexibilité</h3>
-              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+              <h3 className="font-bold text-base text-white">Garantie & Flexibilité</h3>
+              <p className="mt-2 text-xs text-slate-300 leading-relaxed">
                 Tarifs transparents à l'heure sans abonnement caché. Possibilité d'annuler ou reprogrammer vos séances en toute sérénité.
               </p>
             </div>
@@ -788,33 +788,33 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+      <section id="how" className="mx-auto max-w-7xl px-6 py-20 lg:px-10 border-t border-white/10 text-white">
         <div className="grid gap-12 lg:grid-cols-[.7fr_1.3fr]">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Méthode & Simplicité</p>
-            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+            <p className="text-xs font-bold uppercase tracking-[.18em] text-[#72d6bf]">Méthode & Simplicité</p>
+            <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-white">
               Trois étapes simples.<br />Un vrai progrès scolaire.
             </h2>
           </div>
           <div className="grid gap-8 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <span className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold text-[#0d8d78]">01</span>
-              <h3 className="mt-4 font-bold text-lg text-[#11233f]">Choisissez la matière</h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md">
+              <span className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold text-[#72d6bf]">01</span>
+              <h3 className="mt-4 font-bold text-lg text-white">Choisissez la matière</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-300">
                 Maths, Physique, Français, Arabe ou Anglais selon votre niveau d'études.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <span className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold text-[#0d8d78]">02</span>
-              <h3 className="mt-4 font-bold text-lg text-[#11233f]">Sélectionnez le créneau</h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md">
+              <span className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold text-[#72d6bf]">02</span>
+              <h3 className="mt-4 font-bold text-lg text-white">Sélectionnez le créneau</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-300">
                 Consultez le planning du professeur et réservez l'horaire idéal pour vous.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <span className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold text-[#0d8d78]">03</span>
-              <h3 className="mt-4 font-bold text-lg text-[#11233f]">Rejoignez la classe</h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md">
+              <span className="font-[family-name:var(--font-dm-sans)] text-4xl font-bold text-[#72d6bf]">03</span>
+              <h3 className="mt-4 font-bold text-lg text-white">Rejoignez la classe</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-300">
                 Connectez-vous à la salle vidéo interactive avec chat et échange d'exercices.
               </p>
             </div>
@@ -823,15 +823,15 @@ export default function Home() {
       </section>
 
       {/* Real Reviews Section - Connected to Database */}
-      <section className="bg-slate-50 border-y border-slate-200 px-6 py-20 lg:px-10">
+      <section className="bg-[#0f1d32] border-t border-white/10 px-6 py-20 lg:px-10 text-white">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[.2em] text-[#0d8d78]">Avis & Réussite</p>
-              <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+              <p className="text-xs font-bold uppercase tracking-[.2em] text-[#72d6bf]">Avis & Réussite</p>
+              <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-white">
                 Ce que disent nos élèves satisfaits.
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-slate-500">
+              <p className="mt-2 text-xs sm:text-sm text-slate-300">
                 Avis et retours d'expérience vérifiés d'élèves et parents sur ProfySpace.tn.
               </p>
             </div>
@@ -839,17 +839,17 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setReviewModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md transition hover:bg-[#0b7866] shrink-0"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#72d6bf] px-5 py-3 text-xs sm:text-sm font-bold text-[#11233f] shadow-md transition hover:bg-[#5ec4ad] active:scale-95 shrink-0"
             >
-              <IconStar className="h-4 w-4 fill-white" />
+              <IconStar className="h-4 w-4 fill-[#11233f]" />
               <span>Laisser un avis d'élève satisfait</span>
             </button>
           </div>
 
           {reviews.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <h3 className="font-bold text-base text-slate-800">Aucun avis pour le moment.</h3>
-              <p className="mt-1 text-xs text-slate-500">Soyez le premier élève à partager votre expérience de cours !</p>
+            <div className="rounded-3xl border border-white/10 bg-white/[.05] p-12 text-center shadow-xl">
+              <h3 className="font-bold text-base text-white">Aucun avis pour le moment.</h3>
+              <p className="mt-1 text-xs text-slate-400">Soyez le premier élève à partager votre expérience de cours !</p>
               <button
                 type="button"
                 onClick={() => setReviewModalOpen(true)}
@@ -861,22 +861,22 @@ export default function Home() {
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {reviews.map((r) => (
-                <div key={r.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+                <div key={r.id} className="rounded-3xl border border-white/10 bg-white/[.05] p-6 shadow-xl backdrop-blur-md flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center gap-1 text-amber-500 mb-3">
+                    <div className="flex items-center gap-1 text-amber-400 mb-3">
                       {[...Array(r.rating)].map((_, i) => (
                         <IconStar key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                       ))}
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed italic">
+                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic">
                       "{r.text}"
                     </p>
                   </div>
 
-                  <div className="mt-6 border-t border-slate-100 pt-3 flex items-center justify-between">
+                  <div className="mt-6 border-t border-white/10 pt-3 flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-sm text-[#11233f]">{r.name}</p>
-                      <p className="text-[11px] text-[#0d8d78] font-semibold">{r.role}</p>
+                      <p className="font-bold text-sm text-white">{r.name}</p>
+                      <p className="text-[11px] text-[#72d6bf] font-semibold">{r.role}</p>
                     </div>
                     <span className="text-[10px] text-slate-400 font-mono">
                       {new Date(r.createdAt).toLocaleDateString("fr-TN")}
@@ -890,10 +890,10 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="mx-auto max-w-4xl px-6 py-20 lg:px-10">
+      <section className="mx-auto max-w-4xl px-6 py-20 lg:px-10 border-t border-white/10 text-white">
         <div className="text-center mb-12">
-          <p className="text-xs font-bold uppercase tracking-[.2em] text-[#0d8d78]">Foire Aux Questions</p>
-          <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f]">
+          <p className="text-xs font-bold uppercase tracking-[.2em] text-[#72d6bf]">Foire Aux Questions</p>
+          <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-white">
             Questions Fréquemment Posées
           </h2>
         </div>
@@ -904,18 +904,18 @@ export default function Home() {
             return (
               <div
                 key={index}
-                className="rounded-2xl border border-slate-200 bg-white overflow-hidden transition shadow-xs"
+                className="rounded-2xl border border-white/10 bg-white/[.05] backdrop-blur-md overflow-hidden transition shadow-xl"
               >
                 <button
                   type="button"
                   onClick={() => setOpenFaq(isOpen ? null : index)}
-                  className="flex w-full items-center justify-between p-5 text-left font-bold text-sm text-[#11233f]"
+                  className="flex w-full items-center justify-between p-5 text-left font-bold text-sm text-white hover:text-[#72d6bf] transition"
                 >
                   <span>{faq.q}</span>
-                  <span className="text-[#0d8d78] text-base font-bold">{isOpen ? "−" : "+"}</span>
+                  <span className="text-[#72d6bf] text-base font-bold">{isOpen ? "−" : "+"}</span>
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-white/10">
                     {faq.a}
                   </div>
                 )}
@@ -926,9 +926,9 @@ export default function Home() {
       </section>
 
       {/* Support Card (Email Only) */}
-      <section className="border-t border-slate-200 bg-white px-6 py-16 lg:px-10">
+      <section className="border-t border-white/10 bg-[#09111c] px-6 py-16 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-[#11233f] to-[#1a365d] p-8 sm:p-12 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="rounded-3xl border border-white/15 bg-gradient-to-br from-[#11233f] to-[#1a365d] p-8 sm:p-12 text-white shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-[#72d6bf]">Assistance & Qualité 7j/7</p>
               <h3 className="mt-2 text-2xl sm:text-3xl font-bold">Une question ? Notre équipe vous répond.</h3>
@@ -954,7 +954,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#11233f] text-slate-400 px-6 py-10 lg:px-10 border-t border-white/10">
+      <footer className="bg-[#070c14] text-slate-400 px-6 py-10 lg:px-10 border-t border-white/10">
         <div className="mx-auto flex flex-col sm:flex-row max-w-7xl justify-between items-center gap-4 text-xs">
           <p className="font-bold text-white">
             ProfySpace<span className="text-[#72d6bf]">.tn</span> · Marketplace Tunisienne de Cours Particuliers

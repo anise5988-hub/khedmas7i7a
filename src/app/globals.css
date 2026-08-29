@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #11233f;
+  --background: #0d1726;
+  --foreground: #f1f5f9;
   --primary: #0d8d78;
   --primary-hover: #0b7866;
-  --primary-light: #e5f7f2;
+  --primary-light: #16383b;
   --accent: #72d6bf;
 }
 
@@ -52,17 +52,17 @@ body {
 
 /* Glassmorphism & UI Utilities */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(17, 35, 63, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(22, 40, 70, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .glass-dark {

@@ -226,17 +226,17 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      <header className="border-b border-slate-200 bg-white px-4 py-3 sm:py-4 sm:px-6 sticky top-0 z-30 backdrop-blur-md bg-white/95">
+    <main className="min-h-screen bg-[#0c1626] text-white">
+      <header className="border-b border-white/10 bg-[#101b2d]/95 px-4 py-3 sm:py-4 sm:px-6 sticky top-0 z-30 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Link href="/teachers" className="text-slate-500 hover:text-slate-800 text-xs sm:text-sm font-semibold shrink-0">
+            <Link href="/teachers" className="text-slate-400 hover:text-white text-xs sm:text-sm font-semibold shrink-0">
               ← Professeurs
             </Link>
-            <span className="text-slate-300">/</span>
-            <span className="font-bold text-xs sm:text-sm truncate text-[#11233f]">{teacher.name}</span>
+            <span className="text-slate-600">/</span>
+            <span className="font-bold text-xs sm:text-sm truncate text-white">{teacher.name}</span>
           </div>
-          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-lg sm:text-xl font-bold tracking-tight shrink-0">
+          <Link href="/" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-lg sm:text-xl font-bold tracking-tight shrink-0 text-white">
             <span>ProfySpace</span>
             <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-white">.tn</span>
           </Link>
@@ -247,12 +247,12 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
           <div className="space-y-4 sm:space-y-6">
             {/* Premium Profile Header */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-8 shadow-sm">
+            <div className="rounded-3xl border border-white/15 bg-[#101b2d] p-4 sm:p-8 shadow-xl">
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                 {/* Mobile Top Row: Avatar + Rating */}
                 <div className="flex items-start justify-between sm:block">
                   <div className="relative shrink-0">
-                    <div className="flex h-20 w-20 sm:h-28 sm:w-28 items-center justify-center rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#d9f1e9] to-[#bce8dc] text-2xl sm:text-3xl font-bold text-[#0d8d78] overflow-hidden border-2 border-[#0d8d78]/25 shadow-sm">
+                    <div className="flex h-20 w-20 sm:h-28 sm:w-28 items-center justify-center rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#72d6bf] to-[#0d8d78] text-2xl sm:text-3xl font-bold text-[#11233f] overflow-hidden shadow-md">
                       {teacher.avatarUrl ? (
                         <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
                       ) : (
@@ -260,35 +260,35 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                       )}
                     </div>
                     {teacher.online && (
-                      <span className="absolute bottom-1 right-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-sm" title="En ligne">
+                      <span className="absolute bottom-1 right-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-[#101b2d] shadow-sm" title="En ligne">
                         <span className="sr-only">En ligne</span>
                       </span>
                     )}
                   </div>
 
                   {/* Rating Badge shown on top-right on mobile */}
-                  <div className="sm:hidden shrink-0 rounded-2xl bg-amber-50 border border-amber-200/80 p-2.5 text-center min-w-[70px]">
-                    <span className="flex items-center justify-center gap-1 text-base font-black text-amber-900">
-                      <IconStar className="h-4 w-4 fill-amber-500 text-amber-500" />
+                  <div className="sm:hidden shrink-0 rounded-2xl bg-amber-400/15 border border-amber-400/30 p-2.5 text-center min-w-[70px]">
+                    <span className="flex items-center justify-center gap-1 text-base font-black text-amber-300">
+                      <IconStar className="h-4 w-4 fill-amber-400 text-amber-400" />
                       {teacher.rating.toFixed(1)}
                     </span>
-                    <span className="block text-[10px] font-semibold text-amber-800">{teacher.reviewsCount} avis</span>
+                    <span className="block text-[10px] font-semibold text-amber-200">{teacher.reviewsCount} avis</span>
                   </div>
                 </div>
 
                 <div className="flex-1 text-left">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-xl sm:text-3xl font-bold text-[#11233f]">{teacher.name}</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold text-white">{teacher.name}</h1>
                     {teacher.verificationStatus === "APPROVED" && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] sm:text-xs font-bold text-emerald-800">
-                        <IconCheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#72d6bf]/15 border border-[#72d6bf]/30 px-2.5 py-0.5 text-[11px] sm:text-xs font-bold text-[#72d6bf]">
+                        <IconCheckCircle className="h-3.5 w-3.5 text-[#72d6bf]" />
                         Vérifié
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-sm sm:text-base text-[#0d8d78] font-semibold">{teacher.title}</p>
+                  <p className="mt-1 text-sm sm:text-base text-[#72d6bf] font-semibold">{teacher.title}</p>
 
-                  <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                  <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-slate-300">
                     <span className="inline-flex items-center gap-1">
                       <MapPinIcon />
                       {teacher.city ? `${teacher.city}, ${teacher.governorate}` : teacher.governorate || "Tunisie"}
@@ -301,13 +301,13 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
                   <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2">
                     {teacher.online && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/20 px-2.5 py-1 text-xs font-bold text-[#0d8d78]">
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-[#72d6bf]/15 border border-[#72d6bf]/30 px-2.5 py-1 text-xs font-bold text-[#72d6bf]">
                         <GlobeIcon />
                         En ligne
                       </span>
                     )}
                     {teacher.inPerson && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-800">
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-white/10 border border-white/20 px-2.5 py-1 text-xs font-bold text-slate-200">
                         <UsersIcon />
                         Présentiel
                       </span>
@@ -316,17 +316,17 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
 
                 {/* Rating Box on Desktop */}
-                <div className="hidden sm:block shrink-0 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center min-w-[100px] self-start">
-                  <span className="flex items-center justify-center gap-1 text-xl font-bold text-amber-900">
-                    <IconStar className="h-5 w-5 fill-amber-500 text-amber-500" />
+                <div className="hidden sm:block shrink-0 rounded-2xl bg-amber-400/15 border border-amber-400/30 p-4 text-center min-w-[100px] self-start">
+                  <span className="flex items-center justify-center gap-1 text-xl font-bold text-amber-300">
+                    <IconStar className="h-5 w-5 fill-amber-400 text-amber-400" />
                     {teacher.rating.toFixed(1)}
                   </span>
-                  <span className="block text-xs text-amber-800 mt-0.5">{teacher.reviewsCount} avis</span>
+                  <span className="block text-xs text-amber-200 mt-0.5">{teacher.reviewsCount} avis</span>
                 </div>
               </div>
 
               {isOwnProfile && (
-                <div className="mt-5 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-500">
+                <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-xs font-semibold text-slate-300">
                   Ceci est votre profil public — c&apos;est ainsi que les élèves vous voient. Vous ne pouvez pas réserver ou vous
                   envoyer un message à vous-même.
                 </div>
@@ -337,7 +337,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 {!isOwnProfile && (
                   <button
                     onClick={() => bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d8d78] py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-[#0d8d78]/25 transition hover:bg-[#0b7866] active:scale-95"
                   >
                     <IconCalendar className="h-4 w-4" />
                     Réserver une séance
@@ -345,7 +345,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 )}
                 <button
                   onClick={() => availabilitiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-3.5 text-center text-sm font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] active:scale-95"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#72d6bf]/40 bg-[#72d6bf]/15 py-3.5 text-center text-sm font-bold text-[#72d6bf] transition hover:bg-[#72d6bf]/25 active:scale-95"
                 >
                   <ClockIcon />
                   Disponibilités
@@ -353,7 +353,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 {!isOwnProfile && (
                 <Link
                   href={`/dashboard/messages?teacherId=${teacher.id}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white py-3.5 text-center text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-95"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 py-3.5 text-center text-sm font-bold text-white transition hover:bg-white/15 active:scale-95"
                 >
                   <MessageIcon />
                   Envoyer un message
@@ -362,20 +362,20 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               </div>
 
               {/* Social Share Bar */}
-              <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="text-slate-400 font-medium">Recommander ce prof :</span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={copyProfileLink}
-                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-100 transition active:scale-95"
+                    className="inline-flex items-center gap-1 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 font-bold text-slate-200 hover:bg-white/10 transition active:scale-95"
                   >
                     {copied ? "✓ Copié !" : "📋 Copier le lien"}
                   </button>
                   <button
                     type="button"
                     onClick={shareWhatsApp}
-                    className="inline-flex items-center gap-1 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 px-3 py-1.5 font-bold text-[#128C7E] hover:bg-[#25D366]/20 transition active:scale-95"
+                    className="inline-flex items-center gap-1 rounded-xl bg-[#25D366]/20 border border-[#25D366]/40 px-3 py-1.5 font-bold text-[#25D366] hover:bg-[#25D366]/30 transition active:scale-95"
                   >
                     💬 WhatsApp
                   </button>
@@ -384,45 +384,45 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
             </div>
 
             {/* About Section */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
-              <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">À propos</h2>
-              <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm leading-relaxed text-slate-600 whitespace-pre-line">
+            <div className="rounded-3xl border border-white/15 bg-[#101b2d] p-5 sm:p-8 shadow-xl">
+              <h2 className="text-lg sm:text-xl font-bold text-white">À propos</h2>
+              <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm leading-relaxed text-slate-300 whitespace-pre-line">
                 {teacher.bio}
               </p>
             </div>
 
             {/* Quick Info Card */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
-              <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Informations rapides</h2>
+            <div className="rounded-3xl border border-white/15 bg-[#101b2d] p-5 sm:p-8 shadow-xl">
+              <h2 className="text-lg sm:text-xl font-bold text-white">Informations rapides</h2>
               <div className="mt-3.5 sm:mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                <div className="rounded-2xl bg-[#162844] p-3 sm:p-4 text-center border border-white/10">
                   <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Expérience</span>
-                  <strong className="text-xs sm:text-sm font-bold text-[#11233f]">{teacher.experienceYears} ans</strong>
+                  <strong className="text-xs sm:text-sm font-bold text-white">{teacher.experienceYears} ans</strong>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                <div className="rounded-2xl bg-[#162844] p-3 sm:p-4 text-center border border-white/10">
                   <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Tarif horaire</span>
-                  <strong className="text-xs sm:text-sm font-bold text-[#0d8d78]">{teacher.rateTnd} DT / h</strong>
+                  <strong className="text-xs sm:text-sm font-bold text-[#72d6bf]">{teacher.rateTnd} DT / h</strong>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                <div className="rounded-2xl bg-[#162844] p-3 sm:p-4 text-center border border-white/10">
                   <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Format</span>
-                  <strong className="text-xs sm:text-sm font-bold text-[#11233f]">
+                  <strong className="text-xs sm:text-sm font-bold text-white">
                     {teacher.online && teacher.inPerson ? "En ligne & Présentiel" : teacher.online ? "En ligne" : "Présentiel"}
                   </strong>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4 text-center border border-slate-100">
+                <div className="rounded-2xl bg-[#162844] p-3 sm:p-4 text-center border border-white/10">
                   <span className="block text-[11px] sm:text-xs text-slate-400 mb-0.5">Classe virtuelle</span>
-                  <strong className="text-xs sm:text-sm font-bold text-[#0d8d78]">WebRTC Direct</strong>
+                  <strong className="text-xs sm:text-sm font-bold text-[#72d6bf]">WebRTC Direct</strong>
                 </div>
               </div>
             </div>
 
             {/* Specialties / Subjects */}
             {teacher.subjects.length > 0 && (
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
-                <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Spécialités</h2>
+              <div className="rounded-3xl border border-white/15 bg-[#101b2d] p-5 sm:p-8 shadow-xl">
+                <h2 className="text-lg sm:text-xl font-bold text-white">Spécialités</h2>
                 <div className="mt-3 sm:mt-4 flex flex-wrap gap-2">
                   {teacher.subjects.map((s) => (
-                    <span key={s} className="rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/10 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-[#0d8d78]">
+                    <span key={s} className="rounded-xl bg-[#72d6bf]/15 border border-[#72d6bf]/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-[#72d6bf]">
                       {s}
                     </span>
                   ))}
@@ -431,18 +431,18 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
             )}
 
             {/* Availabilities */}
-            <div ref={availabilitiesRef} className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
-              <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Créneaux habituels de disponibilité</h2>
-              <p className="mt-1 text-xs text-slate-500">Heures régulières durant lesquelles le professeur dispense ses cours.</p>
+            <div ref={availabilitiesRef} className="rounded-3xl border border-white/15 bg-[#101b2d] p-5 sm:p-8 shadow-xl">
+              <h2 className="text-lg sm:text-xl font-bold text-white">Créneaux habituels de disponibilité</h2>
+              <p className="mt-1 text-xs text-slate-400">Heures régulières durant lesquelles le professeur dispense ses cours.</p>
 
               {teacher.availabilities.length === 0 ? (
                 <p className="mt-4 text-xs text-slate-400">Disponibilités flexibles sur demande.</p>
               ) : (
                 <div className="mt-3.5 sm:mt-4 grid gap-2 sm:grid-cols-2">
                   {teacher.availabilities.map((a) => (
-                    <div key={a.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs border border-slate-100">
-                      <span className="font-bold text-[#11233f]">{dayNames[a.dayOfWeek]}</span>
-                      <span className="font-semibold text-[#0d8d78]">{a.startTime} – {a.endTime}</span>
+                    <div key={a.id} className="flex items-center justify-between rounded-xl bg-[#162844] p-3 text-xs border border-white/10">
+                      <span className="font-bold text-white">{dayNames[a.dayOfWeek]}</span>
+                      <span className="font-semibold text-[#72d6bf]">{a.startTime} – {a.endTime}</span>
                     </div>
                   ))}
                 </div>
@@ -450,13 +450,13 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
             </div>
 
             {/* Reviews */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="rounded-3xl border border-white/15 bg-[#101b2d] p-5 sm:p-8 shadow-xl">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#11233f]">Avis des élèves ({teacher.reviewsCount})</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-white">Avis des élèves ({teacher.reviewsCount})</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Évaluations certifiées après chaque séance</p>
                 </div>
-                <span className="font-bold text-[#0d8d78] text-base sm:text-lg"> {teacher.rating.toFixed(1)} / 5</span>
+                <span className="font-bold text-[#72d6bf] text-base sm:text-lg"> {teacher.rating.toFixed(1)} / 5</span>
               </div>
 
               {teacher.reviews.length === 0 ? (
@@ -466,17 +466,17 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               ) : (
                 <div className="mt-3 sm:mt-4 space-y-0">
                   {teacher.reviews.map((r) => (
-                    <div key={r.id} className="py-3 sm:py-4 border-b border-slate-50 last:border-0">
+                    <div key={r.id} className="py-3 sm:py-4 border-b border-white/5 last:border-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e5f7f2] text-xs font-bold text-[#0d8d78]">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#72d6bf]/20 text-xs font-bold text-[#72d6bf] border border-[#72d6bf]/30">
                             {r.studentName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-bold text-xs sm:text-sm text-[#11233f]">{r.studentName}</span>
+                          <span className="font-bold text-xs sm:text-sm text-white">{r.studentName}</span>
                         </div>
-                        <span className="text-xs font-bold text-amber-700"> {r.rating}/5</span>
+                        <span className="text-xs font-bold text-amber-300"> {r.rating}/5</span>
                       </div>
-                      {r.comment && <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">{r.comment}</p>}
+                      {r.comment && <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">{r.comment}</p>}
                       <span className="mt-1.5 block text-[10px] sm:text-[11px] text-slate-400">
                         {new Date(r.createdAt).toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })}
                       </span>
@@ -489,20 +489,20 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
           {/* Booking Sidebar */}
           <div ref={bookingRef} id="booking-section">
-            <div className="sticky top-20 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xl space-y-4 sm:space-y-5">
+            <div className="sticky top-20 rounded-3xl border border-white/15 bg-[#101b2d] p-5 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Tarif horaire</span>
-                  <p className="mt-0.5 sm:mt-1 text-2xl sm:text-3xl font-bold text-[#0d8d78]">
-                    {teacher.rateTnd} DT <span className="text-xs sm:text-sm font-normal text-slate-500">/ heure</span>
+                  <p className="mt-0.5 sm:mt-1 text-2xl sm:text-3xl font-bold text-[#72d6bf]">
+                    {teacher.rateTnd} DT <span className="text-xs sm:text-sm font-normal text-slate-400">/ heure</span>
                   </p>
                 </div>
-                <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-1.5 sm:py-2 text-center">
-                  <span className="flex items-center justify-center gap-1 text-xs sm:text-sm font-bold text-amber-900">
-                    <IconStar className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
+                <div className="rounded-xl bg-amber-400/15 border border-amber-400/30 px-3 py-1.5 sm:py-2 text-center">
+                  <span className="flex items-center justify-center gap-1 text-xs sm:text-sm font-bold text-amber-300">
+                    <IconStar className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
                     {teacher.rating.toFixed(1)}
                   </span>
-                  <span className="block text-[10px] sm:text-[11px] text-amber-800">{teacher.reviewsCount} avis</span>
+                  <span className="block text-[10px] sm:text-[11px] text-amber-200">{teacher.reviewsCount} avis</span>
                 </div>
               </div>
 
@@ -510,7 +510,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               <div className="space-y-1.5">
                 <a
                   href={`/dashboard/messages?teacherId=${teacher.id}`}
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] py-2.5 sm:py-3 text-center text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] active:scale-95"
+                  className="flex items-center justify-center gap-2 w-full rounded-2xl border border-[#72d6bf]/40 bg-[#72d6bf]/15 py-2.5 sm:py-3 text-center text-xs font-bold text-[#72d6bf] transition hover:bg-[#72d6bf]/25 active:scale-95"
                 >
                   <MessageIcon />
                   Envoyer un message
@@ -523,8 +523,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 <div
                   className={`rounded-2xl p-4 text-xs font-semibold ${
                     bookingResult.success
-                      ? "border border-emerald-200 bg-emerald-50 text-emerald-900"
-                      : "border border-rose-200 bg-rose-50 text-rose-900"
+                      ? "border border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                      : "border border-rose-400/30 bg-rose-500/10 text-rose-300"
                   }`}
                 >
                   <p>{bookingResult.message}</p>
@@ -539,7 +539,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   {!bookingResult.success && bookingResult.message.includes("connecter") && (
                     <a
                       href={`/login?redirect=/teachers/${teacher.slug}`}
-                      className="mt-2 inline-block font-bold text-slate-900 underline"
+                      className="mt-2 inline-block font-bold text-[#72d6bf] underline"
                     >
                       Se connecter maintenant →
                     </a>
@@ -548,15 +548,15 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               )}
 
               {isOwnProfile ? (
-                <p className="border-t border-slate-100 pt-4 text-xs text-slate-400 text-center">
+                <p className="border-t border-white/10 pt-4 text-xs text-slate-400 text-center">
                   Vous ne pouvez pas réserver une séance sur votre propre profil.
                 </p>
               ) : (
-              <form onSubmit={handleBook} className="space-y-4 border-t border-slate-100 pt-4">
-                <h3 className="font-bold text-sm sm:text-base text-[#11233f]">Réserver une séance</h3>
+              <form onSubmit={handleBook} className="space-y-4 border-t border-white/10 pt-4">
+                <h3 className="font-bold text-sm sm:text-base text-white">Réserver une séance</h3>
 
                 <div>
-                  <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1.5">Durée du cours</label>
+                  <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase mb-1.5">Durée du cours</label>
                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                     {([30, 60, 90, 120] as const).map((d) => (
                       <button
@@ -565,8 +565,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                         onClick={() => setDuration(d)}
                         className={`rounded-xl border py-2 sm:py-2.5 text-xs font-bold transition active:scale-95 ${
                           duration === d
-                            ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
-                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                            ? "border-[#72d6bf] bg-[#72d6bf]/20 text-[#72d6bf]"
+                            : "border-white/20 bg-[#162844] text-slate-300 hover:border-white/40"
                         }`}
                       >
                         {d} min
@@ -576,7 +576,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1.5">Format</label>
+                  <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase mb-1.5">Format</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -584,8 +584,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                       onClick={() => setMode("ONLINE")}
                       className={`rounded-xl border p-2.5 text-xs font-bold transition active:scale-95 disabled:opacity-30 ${
                         mode === "ONLINE"
-                          ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
-                          : "border-slate-200 bg-white text-slate-700"
+                          ? "border-[#72d6bf] bg-[#72d6bf]/20 text-[#72d6bf]"
+                          : "border-white/20 bg-[#162844] text-slate-300"
                       }`}
                     >
                        💻 En ligne
@@ -596,8 +596,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                       onClick={() => setMode("IN_PERSON")}
                       className={`rounded-xl border p-2.5 text-xs font-bold transition active:scale-95 disabled:opacity-30 ${
                         mode === "IN_PERSON"
-                          ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
-                          : "border-slate-200 bg-white text-slate-700"
+                          ? "border-[#72d6bf] bg-[#72d6bf]/20 text-[#72d6bf]"
+                          : "border-white/20 bg-[#162844] text-slate-300"
                       }`}
                     >
                        🏫 Présentiel
@@ -607,30 +607,30 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+                    <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase mb-1">Date</label>
                     <input
                       type="date"
                       required
                       min={new Date().toISOString().split("T")[0]}
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78] focus:ring-1 focus:ring-[#0d8d78] transition"
+                      className="w-full rounded-xl border border-white/20 bg-[#162844] p-2.5 text-xs text-white outline-none focus:border-[#72d6bf] transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1">Heure</label>
+                    <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase mb-1">Heure</label>
                     <input
                       type="time"
                       required
                       value={selectedTime}
                       onChange={(e) => setSelectedTime(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78] focus:ring-1 focus:ring-[#0d8d78] transition"
+                      className="w-full rounded-xl border border-white/20 bg-[#162844] p-2.5 text-xs text-white outline-none focus:border-[#72d6bf] transition"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] sm:text-xs font-bold text-slate-500 uppercase mb-1.5">Créneaux suggérés</label>
+                  <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase mb-1.5">Créneaux suggérés</label>
                   <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                     {timeSlots.map((t) => (
                       <button
@@ -639,8 +639,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                         onClick={() => setSelectedTime(t)}
                         className={`rounded-lg border py-1.5 text-[11px] font-bold transition active:scale-95 ${
                           selectedTime === t
-                            ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78]"
-                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                            ? "border-[#72d6bf] bg-[#72d6bf]/20 text-[#72d6bf]"
+                            : "border-white/20 bg-[#162844] text-slate-300 hover:border-white/40"
                         }`}
                       >
                         {t}
@@ -649,25 +649,25 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-3.5 sm:p-4 text-xs space-y-2 border border-slate-100">
-                  <div className="flex justify-between text-slate-500">
+                <div className="rounded-2xl bg-[#162844] p-3.5 sm:p-4 text-xs space-y-2 border border-white/10">
+                  <div className="flex justify-between text-slate-300">
                     <span>Durée sélectionnée :</span>
-                    <span className="font-bold text-[#11233f]">{duration} minutes</span>
+                    <span className="font-bold text-white">{duration} minutes</span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
+                  <div className="flex justify-between text-slate-300">
                     <span>Tarif appliqué :</span>
-                    <span className="font-bold text-[#11233f]">{teacher.rateTnd} DT / heure</span>
+                    <span className="font-bold text-white">{teacher.rateTnd} DT / heure</span>
                   </div>
-                  <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-sm text-[#11233f]">
+                  <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-sm text-white">
                     <span>Total à régler :</span>
-                    <span className="text-[#0d8d78] text-base font-black">{calculatedPrice} DT</span>
+                    <span className="text-[#72d6bf] text-base font-black">{calculatedPrice} DT</span>
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={bookingLoading}
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[#0d8d78] py-3.5 sm:py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/20 transition hover:bg-[#0b7866] active:scale-95 disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[#0d8d78] py-3.5 sm:py-4 text-center font-bold text-white shadow-lg shadow-[#0d8d78]/25 transition hover:bg-[#0b7866] active:scale-95 disabled:opacity-50"
                 >
                   <IconCalendar className="h-4 w-4" />
                   <span>{bookingLoading ? "Réservation en cours..." : `Confirmer (${calculatedPrice} DT) →`}</span>
@@ -677,7 +677,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
               {!isOwnProfile && (
               <div className="flex items-center justify-center gap-1.5 text-center text-[10px] sm:text-[11px] text-slate-400 pt-1">
-                <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
+                <IconShield className="h-3.5 w-3.5 text-[#72d6bf]" />
                 <span>Paiement sécurisé · ProfySpace.tn</span>
               </div>
               )}
@@ -688,19 +688,19 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
 
       {/* Floating Bottom Booking Action Bar for Mobile Viewports */}
       {!isOwnProfile && (
-        <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+        <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-[#101b2d]/95 backdrop-blur-lg border-t border-white/15 px-4 py-3 shadow-2xl">
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <div>
               <p className="text-xs text-slate-400 font-medium leading-none">Tarif horaire</p>
-              <p className="text-lg font-black text-[#0d8d78] mt-0.5">
-                {teacher.rateTnd} DT <span className="text-[11px] font-normal text-slate-500">/ h</span>
+              <p className="text-lg font-black text-[#72d6bf] mt-0.5">
+                {teacher.rateTnd} DT <span className="text-[11px] font-normal text-slate-400">/ h</span>
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <a
                 href={`/dashboard/messages?teacherId=${teacher.id}`}
-                className="rounded-2xl border-2 border-[#0d8d78] bg-[#e5f7f2] p-2.5 text-[#0d8d78] transition hover:bg-[#d4f2e9] active:scale-95"
+                className="rounded-2xl border border-[#72d6bf]/40 bg-[#72d6bf]/15 p-2.5 text-[#72d6bf] transition hover:bg-[#72d6bf]/25 active:scale-95"
                 aria-label="Discuter"
               >
                 <MessageIcon />
