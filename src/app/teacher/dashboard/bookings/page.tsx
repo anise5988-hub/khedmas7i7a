@@ -16,6 +16,21 @@ type Booking = {
   amountMillimes: number;
   status: string;
   subject: string;
+  recordingStatus?: "NOT_AVAILABLE" | "RECORDING" | "PROCESSING" | "AVAILABLE" | "FAILED";
+  recordingUrl?: string | null;
+};
+
+const RECORDING_LABELS: Record<string, string> = {
+  RECORDING: "Enregistrement en cours",
+  PROCESSING: "Traitement en cours",
+  AVAILABLE: "Enregistrement disponible",
+  FAILED: "Échec de l'enregistrement",
+};
+const RECORDING_COLORS: Record<string, string> = {
+  RECORDING: "bg-rose-100 text-rose-700",
+  PROCESSING: "bg-amber-100 text-amber-800",
+  AVAILABLE: "bg-emerald-100 text-emerald-700",
+  FAILED: "bg-rose-100 text-rose-700",
 };
 
 export default function TeacherBookingsPage() {
@@ -74,16 +89,32 @@ export default function TeacherBookingsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
                     {b.status}
                   </span>
-                  <a
-                    href={`/classroom/${b.id}`}
-                    className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
-                  >
-                    Ouvrir la classe →
-                  </a>
+                  {b.recordingStatus && b.recordingStatus !== "NOT_AVAILABLE" && (
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${RECORDING_COLORS[b.recordingStatus]}`}>
+                      {RECORDING_LABELS[b.recordingStatus]}
+                    </span>
+                  )}
+                  {b.recordingStatus === "AVAILABLE" && b.recordingUrl ? (
+                    <a
+                      href={b.recordingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                    >
+                      Voir l&apos;enregistrement →
+                    </a>
+                  ) : (
+                    <a
+                      href={`/classroom/${b.id}`}
+                      className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                    >
+                      Ouvrir la classe →
+                    </a>
+                  )}
                 </div>
               </div>
             ))}

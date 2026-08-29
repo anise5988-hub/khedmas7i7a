@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/lib/client/supabase";
-import { WebRTCRoom } from "./webrtc-room";
+import { JitsiRoom } from "./jitsi-room";
 import { InteractiveWhiteboard, type WhiteboardHandle } from "./interactive-whiteboard";
 import {
   IconPaperclip,
@@ -99,7 +99,6 @@ export function ClassroomClient({
   );
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeSideTab, setActiveSideTab] = useState<"chat" | "notes" | "participants">("chat");
   const [notes, setNotes] = useState<Note[]>([]);
@@ -110,6 +109,8 @@ export function ClassroomClient({
   const [deviceCheck, setDeviceCheck] = useState<DeviceCheck | null>(null);
   const [isCheckingDevices, setIsCheckingDevices] = useState(false);
   const [hasEnteredRoom, setHasEnteredRoom] = useState(false);
+  const [joinWindow, setJoinWindow] = useState<{ canJoin: boolean; isTooEarly: boolean; isTooLate: boolean; opensAt: string } | null>(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainStageRef = useRef<HTMLDivElement>(null);
@@ -147,6 +148,39 @@ export function ClassroomClient({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
+
+  // Poll the real access window server-side (join-time gating must not
+  // rely on the client's clock alone) while the participant is still in
+  // the pre-join lobby, so a countdown can resolve into an enabled Join
+  // button without requiring a manual page refresh.
+  useEffect(() => {
+    if (hasEnteredRoom) return;
+    let cancelled = false;
+
+    function poll() {
+      fetch(`/api/classroom/${bookingId}/session`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!cancelled && data) {
+            setJoinWindow({ canJoin: data.canJoin, isTooEarly: data.isTooEarly, isTooLate: data.isTooLate, opensAt: data.opensAt });
+          }
+        })
+        .catch(() => {});
+    }
+
+    poll();
+    const interval = setInterval(poll, 15000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [bookingId, hasEnteredRoom]);
+
+  useEffect(() => {
+    if (hasEnteredRoom) return;
+    const interval = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [hasEnteredRoom]);
 
   // Load chat/notes history once on entry.
   useEffect(() => {
@@ -325,10 +359,6 @@ export function ClassroomClient({
     }
   };
 
-  const toggleScreenShare = () => {
-    setIsScreenSharing((prev) => !prev);
-  };
-
   const participants = [
     {
       id: currentUserId,
@@ -353,6 +383,37 @@ export function ClassroomClient({
           <div className="text-center mb-8">
             <h1 className="text-2xl sm:text-3xl font-extrabold mb-2">Préparation de la classe</h1>
             <p className="text-slate-400 text-sm">Vérifiez votre équipement avant de rejoindre</p>
+          </div>
+
+          <div className="mb-6 rounded-2xl bg-white/5 border border-white/10 p-4 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-400">Avec</span>
+              <span className="font-bold">{otherPartyName}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-400">Horaire prévu</span>
+              <span className="font-bold">
+                {new Date(startsAt).toLocaleString("fr-TN", { dateStyle: "medium", timeStyle: "short" })} · {durationMinutes} min
+              </span>
+            </div>
+            {joinWindow?.isTooEarly && (
+              <div className="pt-2 border-t border-white/10 text-center">
+                <p className="text-[11px] text-amber-300 font-bold uppercase tracking-wider">La salle ouvre dans</p>
+                <p className="text-xl font-mono font-extrabold text-[#72d6bf]">
+                  {(() => {
+                    const diffSec = Math.max(0, Math.floor((new Date(joinWindow.opensAt).getTime() - nowTick) / 1000));
+                    const m = Math.floor(diffSec / 60).toString().padStart(2, "0");
+                    const s = (diffSec % 60).toString().padStart(2, "0");
+                    return `${m}:${s}`;
+                  })()}
+                </p>
+              </div>
+            )}
+            {joinWindow?.isTooLate && (
+              <p className="pt-2 border-t border-white/10 text-center text-xs font-bold text-rose-300">
+                Cette séance est terminée et la salle n&apos;est plus accessible.
+              </p>
+            )}
           </div>
 
           <div className="space-y-4 mb-8">
@@ -396,10 +457,10 @@ export function ClassroomClient({
             )}
             <button
               onClick={enterRoom}
-              disabled={!deviceCheck || !deviceCheck.camera || !deviceCheck.microphone}
+              disabled={!deviceCheck || !deviceCheck.camera || !deviceCheck.microphone || (joinWindow ? !joinWindow.canJoin : false)}
               className="w-full rounded-2xl bg-[#72d6bf] px-6 py-3.5 font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Rejoindre la classe
+              {joinWindow?.isTooEarly ? "La salle n'est pas encore ouverte" : joinWindow?.isTooLate ? "Séance terminée" : "Rejoindre la classe"}
             </button>
             <Link href="/dashboard" className="block text-center text-xs text-slate-400 hover:text-white transition">
               Retour au tableau de bord
@@ -472,7 +533,12 @@ export function ClassroomClient({
           {/* Both stay mounted so switching tabs never drops the live call
               or resets the whiteboard — only visibility toggles. */}
           <div className={activeTab === "video" ? "flex-1 flex flex-col min-h-0" : "hidden"}>
-            <WebRTCRoom roomId={bookingId} polite={currentUserRole === "student"} />
+            <JitsiRoom
+              bookingId={bookingId}
+              currentUserName={currentUserName}
+              onAudioMuteChange={setIsMuted}
+              onVideoMuteChange={setIsVideoOff}
+            />
           </div>
           <div className={activeTab === "whiteboard" ? "flex-1 flex flex-col min-h-0" : "hidden"}>
             <InteractiveWhiteboard
@@ -483,30 +549,11 @@ export function ClassroomClient({
 
           <div className="border-t border-white/10 bg-[#0c1626]/80 p-2 sm:p-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsMuted((prev) => !prev)}
-                className={`rounded-xl p-3 transition ${isMuted ? "bg-rose-500/20 text-rose-300" : "bg-white/10 text-white hover:bg-white/20"}`}
-                title={isMuted ? "Activer le micro" : "Couper le micro"}
-              >
-                {isMuted ? <IconMicrophoneOff className="h-5 w-5" /> : <IconMicrophone className="h-5 w-5" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsVideoOff((prev) => !prev)}
-                className={`rounded-xl p-3 transition ${isVideoOff ? "bg-rose-500/20 text-rose-300" : "bg-white/10 text-white hover:bg-white/20"}`}
-                title={isVideoOff ? "Activer la vidéo" : "Couper la vidéo"}
-              >
-                {isVideoOff ? <IconCameraOff className="h-5 w-5" /> : <IconVideo className="h-5 w-5" />}
-              </button>
-              <button
-                type="button"
-                onClick={toggleScreenShare}
-                className={`rounded-xl p-3 transition ${isScreenSharing ? "bg-[#0d8d78] text-white" : "bg-white/10 text-white hover:bg-white/20"}`}
-                title="Partage d'écran (utilisez le bouton dédié dans la fenêtre vidéo)"
-              >
-                <IconCameraOff className="h-5 w-5" />
-              </button>
+              {/* Mic/camera/screen-share now live inside the embedded Jitsi
+                  toolbar itself — these buttons used to control a bare
+                  WebRTC stream with no such built-in UI, but duplicating
+                  them here would just be a second, disconnected set of
+                  controls fighting the real one inside the iframe. */}
               <button
                 type="button"
                 onClick={toggleFullscreen}
@@ -806,13 +853,11 @@ export function ClassroomClient({
           {activeSideTab === "chat" ? <IconMessageSquare className="h-5 w-5" /> : activeSideTab === "notes" ? <IconFileText className="h-5 w-5" /> : <IconUsers className="h-5 w-5" />}
           {activeSideTab === "chat" ? "Chat" : activeSideTab === "notes" ? "Notes" : "Participants"}
         </button>
-        <button
-          type="button"
-          onClick={() => setIsMuted((prev) => !prev)}
-          className={`flex flex-col items-center gap-1 text-xs ${isMuted ? "text-rose-300" : "text-slate-300"}`}
-        >
+        {/* Live status only — actual mute control lives in Jitsi's own
+            toolbar inside the video tab. */}
+        <div className={`flex flex-col items-center gap-1 text-xs ${isMuted ? "text-rose-300" : "text-slate-300"}`}>
           {isMuted ? <IconMicrophoneOff className="h-5 w-5" /> : <IconMicrophone className="h-5 w-5" />}
-        </button>
+        </div>
       </div>
     </main>
   );

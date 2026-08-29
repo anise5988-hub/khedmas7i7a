@@ -12,6 +12,24 @@ type BookingReplay = {
   startsAt: string;
   durationMinutes: number;
   status: string;
+  recordingStatus: "NOT_AVAILABLE" | "RECORDING" | "PROCESSING" | "AVAILABLE" | "FAILED";
+  recordingUrl: string | null;
+};
+
+const RECORDING_LABELS: Record<BookingReplay["recordingStatus"], string> = {
+  NOT_AVAILABLE: "Non disponible",
+  RECORDING: "Enregistrement en cours",
+  PROCESSING: "Traitement en cours",
+  AVAILABLE: "Disponible",
+  FAILED: "Échec de l'enregistrement",
+};
+
+const RECORDING_COLORS: Record<BookingReplay["recordingStatus"], string> = {
+  NOT_AVAILABLE: "bg-slate-100 text-slate-500",
+  RECORDING: "bg-rose-100 text-rose-700",
+  PROCESSING: "bg-amber-100 text-amber-800",
+  AVAILABLE: "bg-emerald-100 text-emerald-700",
+  FAILED: "bg-rose-100 text-rose-700",
 };
 
 export default function ReplaysPage() {
@@ -115,19 +133,35 @@ export default function ReplaysPage() {
                 <h2 className="text-lg font-bold text-[#11233f]">Historique des Séances Passées</h2>
                 <div className="space-y-3">
                   {pastBookings.map((b) => (
-                    <div key={b.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex items-center justify-between">
+                    <div key={b.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <h3 className="font-bold text-sm">{b.subject} · {b.teacherName}</h3>
                         <p className="text-xs text-slate-500">
                           {new Date(b.startsAt).toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })} ({b.durationMinutes} min)
                         </p>
                       </div>
-                      <Link
-                        href={`/classroom/${b.id}`}
-                        className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
-                      >
-                        Détails séance →
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${RECORDING_COLORS[b.recordingStatus]}`}>
+                          {RECORDING_LABELS[b.recordingStatus]}
+                        </span>
+                        {b.recordingStatus === "AVAILABLE" && b.recordingUrl ? (
+                          <a
+                            href={b.recordingUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-xl bg-[#0d8d78] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#0b7866]"
+                          >
+                            Voir l&apos;enregistrement →
+                          </a>
+                        ) : (
+                          <Link
+                            href={`/classroom/${b.id}`}
+                            className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                          >
+                            Détails séance →
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

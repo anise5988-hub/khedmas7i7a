@@ -22,6 +22,7 @@ export async function GET(request: Request) {
             },
           },
           payment: true,
+          classroomSession: { select: { status: true, recordingStatus: true, recordingUrl: true } },
         },
         orderBy: { startsAt: "desc" },
       });
@@ -39,6 +40,9 @@ export async function GET(request: Request) {
           teacherName: `${b.teacher.user.firstName} ${b.teacher.user.lastName}`,
           teacherSlug: b.teacher.slug,
           subject: b.teacher.subjects[0]?.subject ?? "Cours particulier",
+          classroomStatus: b.classroomSession?.status ?? null,
+          recordingStatus: b.classroomSession?.recordingStatus ?? "NOT_AVAILABLE",
+          recordingUrl: b.classroomSession?.recordingUrl ?? null,
         })),
       });
     }
@@ -53,6 +57,7 @@ export async function GET(request: Request) {
           },
         },
         payment: true,
+        classroomSession: { select: { status: true, recordingStatus: true, recordingUrl: true } },
       },
       orderBy: { startsAt: "desc" },
     });
@@ -70,6 +75,9 @@ export async function GET(request: Request) {
         teacherName: `${b.teacher.user.firstName} ${b.teacher.user.lastName}`,
         teacherSlug: b.teacher.slug,
         subject: b.teacher.subjects[0]?.subject ?? "Cours particulier",
+        classroomStatus: b.classroomSession?.status ?? null,
+        recordingStatus: b.classroomSession?.recordingStatus ?? "NOT_AVAILABLE",
+        recordingUrl: b.classroomSession?.recordingUrl ?? null,
       })),
     });
   } catch (error) {

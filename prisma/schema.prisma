@@ -186,9 +186,49 @@ model Booking {
   classroomMessages ClassroomMessage[]
   classroomNotes    ClassroomNote[]
   homework          Homework[]
+  classroomSession  ClassroomSession?
   createdAt       DateTime @default(now())
   @@index([teacherId, startsAt])
   @@index([studentId, startsAt])
+}
+
+enum ClassroomSessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum RecordingStatus {
+  NOT_AVAILABLE
+  RECORDING
+  PROCESSING
+  AVAILABLE
+  FAILED
+}
+
+model ClassroomSession {
+  id                String   @id @default(cuid())
+  bookingId         String   @unique
+  provider          String   @default("JITSI")
+  // Never the raw booking id alone — a random suffix keeps the Jitsi room
+  // name unguessable even though bookingId itself isn't secret.
+  roomName          String   @unique
+  status            ClassroomSessionStatus @default(SCHEDULED)
+  scheduledStart    DateTime
+  scheduledEnd      DateTime
+  actualStart       DateTime?
+  actualEnd         DateTime?
+  teacherJoinedAt   DateTime?
+  teacherLeftAt     DateTime?
+  studentJoinedAt   DateTime?
+  studentLeftAt     DateTime?
+  recordingStatus   RecordingStatus @default(NOT_AVAILABLE)
+  recordingUrl      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledStart])
 }
 
 model ClassroomMessage {
