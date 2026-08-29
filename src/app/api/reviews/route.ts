@@ -43,16 +43,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Seuls les élèves peuvent publier un avis." }, { status: 403 });
   }
   try {
-    const teacher = parsed.data.teacherId
-      ? await prisma.teacherProfile.findFirst({
-        where: { id: parsed.data.teacherId, verificationStatus: "APPROVED" },
-        select: { id: true, userId: true, slug: true },
-      })
-      : await prisma.teacherProfile.findFirst({
-        where: { verificationStatus: "APPROVED" },
-        select: { id: true, userId: true, slug: true },
-      });
-    if (!teacher) return NextResponse.json({ error: "Aucun professeur disponible." }, { status: 404 });
+    // "Évaluations certifiées après chaque séance" only means something if
+    // a review actually requires a completed lesson with that teacher —
+    // without this, any student could rate any (or, with no teacherId at
+    // all, a completely arbitrary) approved teacher they never studied with.
+    const completedBookings = await prisma.booking.findMany({
+      where: { studentId: user.id, status: "COMPLETED" },
+      select: { teacherId: true },
+      orderBy: { startsAt: "desc" },
+    });
+    if (completedBookings.length === 0) {
+      return NextResponse.json(
+        { error: "Vous devez avoir terminé une séance avec un professeur pour laisser un avis." },
+        { status: 403 },
+      );
+    }
+
+    const completedTeacherIds = new Set(completedBookings.map((b) => b.teacherId));
+    const targetTeacherId = parsed.data.teacherId ?? completedBookings[0].teacherId;
+
+    if (!completedTeacherIds.has(targetTeacherId)) {
+      return NextResponse.json(
+        { error: "Vous devez avoir terminé une séance avec ce professeur pour lui laisser un avis." },
+        { status: 403 },
+      );
+    }
+
+    const teacher = await prisma.teacherProfile.findUnique({
+      where: { id: targetTeacherId },
+      select: { id: true, userId: true, slug: true },
+    });
+    if (!teacher) return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
     const review = await prisma.review.create({ data: { studentId: user.id, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment } });
     await notifyUser({ userId: teacher.userId, type: "NEW_REVIEW", title: "Nouvel avis reçu ", message: `Nouvel avis ${parsed.data.rating}/5 reçu.`, emailSubject: "Nouvel avis reçu", link: `/teachers/${teacher.slug}`, dedupeKey: `review:${review.id}` }).catch((notificationError) => {
       console.warn("Review notification failed", notificationError);
