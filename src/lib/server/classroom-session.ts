@@ -1,12 +1,14 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/server/prisma";
+import { createDailyRoom, createDailyMeetingToken, isDailyConfigured } from "@/lib/server/daily";
 
 const JOIN_WINDOW_BEFORE_MINUTES = 10;
 const JOIN_WINDOW_AFTER_MINUTES = 60; // grace period for lessons running over
+const ROOM_EXPIRY_AFTER_MINUTES = JOIN_WINDOW_AFTER_MINUTES + 30; // buffer past the join grace period
 
 function generateRoomName(bookingId: string): string {
   // The booking id alone isn't secret (visible in dashboard URLs), so the
-  // actual Jitsi room name mixes in a random suffix — knowing a booking id
+  // actual room name mixes in a random suffix — knowing a booking id
   // doesn't get you into its room.
   const suffix = crypto.randomBytes(8).toString("hex");
   return `profyspace-${bookingId}-${suffix}`;
@@ -20,12 +22,21 @@ export async function getOrCreateClassroomSession(bookingId: string) {
   if (!booking) return null;
 
   const scheduledEnd = new Date(booking.startsAt.getTime() + booking.durationMinutes * 60_000);
+  const roomName = generateRoomName(bookingId);
+
+  let roomUrl: string | null = null;
+  if (isDailyConfigured()) {
+    const roomExpiresAt = new Date(scheduledEnd.getTime() + ROOM_EXPIRY_AFTER_MINUTES * 60_000);
+    const room = await createDailyRoom(roomName, roomExpiresAt);
+    roomUrl = room.url;
+  }
 
   try {
     return await prisma.classroomSession.create({
       data: {
         bookingId,
-        roomName: generateRoomName(bookingId),
+        roomName,
+        roomUrl,
         scheduledStart: booking.startsAt,
         scheduledEnd,
       },
@@ -34,6 +45,11 @@ export async function getOrCreateClassroomSession(bookingId: string) {
     // Two simultaneous first-joins raced to create it — fetch the winner.
     return prisma.classroomSession.findUnique({ where: { bookingId } });
   }
+}
+
+export async function mintJoinToken(session: { roomName: string; roomUrl: string | null }, userName: string, isOwner: boolean) {
+  if (!session.roomUrl) return null;
+  return createDailyMeetingToken(session.roomName, userName, isOwner);
 }
 
 export function getJoinWindow(session: { scheduledStart: Date; scheduledEnd: Date }) {

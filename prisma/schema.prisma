@@ -209,10 +209,12 @@ enum RecordingStatus {
 model ClassroomSession {
   id                String   @id @default(cuid())
   bookingId         String   @unique
-  provider          String   @default("JITSI")
-  // Never the raw booking id alone — a random suffix keeps the Jitsi room
-  // name unguessable even though bookingId itself isn't secret.
+  provider          String   @default("DAILY")
+  // Never the raw booking id alone — a random suffix keeps the room name
+  // unguessable even though bookingId itself isn't secret.
   roomName          String   @unique
+  // The provider's own join URL for that room (returned when it's created).
+  roomUrl           String?
   status            ClassroomSessionStatus @default(SCHEDULED)
   scheduledStart    DateTime
   scheduledEnd      DateTime

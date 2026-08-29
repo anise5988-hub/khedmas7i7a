@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/lib/client/supabase";
-import { JitsiRoom } from "./jitsi-room";
+import { DailyRoom, type DailyRoomHandle } from "./daily-room";
 import { InteractiveWhiteboard, type WhiteboardHandle } from "./interactive-whiteboard";
 import {
   IconPaperclip,
@@ -26,6 +26,8 @@ import {
   IconFullscreenExit,
   IconStar,
   IconEdit,
+  IconPhone,
+  IconMonitor,
 } from "@/components/icons";
 
 type Message = {
@@ -111,11 +113,14 @@ export function ClassroomClient({
   const [hasEnteredRoom, setHasEnteredRoom] = useState(false);
   const [joinWindow, setJoinWindow] = useState<{ canJoin: boolean; opensAt: string; closesAt: string } | null>(null);
   const [nowTick, setNowTick] = useState(() => Date.now());
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainStageRef = useRef<HTMLDivElement>(null);
   const whiteboardRef = useRef<WhiteboardHandle>(null);
   const channelRef = useRef<ReturnType<NonNullable<typeof supabase>["channel"]> | null>(null);
+  const dailyRef = useRef<DailyRoomHandle>(null);
 
   const broadcast = useCallback((payload: ClassroomEvent) => {
     channelRef.current?.send({ type: "broadcast", event: "classroom", payload });
@@ -264,6 +269,11 @@ export function ClassroomClient({
 
   const enterRoom = () => {
     setHasEnteredRoom(true);
+  };
+
+  const openDrawer = (tab: "chat" | "notes" | "participants") => {
+    setActiveSideTab(tab);
+    setDrawerOpen(true);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -487,27 +497,33 @@ export function ClassroomClient({
   const timerDisplay = formatTimer(secondsElapsed);
   const plannedEndSeconds = durationMinutes * 60;
   const isOvertime = secondsElapsed > plannedEndSeconds;
+  const unreadDot = activeSideTab !== "chat" && messages.length > 0;
 
   return (
-    <main className="min-h-screen bg-[#101b2d] text-white flex flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6 bg-[#0c1626] z-20">
-        <div className="flex items-center gap-4">
+    <main className="min-h-screen bg-[#0a0f1a] text-white flex flex-col">
+      {/* Slim, informational top bar — the video stage is the dominant
+          element, matching international platforms (Meet/Zoom/Teams)
+          rather than splitting the screen with a permanent side panel. */}
+      <header className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2.5 sm:px-6 bg-[#0c1626]/95 backdrop-blur z-20">
+        <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
+            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
           >
-            ← Quitter
+            ← <span className="hidden sm:inline">Quitter</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-sm sm:text-base">Classe Virtuelle ProfySpace</span>
-            <span className="rounded-md bg-[#0d8d78] px-1.5 py-0.5 text-[11px] font-extrabold text-white">.tn</span>
-            <span className="text-[11px] text-slate-400 hidden sm:inline">#{bookingId.slice(-6).toUpperCase()}</span>
+          <div className="hidden sm:flex items-center gap-2 min-w-0">
+            <span className="font-bold text-sm truncate">Classe Virtuelle ProfySpace</span>
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[10px] font-extrabold text-rose-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />
+              EN DIRECT
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-mono font-bold border ${
+            className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-mono font-bold border ${
               isOvertime ? "bg-amber-500/10 border-amber-500/30 text-amber-300" : "bg-white/10 border-white/10 text-slate-200"
             }`}
             title={isOvertime ? "Durée prévue dépassée" : `Durée prévue : ${durationMinutes} min`}
@@ -515,132 +531,98 @@ export function ClassroomClient({
             <IconClock className="h-3.5 w-3.5 text-[#72d6bf]" />
             <span>{timerDisplay}</span>
           </div>
-
-          <div className="hidden sm:flex rounded-xl bg-black/40 p-1 border border-white/10 text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => setActiveTab("video")}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 transition ${
-                activeTab === "video" ? "bg-[#0d8d78] text-white" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <IconVideo className="h-3.5 w-3.5" />
-              <span>Vidéo</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("whiteboard")}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 transition ${
-                activeTab === "whiteboard" ? "bg-[#0d8d78] text-white" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <IconEdit className="h-3.5 w-3.5" />
-              <span>Tableau</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => openDrawer("participants")}
+            className="hidden sm:flex items-center gap-1.5 rounded-xl bg-white/10 px-2.5 py-1.5 text-xs font-bold text-slate-200 transition hover:bg-white/20"
+            title="Participants"
+          >
+            <IconUsers className="h-3.5 w-3.5" />
+            {participants.length}
+          </button>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="hidden sm:flex rounded-xl bg-white/10 p-2 text-white transition hover:bg-white/20"
+            title="Plein écran"
+          >
+            {isFullscreen ? <IconFullscreenExit className="h-4 w-4" /> : <IconFullscreen className="h-4 w-4" />}
+          </button>
         </div>
       </header>
 
-      <div className="flex-1 mx-auto w-full max-w-7xl grid gap-4 p-4 sm:p-6 lg:grid-cols-[1fr_360px]">
-        <section className="flex flex-col rounded-3xl border border-white/10 bg-white/[.03] shadow-2xl overflow-hidden" ref={mainStageRef}>
-          {/* Both stay mounted so switching tabs never drops the live call
-              or resets the whiteboard — only visibility toggles. */}
-          <div className={activeTab === "video" ? "flex-1 flex flex-col min-h-0" : "hidden"}>
-            <JitsiRoom
-              bookingId={bookingId}
-              currentUserName={currentUserName}
-              onAudioMuteChange={setIsMuted}
-              onVideoMuteChange={setIsVideoOff}
-            />
-          </div>
-          <div className={activeTab === "whiteboard" ? "flex-1 flex flex-col min-h-0" : "hidden"}>
+      {/* Main stage — fills all remaining space between the top bar and
+          the floating control bar. */}
+      <div className="flex-1 relative overflow-hidden" ref={mainStageRef}>
+        {/* Both stay mounted so switching tabs never drops the live call
+            or resets the whiteboard — only visibility toggles. */}
+        <div className={activeTab === "video" ? "absolute inset-0 flex flex-col" : "hidden"}>
+          <DailyRoom
+            ref={dailyRef}
+            bookingId={bookingId}
+            currentUserName={currentUserName}
+            onAudioMuteChange={setIsMuted}
+            onVideoMuteChange={setIsVideoOff}
+          />
+        </div>
+        <div className={activeTab === "whiteboard" ? "absolute inset-0 flex flex-col p-3 sm:p-4" : "hidden"}>
+          <div className="flex-1 rounded-2xl overflow-hidden border border-white/10">
             <InteractiveWhiteboard
               ref={whiteboardRef}
               onLocalUpdate={(pageIndex, dataUrl) => broadcast({ type: "whiteboard_update", pageIndex, dataUrl })}
             />
           </div>
+        </div>
 
-          <div className="border-t border-white/10 bg-[#0c1626]/80 p-2 sm:p-3 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              {/* Mic/camera/screen-share now live inside the embedded Jitsi
-                  toolbar itself — these buttons used to control a bare
-                  WebRTC stream with no such built-in UI, but duplicating
-                  them here would just be a second, disconnected set of
-                  controls fighting the real one inside the iframe. */}
-              <button
-                type="button"
-                onClick={toggleFullscreen}
-                className="rounded-xl bg-white/10 p-3 text-white transition hover:bg-white/20 hidden sm:flex"
-                title="Plein écran"
-              >
-                {isFullscreen ? <IconFullscreenExit className="h-5 w-5" /> : <IconFullscreen className="h-5 w-5" />}
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="relative">
+        {/* Slide-in drawer for chat / notes / participants — an overlay,
+            not a permanently-reserved column, so the call stays the focus
+            the way it does on Meet/Zoom/Teams. */}
+        {drawerOpen && (
+          <div
+            className="absolute inset-0 z-30 flex justify-end bg-black/40"
+            onClick={() => setDrawerOpen(false)}
+          >
+            <aside
+              onClick={(e) => e.stopPropagation()}
+              className="flex h-full w-full sm:w-[380px] flex-col border-l border-white/10 bg-[#101b2d] shadow-2xl"
+            >
+              <div className="flex items-center border-b border-white/10">
                 <button
                   type="button"
-                  onClick={() => setShowReactions((prev) => !prev)}
-                  className="rounded-xl bg-white/10 p-3 text-white transition hover:bg-white/20"
-                  title="Réactions"
+                  onClick={() => setActiveSideTab("chat")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition ${activeSideTab === "chat" ? "text-white border-b-2 border-[#72d6bf]" : "text-slate-400 hover:text-white"}`}
                 >
-                  <IconStar className="h-5 w-5" />
+                  <IconMessageSquare className="h-4 w-4" />
+                  Chat
                 </button>
-                {showReactions && (
-                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 rounded-2xl bg-[#1a2d47] border border-white/10 p-2 shadow-2xl flex gap-1.5 z-30">
-                    {(["👍", "❤️", "👏", "💡", "🎉"] as Reaction[]).map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={() => addReaction(emoji)}
-                        className="text-2xl p-1.5 rounded-xl hover:bg-white/10 transition"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveSideTab("notes")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition ${activeSideTab === "notes" ? "text-white border-b-2 border-[#72d6bf]" : "text-slate-400 hover:text-white"}`}
+                >
+                  <IconFileText className="h-4 w-4" />
+                  Notes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSideTab("participants")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition ${activeSideTab === "participants" ? "text-white border-b-2 border-[#72d6bf]" : "text-slate-400 hover:text-white"}`}
+                >
+                  <IconUsers className="h-4 w-4" />
+                  <span className="hidden sm:inline">Participants</span>
+                  <span className="sm:hidden">{participants.length}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDrawerOpen(false)}
+                  className="px-3 text-slate-400 hover:text-white"
+                  title="Fermer"
+                >
+                  <IconX className="h-4 w-4" />
+                </button>
               </div>
-              <Link
-                href="/dashboard"
-                className="rounded-xl bg-rose-500/20 border border-rose-500/40 px-4 py-2.5 font-bold text-rose-300 transition hover:bg-rose-500/30 text-sm"
-              >
-                Terminer
-              </Link>
-            </div>
-          </div>
-        </section>
 
-        <aside className="flex flex-col rounded-3xl border border-white/10 bg-white/[.04] shadow-2xl overflow-hidden">
-          <div className="flex border-b border-white/10">
-            <button
-              type="button"
-              onClick={() => setActiveSideTab("chat")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition ${activeSideTab === "chat" ? "text-white border-b-2 border-[#72d6bf]" : "text-slate-400 hover:text-white"}`}
-            >
-              <IconMessageSquare className="h-4 w-4" />
-              Chat
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSideTab("notes")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition ${activeSideTab === "notes" ? "text-white border-b-2 border-[#72d6bf]" : "text-slate-400 hover:text-white"}`}
-            >
-              <IconFileText className="h-4 w-4" />
-              Notes
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSideTab("participants")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition ${activeSideTab === "participants" ? "text-white border-b-2 border-[#72d6bf]" : "text-slate-400 hover:text-white"}`}
-            >
-              <IconUsers className="h-4 w-4" />
-              <span className="hidden sm:inline">Participants</span>
-              <span className="sm:hidden">{participants.length}</span>
-            </button>
-          </div>
-
-          {activeSideTab === "chat" && (
+              {activeSideTab === "chat" && (
             <>
               <div className="flex-1 space-y-3.5 overflow-y-auto py-4 text-xs max-h-[500px] px-4">
                 {messagesLoaded && messages.length === 0 && (
@@ -821,7 +803,100 @@ export function ClassroomClient({
               </div>
             </div>
           )}
-        </aside>
+            </aside>
+          </div>
+        )}
+      </div>
+
+      {/* Floating bottom control bar — identical across breakpoints,
+          icon-first, matching the toolbar pattern of Meet/Zoom/Teams
+          instead of a separate mobile-only nav. */}
+      <div className="flex items-center justify-center gap-2 border-t border-white/10 bg-[#0c1626] px-3 py-2.5 sm:px-6 sm:py-3 z-20">
+        <div className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={() => dailyRef.current?.toggleAudio()}
+            className={`rounded-xl p-2.5 transition sm:p-3 ${isMuted ? "bg-rose-500/20 text-rose-300" : "bg-white/10 text-white hover:bg-white/20"}`}
+            title={isMuted ? "Activer le micro" : "Couper le micro"}
+          >
+            {isMuted ? <IconMicrophoneOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <IconMicrophone className="h-4 w-4 sm:h-5 sm:w-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => dailyRef.current?.toggleVideo()}
+            className={`rounded-xl p-2.5 transition sm:p-3 ${isVideoOff ? "bg-rose-500/20 text-rose-300" : "bg-white/10 text-white hover:bg-white/20"}`}
+            title={isVideoOff ? "Activer la caméra" : "Couper la caméra"}
+          >
+            {isVideoOff ? <IconCameraOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <IconCamera className="h-4 w-4 sm:h-5 sm:w-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              dailyRef.current?.toggleScreenShare();
+              setIsScreenSharing((prev) => !prev);
+            }}
+            className={`hidden rounded-xl p-3 transition sm:flex ${isScreenSharing ? "bg-[#0d8d78] text-white" : "bg-white/10 text-white hover:bg-white/20"}`}
+            title="Partager l'écran"
+          >
+            <IconMonitor className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab(activeTab === "video" ? "whiteboard" : "video")}
+            className={`rounded-xl p-2.5 transition sm:p-3 ${activeTab === "whiteboard" ? "bg-[#0d8d78] text-white" : "bg-white/10 text-white hover:bg-white/20"}`}
+            title="Tableau blanc"
+          >
+            <IconEdit className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => openDrawer("chat")}
+            className="relative rounded-xl bg-white/10 p-2.5 text-white transition hover:bg-white/20 sm:p-3"
+            title="Chat"
+          >
+            <IconMessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+            {unreadDot && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-400" />}
+          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowReactions((prev) => !prev)}
+              className="rounded-xl bg-white/10 p-2.5 text-white transition hover:bg-white/20 sm:p-3"
+              title="Réactions"
+            >
+              <IconStar className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+            {showReactions && (
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 rounded-2xl bg-[#1a2d47] border border-white/10 p-2 shadow-2xl flex gap-1.5 z-30">
+                {(["👍", "❤️", "👏", "💡", "🎉"] as Reaction[]).map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => addReaction(emoji)}
+                    className="text-2xl p-1.5 rounded-xl hover:bg-white/10 transition"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="rounded-xl bg-white/10 p-2.5 text-white transition hover:bg-white/20 sm:hidden"
+            title="Plein écran"
+          >
+            {isFullscreen ? <IconFullscreenExit className="h-4 w-4" /> : <IconFullscreen className="h-4 w-4" />}
+          </button>
+        </div>
+        <Link
+          href="/dashboard"
+          className="ml-1 flex items-center gap-1.5 rounded-2xl bg-rose-500 px-4 py-2.5 font-bold text-white transition hover:bg-rose-600 sm:px-5 sm:py-3"
+          title="Quitter la classe"
+        >
+          <IconPhone className="h-4 w-4 rotate-[135deg] sm:h-5 sm:w-5" />
+          <span className="hidden sm:inline">Quitter</span>
+        </Link>
       </div>
 
       {reactions.length > 0 && (
@@ -849,29 +924,6 @@ export function ClassroomClient({
         </div>
       )}
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-20 bg-[#0c1626] border-t border-white/10 p-3 flex justify-around">
-        <button
-          type="button"
-          onClick={() => setActiveTab(activeTab === "video" ? "whiteboard" : "video")}
-          className="flex flex-col items-center gap-1 text-xs text-slate-300"
-        >
-          <IconVideo className="h-5 w-5" />
-          {activeTab === "video" ? "Vidéo" : "Tableau"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSideTab(activeSideTab === "chat" ? "notes" : activeSideTab === "notes" ? "participants" : "chat")}
-          className="flex flex-col items-center gap-1 text-xs text-slate-300"
-        >
-          {activeSideTab === "chat" ? <IconMessageSquare className="h-5 w-5" /> : activeSideTab === "notes" ? <IconFileText className="h-5 w-5" /> : <IconUsers className="h-5 w-5" />}
-          {activeSideTab === "chat" ? "Chat" : activeSideTab === "notes" ? "Notes" : "Participants"}
-        </button>
-        {/* Live status only — actual mute control lives in Jitsi's own
-            toolbar inside the video tab. */}
-        <div className={`flex flex-col items-center gap-1 text-xs ${isMuted ? "text-rose-300" : "text-slate-300"}`}>
-          {isMuted ? <IconMicrophoneOff className="h-5 w-5" /> : <IconMicrophone className="h-5 w-5" />}
-        </div>
-      </div>
     </main>
   );
 }
