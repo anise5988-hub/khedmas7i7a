@@ -26,20 +26,20 @@ export function PageDataState({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent" />
-        <p className="text-sm text-slate-500">{loadingText}</p>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0d8d78] dark:border-[#72d6bf] border-t-transparent" />
+        <p className="text-sm text-slate-500 dark:text-slate-400">{loadingText}</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
-        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">
-          <IconAlertCircle className="h-5 w-5 text-rose-600" />
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-500/30 dark:bg-rose-500/10">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-500/20">
+          <IconAlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
         </div>
-        <p className="mt-3 text-sm font-semibold text-rose-800">Erreur de chargement</p>
-        <p className="mt-1 text-sm text-rose-600">{error}</p>
+        <p className="mt-3 text-sm font-semibold text-rose-800 dark:text-rose-300">Erreur de chargement</p>
+        <p className="mt-1 text-sm text-rose-600 dark:text-rose-400">{error}</p>
         {onRetry && (
           <button
             onClick={onRetry}
@@ -59,11 +59,11 @@ export function PageDataState({
 
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-          <EmptyIcon className="h-6 w-6 text-slate-400" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-white/10">
+          <EmptyIcon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
         </div>
-        <p className="text-sm font-semibold text-slate-700">{emptyTitle}</p>
-        {emptyDescription && <p className="text-sm text-slate-500">{emptyDescription}</p>}
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{emptyTitle}</p>
+        {emptyDescription && <p className="text-sm text-slate-500 dark:text-slate-400">{emptyDescription}</p>}
       </div>
     );
   }

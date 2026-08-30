@@ -43,7 +43,7 @@ export function ContactPageClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       {/* Hero Header */}
@@ -64,10 +64,10 @@ export function ContactPageClient() {
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           {/* Contact Form */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6 dark:border-white/10 dark:bg-white/[.05]">
             <div>
-              <h2 className="text-xl font-bold">Envoyez-nous un message</h2>
-              <p className="mt-1 text-xs text-slate-500">Nous vous répondrons par email dans un délai maximum de 24h.</p>
+              <h2 className="text-xl font-bold dark:text-white">Envoyez-nous un message</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Nous vous répondrons par email dans un délai maximum de 24h.</p>
             </div>
 
             {submitted && (
@@ -86,36 +86,36 @@ export function ContactPageClient() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block font-bold uppercase tracking-wider text-slate-500 mb-1">Votre Nom *</label>
+                  <label className="block font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Votre Nom *</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex: Yassine Trabelsi"
-                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78]"
+                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold uppercase tracking-wider text-slate-500 mb-1">Votre Email *</label>
+                  <label className="block font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Votre Email *</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="nom@exemple.tn"
-                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78]"
+                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold uppercase tracking-wider text-slate-500 mb-1">Objet de votre demande *</label>
+                <label className="block font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Objet de votre demande *</label>
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm outline-none transition focus:border-[#0d8d78]"
+                  className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm outline-none transition focus:border-[#0d8d78] dark:border-white/15 dark:bg-[#162844] dark:text-white"
                 >
                   <option value="Question générale">Question générale sur la plateforme</option>
                   <option value="Réservation de cours">Réservation & déroulement des cours</option>
@@ -126,14 +126,14 @@ export function ContactPageClient() {
               </div>
 
               <div>
-                <label className="block font-bold uppercase tracking-wider text-slate-500 mb-1">Votre Message *</label>
+                <label className="block font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Votre Message *</label>
                 <textarea
                   required
                   rows={5}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Détaillez votre demande pour nous permettre de vous aider au mieux..."
-                  className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78]"
+                  className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                 />
               </div>
 
@@ -149,28 +149,28 @@ export function ContactPageClient() {
 
           {/* Contact Details Sidebar */}
           <div className="space-y-4">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">Coordonnées Directes</span>
-              <h3 className="font-bold text-base">ProfySpace.tn Tunisie</h3>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 dark:border-white/10 dark:bg-white/[.05]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">Coordonnées Directes</span>
+              <h3 className="font-bold text-base dark:text-white">ProfySpace.tn Tunisie</h3>
 
-              <div className="space-y-3 text-xs text-slate-600">
-                <div className="rounded-2xl bg-slate-50 p-3.5 border border-slate-100">
+              <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+                <div className="rounded-2xl bg-slate-50 p-3.5 border border-slate-100 dark:bg-white/[.05] dark:border-white/10">
                   <p className="text-[10px] uppercase font-bold text-slate-400">Email Officiel</p>
-                  <a href="mailto:profyspace@gmail.com" className="font-bold text-sm text-[#0d8d78] hover:underline">
+                  <a href="mailto:profyspace@gmail.com" className="font-bold text-sm text-[#0d8d78] dark:text-[#72d6bf] hover:underline">
                     profyspace@gmail.com
                   </a>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-3.5 border border-slate-100">
+                <div className="rounded-2xl bg-slate-50 p-3.5 border border-slate-100 dark:bg-white/[.05] dark:border-white/10">
                   <p className="text-[10px] uppercase font-bold text-slate-400">Téléphone Assistance</p>
-                  <a href="tel:+21658249938" className="font-bold text-sm text-[#11233f] hover:underline">
+                  <a href="tel:+21658249938" className="font-bold text-sm text-[#11233f] dark:text-white hover:underline">
                     +216 58 249 938
                   </a>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-3.5 border border-slate-100">
+                <div className="rounded-2xl bg-slate-50 p-3.5 border border-slate-100 dark:bg-white/[.05] dark:border-white/10">
                   <p className="text-[10px] uppercase font-bold text-slate-400">Disponibilité</p>
-                  <p className="font-bold text-[#11233f]">Du Lundi au Dimanche (9h – 21h)</p>
+                  <p className="font-bold text-[#11233f] dark:text-white">Du Lundi au Dimanche (9h – 21h)</p>
                 </div>
               </div>
             </div>

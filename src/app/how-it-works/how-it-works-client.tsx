@@ -11,7 +11,7 @@ import {
 
 export function HowItWorksPageClient() {
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       {/* Header Banner */}
@@ -39,40 +39,40 @@ export function HowItWorksPageClient() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-3">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between dark:border-white/10 dark:bg-white/[.05]">
               <div className="space-y-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                   <IconSearch className="h-6 w-6" />
                 </div>
-                <span className="font-mono text-2xl font-black text-[#0d8d78]">01</span>
-                <h3 className="font-bold text-base text-[#11233f]">Explorez les profils vérifiés</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <span className="font-mono text-2xl font-black text-[#0d8d78] dark:text-[#72d6bf]">01</span>
+                <h3 className="font-bold text-base text-[#11233f] dark:text-white">Explorez les profils vérifiés</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                   Filtrez selon votre matière (Maths, Physique, Français, etc.), votre niveau scolaire et votre ville.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between dark:border-white/10 dark:bg-white/[.05]">
               <div className="space-y-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                   <IconCalendar className="h-6 w-6" />
                 </div>
-                <span className="font-mono text-2xl font-black text-[#0d8d78]">02</span>
-                <h3 className="font-bold text-base text-[#11233f]">Choisissez un créneau ou discutez</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <span className="font-mono text-2xl font-black text-[#0d8d78] dark:text-[#72d6bf]">02</span>
+                <h3 className="font-bold text-base text-[#11233f] dark:text-white">Choisissez un créneau ou discutez</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                   Sélectionnez l'heure de votre choix dans l'agenda du professeur ou envoyez-lui un message direct pour une offre adaptée.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between dark:border-white/10 dark:bg-white/[.05]">
               <div className="space-y-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                   <IconVideo className="h-6 w-6" />
                 </div>
-                <span className="font-mono text-2xl font-black text-[#0d8d78]">03</span>
-                <h3 className="font-bold text-base text-[#11233f]">Rejoignez la classe virtuelle HD</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <span className="font-mono text-2xl font-black text-[#0d8d78] dark:text-[#72d6bf]">03</span>
+                <h3 className="font-bold text-base text-[#11233f] dark:text-white">Rejoignez la classe virtuelle HD</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                   Le cours se déroule directement dans votre navigateur via notre classe WebRTC avec vidéo, micro et tableau interactif.
                 </p>
               </div>

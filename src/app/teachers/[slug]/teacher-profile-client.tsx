@@ -9,6 +9,7 @@ import {
   IconCalendar,
   IconCheckCircle,
 } from "@/components/icons";
+import { AvailabilityWeekGrid } from "@/components/availability-week-grid";
 
 type TeacherData = {
   id: string;
@@ -33,8 +34,6 @@ type TeacherData = {
   availabilities: { id: string; dayOfWeek: number; startTime: string; endTime: string }[];
   reviews: { id: string; studentName: string; rating: number; comment: string | null; createdAt: string }[];
 };
-
-const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 const timeSlots = [
   "08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00",
@@ -438,13 +437,8 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               {teacher.availabilities.length === 0 ? (
                 <p className="mt-4 text-xs text-slate-400">Disponibilités flexibles sur demande.</p>
               ) : (
-                <div className="mt-3.5 sm:mt-4 grid gap-2 sm:grid-cols-2">
-                  {teacher.availabilities.map((a) => (
-                    <div key={a.id} className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 text-slate-700 dark:bg-[#162844] p-3 text-xs dark:border-white/10">
-                      <span className="font-bold text-[#11233f] dark:text-white">{dayNames[a.dayOfWeek]}</span>
-                      <span className="font-semibold text-[#0d8d78] dark:text-[#72d6bf]">{a.startTime} – {a.endTime}</span>
-                    </div>
-                  ))}
+                <div className="mt-3.5 sm:mt-4">
+                  <AvailabilityWeekGrid availabilities={teacher.availabilities} />
                 </div>
               )}
             </div>

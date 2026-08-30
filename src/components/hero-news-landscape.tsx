@@ -38,7 +38,7 @@ export function HeroNewsLandscape() {
           setNews(data.news);
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -148,7 +148,7 @@ export function HeroNewsLandscape() {
         {/* Landscape Animated Content Area */}
         <div
           key={currentItem.id}
-          className="space-y-4 animate-profy-reveal transition-all duration-300"
+          className="space-y-4 profy-reveal transition-all duration-300"
         >
           {/* Landscape Media Banner */}
           <div
@@ -211,11 +211,10 @@ export function HeroNewsLandscape() {
                   key={idx}
                   type="button"
                   onClick={() => setCurrentIndex(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    idx === currentIndex
+                  className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex
                       ? "w-7 bg-[#72d6bf]"
                       : "w-2 bg-white/20 hover:bg-white/40"
-                  }`}
+                    }`}
                   aria-label={`Aller à l'actualité ${idx + 1}`}
                 />
               ))}
@@ -235,7 +234,7 @@ export function HeroNewsLandscape() {
       {/* Full Modal Reader */}
       {selectedNews && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-profy-reveal"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 profy-reveal"
           onClick={() => setSelectedNews(null)}
         >
           <div

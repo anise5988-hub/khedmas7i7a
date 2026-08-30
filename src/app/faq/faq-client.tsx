@@ -60,7 +60,7 @@ export function FaqPageClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       {/* Header */}
@@ -102,7 +102,7 @@ export function FaqPageClient() {
 
           return (
             <div key={cIdx} className="space-y-4">
-              <h2 className="text-lg font-bold text-[#11233f] border-b border-slate-200 pb-2">
+              <h2 className="text-lg font-bold text-[#11233f] dark:text-white border-b border-slate-200 dark:border-white/10 pb-2">
                 {cat.category}
               </h2>
 
@@ -114,21 +114,21 @@ export function FaqPageClient() {
                   return (
                     <div
                       key={iIdx}
-                      className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs transition"
+                      className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs transition dark:border-white/10 dark:bg-white/[.05]"
                     >
                       <button
                         type="button"
                         onClick={() => toggle(key)}
-                        className="flex w-full items-center justify-between p-5 text-left font-bold text-sm text-[#11233f] hover:text-[#0d8d78]"
+                        className="flex w-full items-center justify-between p-5 text-left font-bold text-sm text-[#11233f] hover:text-[#0d8d78] dark:text-white dark:hover:text-[#72d6bf]"
                       >
                         <span>{item.q}</span>
-                        <span className="text-base font-bold text-[#0d8d78] ml-3 shrink-0">
+                        <span className="text-base font-bold text-[#0d8d78] dark:text-[#72d6bf] ml-3 shrink-0">
                           {isOpen ? "−" : "+"}
                         </span>
                       </button>
 
                       {isOpen && (
-                        <div className="px-5 pb-5 pt-1 text-xs sm:text-sm leading-relaxed text-slate-600 border-t border-slate-50">
+                        <div className="px-5 pb-5 pt-1 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300 border-t border-slate-50 dark:border-white/10">
                           {item.a}
                         </div>
                       )}
@@ -141,9 +141,9 @@ export function FaqPageClient() {
         })}
 
         {/* CTA Footer */}
-        <div className="rounded-3xl border border-slate-200 bg-[#e5f7f2] p-8 text-center space-y-3">
-          <h3 className="font-bold text-lg text-[#11233f]">Vous n'avez pas trouvé votre réponse ?</h3>
-          <p className="text-xs text-slate-600 max-w-md mx-auto">
+        <div className="rounded-3xl border border-slate-200 bg-[#e5f7f2] p-8 text-center space-y-3 dark:border-[#72d6bf]/20 dark:bg-[#72d6bf]/10">
+          <h3 className="font-bold text-lg text-[#11233f] dark:text-white">Vous n'avez pas trouvé votre réponse ?</h3>
+          <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto">
             Notre équipe est disponible 7j/7 pour vous aider et répondre à toutes vos questions.
           </p>
           <Link

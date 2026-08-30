@@ -364,7 +364,7 @@ export default function AdminPage() {
             )}
 
             {/* KPI Grid */}
-            <div className="mt-6 grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 title="Utilisateurs inscrits"
                 value={stats ? stats.totalUsers.toLocaleString("fr-FR") : 0}

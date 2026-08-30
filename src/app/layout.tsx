@@ -14,9 +14,30 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://profyspace.online";
+
 export const metadata: Metadata = {
-  title: "ProfySpace.tn | Trouve le professeur qui te correspond",
-  description: "La marketplace tunisienne moderne pour trouver, réserver et apprendre avec les meilleurs professeurs particuliers.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "ProfySpace.tn | Trouve le professeur qui te correspond",
+    template: "%s | ProfySpace.tn",
+  },
+  description: "La marketplace tunisienne moderne pour trouver, réserver et apprendre avec les meilleurs professeurs particuliers, du primaire au Baccalauréat.",
+  keywords: ["cours particuliers Tunisie", "professeur particulier", "Baccalauréat Tunisien", "soutien scolaire", "cours en ligne Tunisie", "classe virtuelle", "ProfySpace"],
+  openGraph: {
+    type: "website",
+    locale: "fr_TN",
+    url: siteUrl,
+    siteName: "ProfySpace.tn",
+    title: "ProfySpace.tn | Trouve le professeur qui te correspond",
+    description: "La marketplace tunisienne moderne pour trouver, réserver et apprendre avec les meilleurs professeurs particuliers.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ProfySpace.tn | Trouve le professeur qui te correspond",
+    description: "La marketplace tunisienne moderne pour trouver, réserver et apprendre avec les meilleurs professeurs particuliers.",
+  },
+  alternates: { canonical: "/" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

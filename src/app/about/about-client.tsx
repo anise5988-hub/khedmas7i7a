@@ -6,7 +6,7 @@ import { IconShield, IconGraduationCap, IconUsers } from "@/components/icons";
 
 export function AboutPageClient() {
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       {/* Hero */}
@@ -27,41 +27,41 @@ export function AboutPageClient() {
       {/* Values Grid */}
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 space-y-12">
         <div className="grid gap-6 sm:grid-cols-3">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 dark:border-white/10 dark:bg-white/[.05]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
               <IconShield className="h-6 w-6" />
             </div>
-            <h3 className="font-bold text-base text-[#11233f]">Professeurs Vérifiés</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <h3 className="font-bold text-base text-[#11233f] dark:text-white">Professeurs Vérifiés</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Chaque dossier de professeur est vérifié et certifié par notre administration avant de pouvoir enseigner et être visible sur la marketplace.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 dark:border-white/10 dark:bg-white/[.05]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
               <IconGraduationCap className="h-6 w-6" />
             </div>
-            <h3 className="font-bold text-base text-[#11233f]">Pédagogie & Progrès</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <h3 className="font-bold text-base text-[#11233f] dark:text-white">Pédagogie & Progrès</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Des cours particuliers ciblés pour surmonter les blocages scolaires, préparer les examens nationaux (Bac, 9ème) et les études supérieures.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 dark:border-white/10 dark:bg-white/[.05]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
               <IconUsers className="h-6 w-6" />
             </div>
-            <h3 className="font-bold text-base text-[#11233f]">Proximité Tunisienne</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <h3 className="font-bold text-base text-[#11233f] dark:text-white">Proximité Tunisienne</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Une plateforme pensée pour les besoins des élèves et familles tunisiennes, avec paiement local via D17 et Flouci.
             </p>
           </div>
         </div>
 
         {/* CTA */}
-        <div className="rounded-3xl border border-slate-200 bg-[#e5f7f2] p-8 sm:p-10 text-center space-y-4">
-          <h2 className="text-2xl font-bold text-[#11233f]">Prêt à faire décoller vos résultats scolaires ?</h2>
-          <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
+        <div className="rounded-3xl border border-slate-200 bg-[#e5f7f2] p-8 sm:p-10 text-center space-y-4 dark:border-[#72d6bf]/20 dark:bg-[#72d6bf]/10">
+          <h2 className="text-2xl font-bold text-[#11233f] dark:text-white">Prêt à faire décoller vos résultats scolaires ?</h2>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
             Trouvez dès maintenant le professeur particulier idéal ou rejoignez notre communauté d'enseignants.
           </p>
           <div className="pt-2 flex flex-wrap justify-center gap-3">
@@ -73,7 +73,7 @@ export function AboutPageClient() {
             </Link>
             <Link
               href="/register?role=TEACHER"
-              className="rounded-2xl border border-[#0d8d78] bg-white px-6 py-3 text-xs font-bold text-[#0d8d78] hover:bg-[#d4f2e9] transition"
+              className="rounded-2xl border border-[#0d8d78] bg-white px-6 py-3 text-xs font-bold text-[#0d8d78] hover:bg-[#d4f2e9] transition dark:border-[#72d6bf] dark:bg-transparent dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/10"
             >
               Devenir professeur
             </Link>
