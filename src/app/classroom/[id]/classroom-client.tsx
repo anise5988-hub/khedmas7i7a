@@ -555,6 +555,7 @@ export function ClassroomClient({
             currentUserName={currentUserName}
             onAudioMuteChange={setIsMuted}
             onVideoMuteChange={setIsVideoOff}
+            onScreenShareChange={setIsScreenSharing}
           />
         </div>
         <div className={activeTab === "whiteboard" ? "absolute inset-0 flex flex-col p-3 sm:p-4" : "hidden"}>
@@ -823,12 +824,9 @@ export function ClassroomClient({
           </button>
           <button
             type="button"
-            onClick={() => {
-              dailyRef.current?.toggleScreenShare();
-              setIsScreenSharing((prev) => !prev);
-            }}
+            onClick={() => dailyRef.current?.toggleScreenShare()}
             className={`hidden rounded-xl p-3 transition sm:flex ${isScreenSharing ? "bg-[#0d8d78] text-white" : "bg-white/10 text-white hover:bg-white/20"}`}
-            title="Partager l'écran"
+            title={isScreenSharing ? "Arrêter le partage d'écran" : "Partager l'écran"}
           >
             <IconMonitor className="h-5 w-5" />
           </button>
