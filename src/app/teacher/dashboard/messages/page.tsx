@@ -401,13 +401,12 @@ export default function TeacherMessagesPage() {
           </div>
 
           {activeConv && (
-            <button
-              onClick={() => setShowOfferModal(true)}
-              className="flex items-center gap-2 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#0b7866]"
-            >
-              <IconDollarSign className="h-4 w-4" />
-              <span>+ Proposer une offre de cours (DT)</span>
-            </button>
+            <div className="flex items-center gap-2 rounded-2xl border border-[#0d8d78]/25 bg-[#e5f7f2] px-4 py-2.5 dark:border-[#72d6bf]/30 dark:bg-[#72d6bf]/10">
+              <IconDollarSign className="h-4 w-4 shrink-0 text-[#0d8d78] dark:text-[#72d6bf]" />
+              <span className="text-[11px] font-bold text-[#0d8d78] dark:text-[#72d6bf]">
+                Offre sur-mesure : utilisez « + Créer Offre » dans la discussion ouverte
+              </span>
+            </div>
           )}
         </div>
 
@@ -597,13 +596,6 @@ export default function TeacherMessagesPage() {
                     placeholder={uploadingFile ? "Envoi du fichier..." : "Écrivez votre message à l'élève..."}
                     className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-800 outline-none focus:border-[#0d8d78] focus:bg-white transition dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:bg-white/10"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowOfferModal(true)}
-                    className="rounded-2xl border border-[#0d8d78] bg-[#e5f7f2] px-3.5 py-3 text-xs font-bold text-[#0d8d78] transition hover:bg-[#d4f2e9] shrink-0 dark:border-[#72d6bf]/40 dark:bg-[#72d6bf]/15 dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/25"
-                  >
-                    + Offre (DT)
-                  </button>
                   <button
                     type="submit"
                     disabled={sending || (!text.trim() && !attachedFile)}
