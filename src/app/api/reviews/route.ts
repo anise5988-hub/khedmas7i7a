@@ -8,6 +8,7 @@ const createReviewSchema = z.object({
   teacherId: z.string().min(1).optional(),
   rating: z.number().int().min(1).max(5),
   comment: z.string().trim().min(5).max(1000),
+  photoUrl: z.string().trim().url().optional().or(z.literal("")),
 });
 
 export async function GET() {
@@ -25,7 +26,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       take: 20,
     });
-    return NextResponse.json({ reviews: reviews.map((review) => ({ id: review.id, name: `${review.student.firstName} ${review.student.lastName?.[0] ?? ""}.`, role: `Élève en cours de ${review.teacher?.subjects[0]?.subject || "cours particulier"}`, teacherName: `${review.teacher.user.firstName} ${review.teacher.user.lastName}`, rating: review.rating, text: review.comment || "", createdAt: review.createdAt })) });
+    return NextResponse.json({ reviews: reviews.map((review) => ({ id: review.id, name: `${review.student.firstName} ${review.student.lastName?.[0] ?? ""}.`, role: `Élève en cours de ${review.teacher?.subjects[0]?.subject || "cours particulier"}`, teacherName: `${review.teacher.user.firstName} ${review.teacher.user.lastName}`, rating: review.rating, text: review.comment || "", photoUrl: review.photoUrl || null, teacherReply: review.teacherReply || null, createdAt: review.createdAt })) });
   } catch (error) {
     console.warn("Reviews fetch failed", error);
     return NextResponse.json({ reviews: [] });
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
       select: { id: true, userId: true, slug: true },
     });
     if (!teacher) return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
-    const review = await prisma.review.create({ data: { studentId: user.id, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment } });
+    const review = await prisma.review.create({ data: { studentId: user.id, teacherId: teacher.id, rating: parsed.data.rating, comment: parsed.data.comment, photoUrl: parsed.data.photoUrl || null } });
     await notifyUser({ userId: teacher.userId, type: "NEW_REVIEW", title: "Nouvel avis reçu ", message: `Nouvel avis ${parsed.data.rating}/5 reçu.`, emailSubject: "Nouvel avis reçu", link: `/teachers/${teacher.slug}`, dedupeKey: `review:${review.id}` }).catch((notificationError) => {
       console.warn("Review notification failed", notificationError);
     });

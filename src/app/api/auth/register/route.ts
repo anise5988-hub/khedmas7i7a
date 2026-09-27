@@ -14,6 +14,15 @@ export async function POST(request: Request) {
   const input = parsed.data;
   const passwordHash = await hash(input.password, 12);
 
+  // Resolve the referral once, up front, so both creation paths below
+  // (Supabase-backed and direct-DB) can just attach the same value —
+  // an invalid/unknown ref silently means "no referral" rather than a
+  // registration error, since the referral code is just this app's own
+  // user ids and shouldn't be able to block signup.
+  const referredById = input.ref
+    ? (await prisma.user.findUnique({ where: { id: input.ref }, select: { id: true } }))?.id ?? null
+    : null;
+
   if (supabaseAuth) {
     const { data, error } = await supabaseAuth.auth.signUp({
       email: input.email,
@@ -57,6 +66,7 @@ export async function POST(request: Request) {
             phone: input.phone || null,
             passwordHash,
             role: input.role,
+            referredById,
           },
         });
 
@@ -130,6 +140,7 @@ export async function POST(request: Request) {
         phone: input.phone || null,
         passwordHash,
         role: input.role,
+        referredById,
         wallet: { create: {} },
         ...(input.role === "STUDENT"
           ? { student: { create: {} } }

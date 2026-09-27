@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   IconStar,
@@ -10,6 +10,19 @@ import {
   IconCheckCircle,
 } from "@/components/icons";
 import { AvailabilityWeekGrid } from "@/components/availability-week-grid";
+
+type PortfolioItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  type: "IMAGE" | "DOCUMENT" | "VIDEO" | "LINK";
+  subject: string | null;
+  level: string | null;
+  mediaUrl: string;
+  thumbnailUrl: string | null;
+  externalUrl: string | null;
+  createdAt: string;
+};
 
 type TeacherData = {
   id: string;
@@ -32,7 +45,8 @@ type TeacherData = {
   rating: number;
   reviewsCount: number;
   availabilities: { id: string; dayOfWeek: number; startTime: string; endTime: string }[];
-  reviews: { id: string; studentName: string; rating: number; comment: string | null; createdAt: string }[];
+  reviews: { id: string; studentName: string; rating: number; comment: string | null; photoUrl?: string | null; teacherReply?: string | null; createdAt: string }[];
+  portfolio?: PortfolioItem[];
 };
 
 const timeSlots = [
@@ -253,7 +267,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                   <div className="relative shrink-0">
                     <div className="flex h-20 w-20 sm:h-28 sm:w-28 items-center justify-center rounded-2xl sm:rounded-3xl bg-[#d9f1e9] text-[#0d8d78] border-2 border-[#0d8d78]/25 dark:bg-gradient-to-br dark:from-[#72d6bf] dark:to-[#0d8d78] text-2xl sm:text-3xl font-bold dark:text-[#11233f] overflow-hidden shadow-sm">
                       {teacher.avatarUrl ? (
-                        <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
+                        <Image src={teacher.avatarUrl} alt={teacher.name} fill sizes="112px" className="object-cover" />
                       ) : (
                         <span>{teacher.initials}</span>
                       )}
@@ -443,6 +457,76 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
               )}
             </div>
 
+            {/* Portfolio — exemples de travaux du professeur */}
+            {teacher.portfolio && teacher.portfolio.length > 0 && (
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm text-[#11233f] dark:border-white/15 dark:bg-[#101b2d] dark:text-white dark:shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 pb-4">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold">Exemples de travaux ({teacher.portfolio.length})</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Sujets corrigés, fiches méthodes et supports préparés par le professeur
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:border-[#72d6bf]/30 dark:text-[#72d6bf] px-3 py-1 text-[11px] font-bold">
+                    Portfolio pédagogique
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {teacher.portfolio.map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.type === "LINK" ? item.externalUrl || item.mediaUrl : item.mediaUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group flex overflow-hidden rounded-2xl border border-slate-100 bg-slate-50/60 transition hover:border-[#0d8d78]/40 hover:bg-[#e5f7f2]/40 dark:border-white/10 dark:bg-white/[.03] dark:hover:border-[#72d6bf]/40"
+                    >
+                      {item.type === "IMAGE" && (item.thumbnailUrl || item.mediaUrl) ? (
+                        <div className="relative h-full min-h-[112px] w-28 shrink-0 bg-slate-100 dark:bg-white/5">
+                          <Image
+                            src={item.thumbnailUrl || item.mediaUrl}
+                            alt={item.title}
+                            fill
+                            sizes="112px"
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-full min-h-[112px] w-28 shrink-0 items-center justify-center bg-gradient-to-br from-[#11233f] to-[#0d8d78] text-white">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-center px-2">
+                            {item.type === "VIDEO"
+                              ? "Vidéo"
+                              : item.type === "DOCUMENT"
+                              ? "PDF"
+                              : "Lien"}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0 p-3.5">
+                        <h3 className="text-xs sm:text-sm font-bold leading-snug group-hover:text-[#0d8d78] dark:group-hover:text-[#72d6bf]">
+                          {item.title}
+                        </h3>
+                        {(item.subject || item.level) && (
+                          <p className="mt-1 text-[11px] font-bold text-[#0d8d78] dark:text-[#72d6bf]">
+                            {[item.subject, item.level].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                        {item.description && (
+                          <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                            {item.description}
+                          </p>
+                        )}
+                        <span className="mt-2 inline-block text-[11px] font-bold text-slate-400 group-hover:text-[#0d8d78] dark:group-hover:text-[#72d6bf]">
+                          Ouvrir ↗
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Reviews */}
             <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm text-[#11233f] dark:border-white/15 dark:bg-[#101b2d] dark:text-white dark:shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
@@ -471,6 +555,19 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                         <span className="text-xs font-bold text-amber-600 dark:text-amber-300"> {r.rating}/5</span>
                       </div>
                       {r.comment && <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{r.comment}</p>}
+                      {r.photoUrl && (
+                        <div className="relative mt-2 h-24 w-24 overflow-hidden rounded-xl">
+                          <Image src={r.photoUrl} alt="Photo de l'avis" fill sizes="96px" className="object-cover" />
+                        </div>
+                      )}
+                      {r.teacherReply && (
+                        <div className="mt-2 rounded-xl bg-[#e5f7f2] dark:bg-[#72d6bf]/10 p-3">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
+                            Réponse de {teacher.name}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-700 dark:text-slate-200 leading-relaxed">{r.teacherReply}</p>
+                        </div>
+                      )}
                       <span className="mt-1.5 block text-[10px] sm:text-[11px] text-slate-400">
                         {new Date(r.createdAt).toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })}
                       </span>

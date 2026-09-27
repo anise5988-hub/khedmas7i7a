@@ -6,8 +6,8 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser(request);
-  if (!user || (user.role !== "TEACHER" && user.role !== "ADMIN" && !user.teacher)) {
-    return NextResponse.json({ error: "Réservé aux enseignants" }, { status: 403 });
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,22 +22,55 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Fichier vidéo manquant." }, { status: 400 });
   }
   const kind = String(formData.get("kind") || "video");
+
+  // Images (avatars, news thumbnails, review photos, portfolio previews) are
+  // fine coming from any authenticated user; video/PDF course material stays
+  // teacher/admin only.
+  if (kind !== "image" && kind !== "attachment" && user.role !== "TEACHER" && user.role !== "ADMIN" && !user.teacher) {
+    return NextResponse.json({ error: "Réservé aux enseignants" }, { status: 403 });
+  }
   // Avatars must be publicly viewable by anyone browsing a teacher's
   // profile, unlike paid lesson videos/PDFs — so they go in their own
   // public bucket instead of the private course-videos bucket, whose
-  // getPublicUrl() output 404s for anonymous visitors.
-  const bucket = kind === "image" ? process.env.SUPABASE_AVATAR_BUCKET || "avatars" : process.env.SUPABASE_VIDEO_BUCKET || "course-videos";
-  const allowed = kind === "pdf" ? file.type === "application/pdf" : kind === "image" ? file.type.startsWith("image/") : file.type.startsWith("video/");
+  // getPublicUrl() output 404s for anonymous visitors. Message attachments
+  // (homework photos, small PDFs) are public too but get their own folder,
+  // both to keep the avatars bucket tidy and to make them easy to purge.
+  const bucket =
+    kind === "image" || kind === "attachment"
+      ? process.env.SUPABASE_AVATAR_BUCKET || "avatars"
+      : process.env.SUPABASE_VIDEO_BUCKET || "course-videos";
+  const allowed =
+    kind === "pdf" || kind === "attachment"
+      ? file.type === "application/pdf" || file.type.startsWith("image/")
+      : kind === "image"
+      ? file.type.startsWith("image/")
+      : file.type.startsWith("video/");
   if (!allowed) {
-    return NextResponse.json({ error: kind === "pdf" ? "Le fichier doit être un PDF." : kind === "image" ? "Le fichier doit être une image." : "Le fichier doit être une vidéo." }, { status: 400 });
+    return NextResponse.json(
+      {
+        error:
+          kind === "pdf"
+            ? "Le fichier doit être un PDF."
+            : kind === "image"
+            ? "Le fichier doit être une image."
+            : kind === "attachment"
+            ? "La pièce jointe doit être une image ou un PDF."
+            : "Le fichier doit être une vidéo.",
+      },
+      { status: 400 },
+    );
   }
-  const maxSize = kind === "video" ? 500 * 1024 * 1024 : kind === "pdf" ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
+  const maxSize =
+    kind === "video" ? 500 * 1024 * 1024 : kind === "pdf" ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
   if (file.size > maxSize) {
     return NextResponse.json({ error: `Le fichier ne doit pas dépasser ${kind === "video" ? "500" : kind === "pdf" ? "25" : "10"} MB.` }, { status: 413 });
   }
 
   const extension = file.name.split(".").pop()?.toLowerCase() || (kind === "pdf" ? "pdf" : kind === "image" ? "jpg" : "mp4");
-  const path = `${user.id}/${kind}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+  // Attachments are grouped by conversation later on; the flat per-user
+  // folder keeps ownership obvious in the bucket.
+  const folder = kind === "attachment" ? "attachments" : kind;
+  const path = `${user.id}/${folder}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
   const supabase = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const result = await supabase.storage.from(bucket).upload(path, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
   if (result.error) {

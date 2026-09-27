@@ -7,8 +7,23 @@ import { SiteNavbar } from "@/components/site-navbar";
 import { Conversation, CustomOffer } from "@/lib/server/chat-store";
 import { IconPaperclip, IconFileText } from "@/components/icons";
 
-export default function MessagesPage() {
-  const router = useRouter();
+type SessionContext = {
+  id: string;
+  startsAt: string;
+  durationMinutes: number;
+  status: string;
+  subject: string;
+  teacherName?: string;
+};
+
+const SESSION_STATUS_LABELS: Record<string, string> = {
+  PENDING: "En attente",
+  CONFIRMED: "Confirmée",
+  COMPLETED: "Terminée",
+  CANCELLED: "Annulée",
+};
+
+export default function MessagesPage() {  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [text, setText] = useState("");
@@ -16,6 +31,8 @@ export default function MessagesPage() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setPending] = useState(false);
+  /** Séance ouverte depuis « Discuter de cette séance » (bouton des réservations). */
+  const [sessionContext, setSessionContext] = useState<SessionContext | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
     if (typeof window !== "undefined") {
@@ -103,13 +120,27 @@ export default function MessagesPage() {
   async function fetchConversations(teacherId?: string | null, isSilent = false) {
     if (!isSilent) setLoading(true);
     try {
-      const url = teacherId ? `/api/chat/conversations?teacherId=${teacherId}` : "/api/chat/conversations";
+      const params =
+        typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+      const bookingId = params.get("bookingId");
+      const conversationId = params.get("conversationId");
+      const url = teacherId
+        ? `/api/chat/conversations?teacherId=${teacherId}`
+        : bookingId
+        ? `/api/chat/conversations?bookingId=${encodeURIComponent(bookingId)}`
+        : "/api/chat/conversations";
       const res = await fetch(url, { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setConversations(data.conversations || []);
-        if (data.activeConversation && !isSilent) {
-          setActiveConv(data.activeConversation);
+        if (data.booking) setSessionContext(data.booking);
+        const requested =
+          (data.activeConversation as Conversation | null) ||
+          (conversationId
+            ? (data.conversations || []).find((c: Conversation) => c.id === conversationId)
+            : undefined);
+        if (requested && !isSilent) {
+          setActiveConv(requested);
         } else if (data.conversations && data.conversations.length > 0 && !activeConv) {
           setActiveConv(data.conversations[0]);
         } else if (activeConv) {
@@ -352,7 +383,8 @@ export default function MessagesPage() {
           {activeConv ? (
             <>
               {/* Chat Header */}
-              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+              <div className="border-b border-slate-100 pb-3">
+                <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-[#11233f]">
                     {userRole === "TEACHER" ? activeConv.studentName : activeConv.teacherName}
@@ -370,6 +402,33 @@ export default function MessagesPage() {
                   >
                     + Créer Offre (DT)
                   </button>
+                )}
+                </div>
+
+                {/* Encart de séance : discussions ouvertes depuis une réservation */}
+                {sessionContext && (
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-[#0d8d78]/25 bg-[#e5f7f2] px-3.5 py-2.5 text-[11px] font-semibold text-[#0d8d78]">
+                    <span className="font-extrabold uppercase tracking-wider">Séance réservée</span>
+                    <span className="text-slate-600">{sessionContext.subject}</span>
+                    <span className="text-slate-600">
+                      {new Date(sessionContext.startsAt).toLocaleDateString("fr-TN", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      })}{" "}
+                      à {new Date(sessionContext.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}{" "}
+                      ({sessionContext.durationMinutes} min)
+                    </span>
+                    <span className="rounded-full bg-white px-2.5 py-0.5 font-extrabold">
+                      {SESSION_STATUS_LABELS[sessionContext.status] || sessionContext.status}
+                    </span>
+                    <a
+                      href={`/classroom/${sessionContext.id}`}
+                      className="ml-auto rounded-xl bg-[#0d8d78] px-3 py-1.5 font-bold text-white transition hover:bg-[#0b7866]"
+                    >
+                      Entrer dans la classe →
+                    </a>
+                  </div>
                 )}
               </div>
 

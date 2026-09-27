@@ -122,28 +122,28 @@ export default function TeacherSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Sécurité & Compte</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Paramètres du compte professeur</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78] dark:text-[#72d6bf]">Sécurité & Compte</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight dark:text-white">Paramètres du compte professeur</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Gérez vos accès et la sécurité de votre compte enseignant.
           </p>
         </div>
 
         <div className="mt-8 space-y-8">
           {/* Form 1: Profile Info */}
-          <form onSubmit={handleUpdateProfile} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0d8d78]/10 text-[#0d8d78]">
+          <form onSubmit={handleUpdateProfile} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-5 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-3 dark:border-white/10">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0d8d78]/10 text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:text-[#72d6bf]">
                 <IconUser className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold">Informations de contact</h2>
-                <p className="text-xs text-slate-500">Coordonnées personnelles associées à votre profil</p>
+                <h2 className="text-lg font-bold dark:text-white">Informations de contact</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Coordonnées personnelles associées à votre profil</p>
               </div>
             </div>
 
@@ -151,57 +151,57 @@ export default function TeacherSettingsPage() {
               <div
                 className={`rounded-xl p-3.5 text-xs font-semibold ${
                   profileMsg.type === "success"
-                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center gap-2"
-                    : "bg-rose-50 text-rose-900 border border-rose-200"
+                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center gap-2 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30"
+                    : "bg-rose-50 text-rose-900 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30"
                 }`}
               >
-                {profileMsg.type === "success" && <IconCheck className="h-4 w-4 text-emerald-600 shrink-0" />}
+                {profileMsg.type === "success" && <IconCheck className="h-4 w-4 text-emerald-600 shrink-0 dark:text-emerald-400" />}
                 <p>{profileMsg.text}</p>
               </div>
             )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Prénom</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Prénom</label>
                 <input
                   type="text"
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Nom</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Nom</label>
                 <input
                   type="text"
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Email</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Email</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Téléphone</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Téléphone</label>
                 <input
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+216 20 000 000"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
             </div>
@@ -216,14 +216,14 @@ export default function TeacherSettingsPage() {
           </form>
 
           {/* Form 2: Password */}
-          <form onSubmit={handleChangePassword} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+          <form onSubmit={handleChangePassword} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-5 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-3 dark:border-white/10">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
                 <IconShield className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold">Sécurité du mot de passe</h2>
-                <p className="text-xs text-slate-500">Mettez à jour votre mot de passe régulier</p>
+                <h2 className="text-lg font-bold dark:text-white">Sécurité du mot de passe</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Mettez à jour votre mot de passe régulier</p>
               </div>
             </div>
 
@@ -231,17 +231,17 @@ export default function TeacherSettingsPage() {
               <div
                 className={`rounded-xl p-3.5 text-xs font-semibold ${
                   passwordMsg.type === "success"
-                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center gap-2"
-                    : "bg-rose-50 text-rose-900 border border-rose-200"
+                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center gap-2 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30"
+                    : "bg-rose-50 text-rose-900 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30"
                 }`}
               >
-                {passwordMsg.type === "success" && <IconCheck className="h-4 w-4 text-emerald-600 shrink-0" />}
+                {passwordMsg.type === "success" && <IconCheck className="h-4 w-4 text-emerald-600 shrink-0 dark:text-emerald-400" />}
                 <p>{passwordMsg.text}</p>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                 Mot de passe actuel *
               </label>
               <input
@@ -251,13 +251,13 @@ export default function TeacherSettingsPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
               />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                   Nouveau mot de passe *
                 </label>
                 <input
@@ -268,11 +268,11 @@ export default function TeacherSettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                   Confirmer le mot de passe *
                 </label>
                 <input
@@ -283,7 +283,7 @@ export default function TeacherSettingsPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
             </div>
@@ -298,9 +298,9 @@ export default function TeacherSettingsPage() {
           </form>
 
           {/* Danger Zone */}
-          <div className="rounded-3xl border border-rose-200 bg-rose-50/40 p-6 sm:p-8 space-y-4">
-            <h2 className="text-lg font-bold text-rose-900">Zone de danger</h2>
-            <p className="text-xs text-rose-800 leading-relaxed max-w-xl">
+          <div className="rounded-3xl border border-rose-200 bg-rose-50/40 p-6 sm:p-8 space-y-4 dark:border-rose-500/30 dark:bg-rose-500/[.06]">
+            <h2 className="text-lg font-bold text-rose-900 dark:text-rose-300">Zone de danger</h2>
+            <p className="text-xs text-rose-800 leading-relaxed max-w-xl dark:text-rose-300/80">
               La suppression de votre profil enseignant entraînera la suppression irréversible de vos créneaux, réservations et données associées.
             </p>
 
@@ -320,14 +320,14 @@ export default function TeacherSettingsPage() {
 
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
-            <h3 className="text-xl font-bold text-rose-900">Confirmer la suppression</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4 dark:bg-[#101b2d] dark:shadow-2xl">
+            <h3 className="text-xl font-bold text-rose-900 dark:text-rose-300">Confirmer la suppression</h3>
+            <p className="text-xs text-slate-600 leading-relaxed dark:text-slate-300">
               Pour des raisons de sécurité, veuillez saisir votre mot de passe pour confirmer la suppression définitive.
             </p>
 
             {deleteError && (
-              <p className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-800">
+              <p className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-800 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-300">
                 {deleteError}
               </p>
             )}
@@ -340,7 +340,7 @@ export default function TeacherSettingsPage() {
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   placeholder="Mot de passe"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-rose-500"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-rose-500 dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                 />
               </div>
 
@@ -348,7 +348,7 @@ export default function TeacherSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setDeleteModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-white/15 dark:text-slate-300 dark:hover:bg-white/10"
                 >
                   Annuler
                 </button>

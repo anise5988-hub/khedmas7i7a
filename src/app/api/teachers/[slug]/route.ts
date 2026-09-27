@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
 import { getCurrentUser } from "@/lib/server/auth";
+import { getPublicPortfolio } from "@/lib/server/portfolio";
 
 export async function GET(
   request: Request,
@@ -42,6 +43,9 @@ export async function GET(
           ? Number((profile.reviews.reduce((acc, r) => acc + r.rating, 0) / profile.reviews.length).toFixed(1))
           : 5.0;
 
+      const portfolio =
+        profile.verificationStatus === "APPROVED" ? await getPublicPortfolio(profile.id) : [];
+
       return NextResponse.json({
         id: profile.id,
         userId: profile.userId,
@@ -63,11 +67,25 @@ export async function GET(
         availabilities: profile.availabilities,
         rating: avgRating,
         reviewsCount: profile.reviews.length,
+        portfolio: portfolio.map((item) => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          type: item.type,
+          subject: item.subject,
+          level: item.level,
+          mediaUrl: item.mediaUrl,
+          thumbnailUrl: item.thumbnailUrl,
+          externalUrl: item.externalUrl,
+          createdAt: item.createdAt,
+        })),
         reviews: profile.reviews.map((r) => ({
           id: r.id,
           studentName: `${r.student.firstName} ${r.student.lastName?.[0] ?? ""}.`,
           rating: r.rating,
           comment: r.comment,
+          photoUrl: r.photoUrl,
+          teacherReply: r.teacherReply,
           createdAt: r.createdAt,
         })),
       });
@@ -113,6 +131,7 @@ export async function GET(
       availabilities: t.availabilities,
       rating: t.rating ?? 5.0,
       reviewsCount: t.reviewsCount ?? (t.reviews?.length || 0),
+      portfolio: [],
       reviews: t.reviews?.map((r) => ({
         id: r.id,
         studentName: r.studentName,

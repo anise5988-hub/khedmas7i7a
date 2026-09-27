@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import {
   IconPlus,
   IconEdit,
@@ -198,35 +197,6 @@ export default function AdminNewsPage() {
   return (
     <main className="min-h-screen bg-[#101b2d] px-4 py-8 sm:px-6 sm:py-10 text-white">
       <div className="mx-auto max-w-7xl">
-        {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
-              <span>ProfySpace</span>
-              <span className="rounded-md bg-[#72d6bf] px-1.5 py-0.5 text-xs font-extrabold text-[#101b2d]">.admin</span>
-            </Link>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-slate-300">
-              Système d'Actualités Homepage
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin"
-              className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/10"
-            >
-              ← Retour au Dashboard
-            </Link>
-            <button
-              onClick={openCreateModal}
-              className="flex items-center gap-2 rounded-full bg-[#72d6bf] px-4 py-2 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] shadow-md"
-            >
-              <IconPlus className="h-4 w-4" />
-              <span>Créer une Actualité</span>
-            </button>
-          </div>
-        </div>
-
         {/* Page Title & Actions */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -237,12 +207,21 @@ export default function AdminNewsPage() {
             </p>
           </div>
 
-          <button
-            onClick={loadNews}
-            className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold transition hover:bg-white/20"
-          >
-             Actualiser
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={loadNews}
+              className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold transition hover:bg-white/20"
+            >
+               Actualiser
+            </button>
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-2 rounded-full bg-[#72d6bf] px-4 py-2 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] shadow-md"
+            >
+              <IconPlus className="h-4 w-4" />
+              <span>Créer une Actualité</span>
+            </button>
+          </div>
         </div>
 
         {notification && (

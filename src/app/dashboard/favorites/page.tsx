@@ -58,21 +58,21 @@ export default function StudentFavoritesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/25 px-2.5 py-0.5 text-xs font-bold text-[#0d8d78]">
+              <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/25 px-2.5 py-0.5 text-xs font-bold text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:border-[#72d6bf]/30 dark:text-[#72d6bf]">
                 Espace Élève
               </span>
             </div>
             <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight">
               Mes Professeurs Favoris ({favorites.length})
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-500">
+            <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
               Retrouvez rapidement les professeurs enregistrés dans vos favoris.
             </p>
           </div>
@@ -89,15 +89,15 @@ export default function StudentFavoritesPage() {
         {loading ? (
           <div className="py-20 text-center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>
-            <p className="mt-4 text-xs text-slate-500">Chargement de vos favoris...</p>
+            <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">Chargement de vos favoris...</p>
           </div>
         ) : favorites.length === 0 ? (
-          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 mb-3">
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 mb-3 dark:bg-rose-500/10 dark:text-rose-400">
               <IconHeart className="h-7 w-7" />
             </div>
             <h2 className="text-lg font-bold">Aucun professeur en favoris.</h2>
-            <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
               Lorsque vous consultez la liste des professeurs, cliquez sur le bouton favori pour les enregistrer ici.
             </p>
             <Link
@@ -112,24 +112,24 @@ export default function StudentFavoritesPage() {
             {favorites.map((teacher) => (
               <div
                 key={teacher.id}
-                className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78]/40 hover:shadow-md"
+                className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0d8d78]/40 hover:shadow-md dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl dark:hover:border-[#72d6bf]/40"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d9f1e9] text-base font-bold text-[#0d8d78]">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d9f1e9] text-base font-bold text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                         {teacher.name.slice(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-base text-[#11233f]">{teacher.name}</h3>
+                          <h3 className="font-bold text-base text-[#11233f] dark:text-white">{teacher.name}</h3>
                           {teacher.verificationStatus === "APPROVED" && (
-                            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800">
+                            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300">
                               ✓
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 line-clamp-1">{teacher.title}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{teacher.title}</p>
                       </div>
                     </div>
 
@@ -137,7 +137,7 @@ export default function StudentFavoritesPage() {
                       type="button"
                       onClick={() => removeFavorite(teacher.id)}
                       disabled={actionLoading === teacher.id}
-                      className="rounded-xl p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                      className="rounded-xl p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition dark:text-slate-500 dark:hover:text-rose-400 dark:hover:bg-rose-500/10"
                       title="Retirer des favoris"
                     >
                       <IconTrash className="h-4 w-4" />
@@ -146,37 +146,37 @@ export default function StudentFavoritesPage() {
 
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     {teacher.subjects.slice(0, 3).map((s) => (
-                      <span key={s} className="rounded-lg bg-[#e5f7f2] px-2.5 py-0.5 text-xs font-semibold text-[#0d8d78]">
+                      <span key={s} className="rounded-lg bg-[#e5f7f2] px-2.5 py-0.5 text-xs font-semibold text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:text-[#72d6bf]">
                         {s}
                       </span>
                     ))}
                   </div>
 
                   {teacher.bio && (
-                    <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                    <p className="mt-3 text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
                       {teacher.bio}
                     </p>
                   )}
 
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+                  <div className="mt-3 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
                     <span> {teacher.city}</span>
-                    <span className="flex items-center gap-1 font-bold text-amber-700">
+                    <span className="flex items-center gap-1 font-bold text-amber-700 dark:text-amber-400">
                       <IconStar className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
                       {teacher.rating.toFixed(1)} ({teacher.reviewsCount})
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-6 border-t border-slate-100 pt-4 flex items-center justify-between">
+                <div className="mt-6 border-t border-slate-100 dark:border-white/10 pt-4 flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] text-slate-400">Tarif :</span>
-                    <p className="font-bold text-base text-[#0d8d78]">{teacher.rate} DT / h</p>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">Tarif :</span>
+                    <p className="font-bold text-base text-[#0d8d78] dark:text-[#72d6bf]">{teacher.rate} DT / h</p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/dashboard/messages?teacherId=${teacher.id}`}
-                      className="rounded-xl border border-[#0d8d78] bg-[#e5f7f2] px-3 py-1.5 text-xs font-bold text-[#0d8d78] hover:bg-[#d4f2e9] transition"
+                      className="rounded-xl border border-[#0d8d78] bg-[#e5f7f2] px-3 py-1.5 text-xs font-bold text-[#0d8d78] hover:bg-[#d4f2e9] transition dark:border-[#72d6bf]/40 dark:bg-[#72d6bf]/15 dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/25"
                     >
                       Message
                     </Link>

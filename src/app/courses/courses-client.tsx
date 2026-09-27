@@ -1,8 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SiteNavbar } from "@/components/site-navbar";
 import { Course } from "@/lib/server/courses-store";
 import { subjects as allCatalogSubjects } from "@/lib/domain/catalog";
@@ -124,10 +124,12 @@ export function CoursesCatalogPageClient() {
                 <div>
                   {/* Thumbnail */}
                   <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-900 border-b border-slate-100 dark:border-white/10">
-                    <img
+                    <Image
                       src={course.thumbnailUrl}
                       alt={course.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      fill
+                      sizes="(min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                       <span className="rounded-xl bg-[#11233f]/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white shadow-sm border border-white/10">

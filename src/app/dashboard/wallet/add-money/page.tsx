@@ -108,12 +108,12 @@ export default function AddMoneyPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 dark:border-white/10 dark:bg-[#11233f]">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <a href="/dashboard/wallet" className="text-sm font-semibold text-slate-500 hover:text-slate-800">
+            <a href="/dashboard/wallet" className="text-sm font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
               ← Retour au Wallet
             </a>
             <span className="text-slate-300">/</span>
@@ -128,12 +128,12 @@ export default function AddMoneyPage() {
 
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78] mb-3">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d8d78]/10 text-[#0d8d78] mb-3 dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
             <IconCreditCard className="h-6 w-6" />
           </div>
-          <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78]">Recharge Instantanée</p>
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78] dark:text-[#72d6bf]">Recharge Instantanée</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Alimenter mon compte de cours</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             Transférez le montant par votre méthode de paiement tunisienne favorite puis collez la référence.
           </p>
         </div>
@@ -142,8 +142,8 @@ export default function AddMoneyPage() {
           <div
             className={`mt-6 rounded-2xl p-4 text-sm font-semibold ${
               message.type === "success"
-                ? "border border-emerald-200 bg-emerald-50 text-emerald-800 flex items-center gap-2"
-                : "border border-rose-200 bg-rose-50 text-rose-800"
+                ? "border border-emerald-200 bg-emerald-50 text-emerald-800 flex items-center gap-2 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
+                : "border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300"
             }`}
           >
             {message.type === "success" && <IconCheck className="h-5 w-5 text-emerald-600 shrink-0" />}
@@ -151,10 +151,10 @@ export default function AddMoneyPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
           {/* Amount Selection */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">
               1. Sélectionnez ou saisissez le montant (DT) *
             </label>
             <div className="grid grid-cols-4 gap-2 mb-3">
@@ -165,8 +165,8 @@ export default function AddMoneyPage() {
                   onClick={() => setAmount(val)}
                   className={`rounded-2xl border py-3 text-sm font-bold transition duration-200 ${
                     amount === val
-                      ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78] shadow-sm ring-2 ring-[#0d8d78]"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78] shadow-sm ring-2 ring-[#0d8d78] dark:border-[#72d6bf] dark:bg-[#72d6bf]/15 dark:text-[#72d6bf] dark:ring-[#72d6bf]"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-white/15 dark:bg-white/[.05] dark:text-slate-300 dark:hover:border-white/30"
                   }`}
                 >
                   {val} DT
@@ -182,23 +182,23 @@ export default function AddMoneyPage() {
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 placeholder="Montant libre en Dinars"
-                className="w-full rounded-2xl border border-slate-200 p-3.5 pr-14 text-sm font-bold outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                className="w-full rounded-2xl border border-slate-200 p-3.5 pr-14 text-sm font-bold outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:border-[#72d6bf] dark:focus:ring-[#72d6bf]/20"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">TND</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500">TND</span>
             </div>
           </div>
 
           {/* Payment Method Selector */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">
               2. Choisissez le mode de paiement *
             </label>
             {methodsLoading ? (
-              <div className="text-xs text-slate-400">Chargement des modes de paiement...</div>
+              <div className="text-xs text-slate-400 dark:text-slate-500">Chargement des modes de paiement...</div>
             ) : methodsError ? (
-              <div className="text-xs text-rose-600">{methodsError}</div>
+              <div className="text-xs text-rose-600 dark:text-rose-400">{methodsError}</div>
             ) : depositMethods.length === 0 ? (
-              <div className="text-xs text-slate-500">Aucun mode de paiement disponible pour le moment.</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Aucun mode de paiement disponible pour le moment.</div>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {depositMethods.map((m) => (
@@ -206,8 +206,8 @@ export default function AddMoneyPage() {
                     key={m.id}
                     className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition duration-200 ${
                       method === m.id
-                        ? "border-[#0d8d78] bg-[#e5f7f2] shadow-sm ring-2 ring-[#0d8d78]"
-                        : "border-slate-200 bg-white hover:border-slate-300"
+                        ? "border-[#0d8d78] bg-[#e5f7f2] shadow-sm ring-2 ring-[#0d8d78] dark:border-[#72d6bf] dark:bg-[#72d6bf]/15 dark:ring-[#72d6bf]"
+                        : "border-slate-200 bg-white hover:border-slate-300 dark:border-white/15 dark:bg-white/[.05] dark:hover:border-white/30"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -219,8 +219,8 @@ export default function AddMoneyPage() {
                         className="text-[#0d8d78] focus:ring-[#0d8d78]"
                       />
                       <div>
-                        <span className="font-bold text-sm block text-[#11233f]">{m.name}</span>
-                        <span className="text-[11px] text-slate-500">{m.recipientTitle}</span>
+                        <span className="font-bold text-sm block text-[#11233f] dark:text-white">{m.name}</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">{m.recipientTitle}</span>
                       </div>
                     </div>
                   </label>
@@ -231,13 +231,13 @@ export default function AddMoneyPage() {
 
           {/* Copyable Payment Recipient Card */}
           {activeMethodConfig && (
-            <div className="rounded-2xl border border-[#72d6bf]/40 bg-[#f0faf7] p-5">
+            <div className="rounded-2xl border border-[#72d6bf]/40 bg-[#f0faf7] p-5 dark:border-[#72d6bf]/30 dark:bg-[#72d6bf]/10">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
                     {activeMethodConfig.recipientTitle}
                   </p>
-                  <p className="mt-1 font-mono text-lg font-bold text-[#11233f] select-all tracking-wide">
+                  <p className="mt-1 font-mono text-lg font-bold text-[#11233f] select-all tracking-wide dark:text-white">
                     {activeMethodConfig.displayValue || "Non configuré"}
                   </p>
                 </div>
@@ -246,12 +246,12 @@ export default function AddMoneyPage() {
                   <CopyButton
                     text={activeMethodConfig.copyValue}
                     label="Copier le numéro / RIB"
-                    className="self-start sm:self-center py-2 px-3 text-xs shadow-sm bg-white"
+                    className="self-start sm:self-center py-2 px-3 text-xs shadow-sm bg-white dark:bg-white/10 dark:text-white"
                   />
                 )}
               </div>
 
-              <div className="mt-3 border-t border-[#72d6bf]/20 pt-3 text-xs text-slate-600 leading-relaxed">
+              <div className="mt-3 border-t border-[#72d6bf]/20 pt-3 text-xs text-slate-600 dark:border-[#72d6bf]/20 dark:text-slate-300 leading-relaxed">
                 <strong>Instructions :</strong> {activeMethodConfig.instructions}
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function AddMoneyPage() {
 
           {/* Transaction Reference Input */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">
               3. Référence de la transaction / Reçu de paiement *
             </label>
             <input
@@ -268,16 +268,16 @@ export default function AddMoneyPage() {
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder="Ex: TX-99882211 ou numéro de référence D17 / virement"
-              className="w-full rounded-2xl border border-slate-200 p-3.5 font-mono text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+              className="w-full rounded-2xl border border-slate-200 p-3.5 font-mono text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:border-[#72d6bf] dark:focus:ring-[#72d6bf]/20"
             />
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
               Collez la référence reçue par SMS ou affichée sur votre reçu de transfert pour validation immédiate.
             </p>
           </div>
 
           {/* Coupon Code */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">
               Code promo (optionnel)
             </label>
             <div className="flex gap-2">
@@ -289,19 +289,19 @@ export default function AddMoneyPage() {
                   setCouponResult(null);
                 }}
                 placeholder="Ex: RENTREE2026"
-                className="flex-1 rounded-2xl border border-slate-200 p-3.5 font-mono text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                className="flex-1 rounded-2xl border border-slate-200 p-3.5 font-mono text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:border-[#72d6bf] dark:focus:ring-[#72d6bf]/20"
               />
               <button
                 type="button"
                 onClick={checkCoupon}
                 disabled={couponChecking || !couponCode.trim()}
-                className="rounded-2xl border border-slate-200 px-5 text-sm font-bold text-[#0d8d78] transition hover:border-[#0d8d78] disabled:opacity-50"
+                className="rounded-2xl border border-slate-200 px-5 text-sm font-bold text-[#0d8d78] transition hover:border-[#0d8d78] disabled:opacity-50 dark:border-white/15 dark:text-[#72d6bf] dark:hover:border-[#72d6bf]"
               >
                 {couponChecking ? "..." : "Appliquer"}
               </button>
             </div>
             {couponResult && (
-              <p className={`mt-1.5 text-xs font-semibold ${couponResult.valid ? "text-emerald-600" : "text-rose-600"}`}>
+              <p className={`mt-1.5 text-xs font-semibold ${couponResult.valid ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                 {couponResult.text}
               </p>
             )}
@@ -315,8 +315,8 @@ export default function AddMoneyPage() {
             {loading ? "Enregistrement en cours..." : `Confirmer la recharge de ${amount} DT →`}
           </button>
 
-          <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
-            <IconShield className="h-4 w-4 text-[#0d8d78]" />
+          <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400 dark:text-slate-500">
+            <IconShield className="h-4 w-4 text-[#0d8d78] dark:text-[#72d6bf]" />
             <span>Paiement 100% sécurisé et garanti par l'équipe financière ProfySpace.tn</span>
           </div>
         </form>

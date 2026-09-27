@@ -53,11 +53,11 @@ export default function StudentWalletPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
-      <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
+      <header className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sticky top-0 z-20 shadow-xs dark:border-white/10 dark:bg-[#11233f]">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <a href="/dashboard" className="text-sm font-semibold text-slate-500 hover:text-slate-800">
+            <a href="/dashboard" className="text-sm font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
               ← Dashboard
             </a>
             <span className="text-slate-300">/</span>
@@ -72,10 +72,10 @@ export default function StudentWalletPage() {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5">
           <div>
             <h1 className="text-3xl font-bold">Portefeuille & Solde</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Gérez votre crédit de cours pour réserver vos professeurs instantanément.
             </p>
           </div>
@@ -98,46 +98,46 @@ export default function StudentWalletPage() {
             </a>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Moyens de recharge acceptés</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Moyens de recharge acceptés</span>
               <p className="mt-2 font-bold text-base">D17 · Flouci · Virement Bancaire</p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Paiement direct en Dinars Tunisiens (TND) vérifié sous 15 minutes par notre service financier.
               </p>
             </div>
 
-            <div className="mt-4 border-t border-slate-100 pt-3 flex flex-col sm:flex-row justify-between gap-2 text-xs text-slate-500">
+            <div className="mt-4 border-t border-slate-100 dark:border-white/10 pt-3 flex flex-col sm:flex-row justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1">
-                <IconShield className="h-3.5 w-3.5 text-[#0d8d78]" />
+                <IconShield className="h-3.5 w-3.5 text-[#0d8d78] dark:text-[#72d6bf]" />
                 Sécurité 100% garantie
               </span>
-              <div className="text-slate-600 font-semibold">
-                Support : <a href="tel:+21658249938" className="text-[#0d8d78] hover:underline">+216 58 249 938</a>
+              <div className="text-slate-600 dark:text-slate-300 font-semibold">
+                Support : <a href="tel:+21658249938" className="text-[#0d8d78] dark:text-[#72d6bf] hover:underline">+216 58 249 938</a>
               </div>
             </div>
           </div>
         </div>
 
         {/* Deposits History */}
-        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
           <h2 className="text-xl font-bold">Historique des recharges</h2>
-          <p className="text-xs text-slate-400">Suivi des demandes de dépôts</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">Suivi des demandes de dépôts</p>
 
           {loading ? (
-            <div className="py-12 text-center text-slate-400">Chargement...</div>
+            <div className="py-12 text-center text-slate-400 dark:text-slate-500">Chargement...</div>
           ) : !wallet?.deposits || wallet.deposits.length === 0 ? (
             <div className="py-12 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3 dark:bg-white/10 dark:text-slate-400">
                 <IconCreditCard className="h-7 w-7" />
               </div>
-              <p className="font-bold text-slate-600">Aucune recharge enregistrée.</p>
-              <p className="mt-1 text-xs text-slate-400">Alimentez votre solde pour commencer vos cours.</p>
+              <p className="font-bold text-slate-600 dark:text-slate-300">Aucune recharge enregistrée.</p>
+              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Alimentez votre solde pour commencer vos cours.</p>
             </div>
           ) : (
-            <div className="mt-4 divide-y divide-slate-100 overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="border-b border-slate-100 text-xs font-bold uppercase text-slate-400">
+            <div className="mt-4 divide-y divide-slate-100 dark:divide-white/10 overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                <thead className="border-b border-slate-100 text-xs font-bold uppercase text-slate-400 dark:border-white/10 dark:text-slate-500">
                   <tr>
                     <th className="py-3">Méthode</th>
                     <th className="py-3">Montant</th>
@@ -147,23 +147,23 @@ export default function StudentWalletPage() {
                     <th className="py-3 text-right">Reçu</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 text-xs">
+                <tbody className="divide-y divide-slate-50 dark:divide-white/10 text-xs">
                   {wallet.deposits.map((d) => (
                     <tr key={d.id}>
-                      <td className="py-3 font-bold text-slate-800">{d.method}</td>
-                      <td className="py-3 font-bold text-[#0d8d78]">{d.amountTnd.toFixed(3)} DT</td>
-                      <td className="py-3 font-mono text-slate-500">{d.reference}</td>
-                      <td className="py-3 text-slate-400">
+                      <td className="py-3 font-bold text-slate-800 dark:text-white">{d.method}</td>
+                      <td className="py-3 font-bold text-[#0d8d78] dark:text-[#72d6bf]">{d.amountTnd.toFixed(3)} DT</td>
+                      <td className="py-3 font-mono text-slate-500 dark:text-slate-400">{d.reference}</td>
+                      <td className="py-3 text-slate-400 dark:text-slate-500">
                         {new Date(d.createdAt).toLocaleDateString("fr-TN")}
                       </td>
                       <td className="py-3 text-center">
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                             d.status === "PAID"
-                              ? "bg-emerald-100 text-emerald-800"
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300"
                               : d.status === "PENDING"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-rose-100 text-rose-800"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
+                              : "bg-rose-100 text-rose-800 dark:bg-rose-500/10 dark:text-rose-300"
                           }`}
                         >
                           {d.status === "PAID" ? "Validé" : d.status === "PENDING" ? "En attente" : "Refusé"}
@@ -173,7 +173,7 @@ export default function StudentWalletPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedReceipt(d)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:border-[#0d8d78] hover:text-[#0d8d78] transition shadow-2xs"
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:border-[#0d8d78] hover:text-[#0d8d78] transition shadow-2xs dark:border-white/15 dark:bg-white/10 dark:text-slate-200 dark:hover:border-[#72d6bf] dark:hover:text-[#72d6bf]"
                         >
                           <IconFileText className="h-3 w-3" />
                           <span>Reçu</span>
@@ -191,15 +191,15 @@ export default function StudentWalletPage() {
       {/* Receipt Printable Modal */}
       {selectedReceipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print:p-0 print:bg-white">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5 print:shadow-none print:border-none print:max-w-none">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 print:hidden">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5 print:shadow-none print:border-none print:max-w-none dark:bg-[#101b2d]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 print:hidden dark:border-white/10">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
                 Reçu de Transaction
               </span>
               <button
                 type="button"
                 onClick={() => setSelectedReceipt(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold"
+                className="text-slate-400 hover:text-slate-600 font-bold dark:text-slate-500 dark:hover:text-slate-300"
               >
                 <IconX className="h-5 w-5" />
               </button>
@@ -207,26 +207,26 @@ export default function StudentWalletPage() {
 
             {/* Printable Content */}
             <div className="space-y-4">
-              <div className="text-center pb-2 border-b border-slate-100">
-                <h3 className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold text-[#11233f]">
-                  ProfySpace<span className="text-[#0d8d78]">.tn</span>
+              <div className="text-center pb-2 border-b border-slate-100 dark:border-white/10">
+                <h3 className="font-[family-name:var(--font-dm-sans)] text-2xl font-bold text-[#11233f] dark:text-white">
+                  ProfySpace<span className="text-[#0d8d78] dark:text-[#72d6bf]">.tn</span>
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">Marketplace Tunisienne de Cours Particuliers</p>
-                <p className="text-xs font-semibold text-slate-500 mt-1">Reçu Officiel de Rechargement</p>
+                <p className="text-[11px] text-slate-400 mt-0.5 dark:text-slate-500">Marketplace Tunisienne de Cours Particuliers</p>
+                <p className="text-xs font-semibold text-slate-500 mt-1 dark:text-slate-400">Reçu Officiel de Rechargement</p>
               </div>
 
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500 dark:border-white/10 dark:text-slate-400">
                   <span>Numéro de Référence :</span>
-                  <span className="font-mono font-bold text-slate-800">{selectedReceipt.reference}</span>
+                  <span className="font-mono font-bold text-slate-800 dark:text-white">{selectedReceipt.reference}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500 dark:border-white/10 dark:text-slate-400">
                   <span>Moyen de Paiement :</span>
-                  <span className="font-bold text-slate-800">{selectedReceipt.method}</span>
+                  <span className="font-bold text-slate-800 dark:text-white">{selectedReceipt.method}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500 dark:border-white/10 dark:text-slate-400">
                   <span>Date de l'opération :</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="font-semibold text-slate-800 dark:text-white">
                     {new Date(selectedReceipt.createdAt).toLocaleDateString("fr-TN", {
                       day: "numeric",
                       month: "long",
@@ -236,17 +236,17 @@ export default function StudentWalletPage() {
                     })}
                   </span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500">
+                <div className="flex justify-between py-1.5 border-b border-slate-50 text-slate-500 dark:border-white/10 dark:text-slate-400">
                   <span>Statut :</span>
-                  <span className="font-bold text-emerald-700">{selectedReceipt.status === "PAID" ? "PAYÉ / VALIDÉ" : selectedReceipt.status}</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">{selectedReceipt.status === "PAID" ? "PAYÉ / VALIDÉ" : selectedReceipt.status}</span>
                 </div>
-                <div className="flex justify-between py-2 border-t border-slate-200 text-sm font-bold text-[#11233f]">
+                <div className="flex justify-between py-2 border-t border-slate-200 text-sm font-bold text-[#11233f] dark:border-white/15 dark:text-white">
                   <span>Montant Rechargé :</span>
-                  <span className="text-lg font-extrabold text-[#0d8d78]">{selectedReceipt.amountTnd.toFixed(3)} DT</span>
+                  <span className="text-lg font-extrabold text-[#0d8d78] dark:text-[#72d6bf]">{selectedReceipt.amountTnd.toFixed(3)} DT</span>
                 </div>
               </div>
 
-              <div className="rounded-xl bg-slate-50 p-3 text-[10px] text-slate-400 text-center leading-relaxed">
+              <div className="rounded-xl bg-slate-50 p-3 text-[10px] text-slate-400 text-center leading-relaxed dark:bg-white/5 dark:text-slate-500">
                 Ce reçu atteste du crédit ajouté à votre portefeuille pour les cours en ligne et en présentiel sur ProfySpace.tn.
               </div>
             </div>
@@ -255,7 +255,7 @@ export default function StudentWalletPage() {
               <button
                 type="button"
                 onClick={() => setSelectedReceipt(null)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-white/15 dark:text-slate-300 dark:hover:bg-white/10"
               >
                 Fermer
               </button>

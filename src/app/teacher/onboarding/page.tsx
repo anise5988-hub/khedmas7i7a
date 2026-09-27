@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { subjects, governorates } from "@/lib/domain/catalog";
 import { IconCamera, IconCheck, IconShield, IconUser } from "@/components/icons";
@@ -332,7 +332,7 @@ export default function TeacherOnboardingPage() {
             <div className="flex flex-col sm:flex-row items-center gap-5 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
               <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-slate-200 overflow-hidden shadow-sm">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="Aperçu" className="h-full w-full object-cover" />
+                  <Image src={avatarUrl} alt="Aperçu" fill sizes="96px" className="object-cover" />
                 ) : (
                   <IconUser className="h-10 w-10 text-slate-400" />
                 )}

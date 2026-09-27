@@ -1,8 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   IconNewspaper,
   IconChevronLeft,
@@ -156,10 +156,12 @@ export function HeroNewsLandscape() {
             className="relative h-44 sm:h-52 w-full overflow-hidden rounded-2xl bg-slate-900 border border-white/10 cursor-pointer group/img"
           >
             {currentItem.imageUrl ? (
-              <img
+              <Image
                 src={currentItem.imageUrl}
                 alt={currentItem.title}
-                className="h-full w-full object-cover transition-transform duration-700 group-hover/img:scale-105"
+                fill
+                sizes="(min-width:1024px) 45vw, 100vw"
+                className="object-cover transition-transform duration-700 group-hover/img:scale-105"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#0d8d78]/40 via-[#11233f] to-[#101b2d] p-6 text-center">
@@ -256,11 +258,13 @@ export function HeroNewsLandscape() {
             </div>
 
             {selectedNews.imageUrl && (
-              <div className="h-56 sm:h-72 w-full overflow-hidden rounded-2xl border border-white/10">
-                <img
+              <div className="relative h-56 sm:h-72 w-full overflow-hidden rounded-2xl border border-white/10">
+                <Image
                   src={selectedNews.imageUrl}
                   alt={selectedNews.title}
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="(min-width:768px) 672px, 100vw"
+                  className="object-cover"
                 />
               </div>
             )}

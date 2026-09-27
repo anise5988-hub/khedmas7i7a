@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local QA scripts (throwaway browser/DB harnesses — never shared)
+.qa-*.cjs

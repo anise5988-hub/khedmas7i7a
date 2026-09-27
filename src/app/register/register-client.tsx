@@ -50,6 +50,7 @@ export function RegisterPageClient() {
           password,
           confirmPassword,
           role,
+          ref: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ref") || undefined : undefined,
         }),
       });
 

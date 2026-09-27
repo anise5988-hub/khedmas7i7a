@@ -3,21 +3,15 @@
 
 import { useEffect, useState } from "react";
 import {
-  IconHome,
   IconTeacher,
-  IconUser,
   IconCalendar,
-  IconStar,
   IconBookOpen,
   IconWallet,
   IconDollarSign,
   IconSettings,
-  IconMenu,
-  IconX,
   IconBell,
   IconSearch,
   IconPlus,
-  IconChevronRight,
   IconUsers,
   IconClock,
   IconMessageSquare,
@@ -44,135 +38,6 @@ type AdminStats = {
   pendingDeposits: number;
   totalDepositedTnd: number;
 };
-
-type NavItem = {
-  label: string;
-  href: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  badge?: number;
-  active?: boolean;
-};
-
-const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/admin", icon: IconHome, active: true },
-  {
-    label: "Teachers",
-    href: "/admin/teachers",
-    icon: IconTeacher,
-    badge: 0,
-  },
-  { label: "Students", href: "/admin/users", icon: IconUser },
-  { label: "Bookings", href: "/admin/bookings", icon: IconCalendar },
-  { label: "Reviews", href: "/admin/reviews", icon: IconStar },
-  { label: "Subjects", href: "/admin/subjects", icon: IconBookOpen },
-  { label: "Wallet", href: "/admin/wallets", icon: IconWallet },
-  {
-    label: "Withdrawals",
-    href: "/admin/withdrawals",
-    icon: IconDollarSign,
-    badge: 0,
-  },
-  { label: "Settings", href: "/admin/settings", icon: IconSettings },
-];
-
-function Sidebar({
-  open,
-  onClose,
-  stats,
-}: {
-  open: boolean;
-  onClose: () => void;
-  stats: AdminStats | null;
-}) {
-  const pendingTeachers = stats?.pendingTeachersCount ?? 0;
-  const pendingWithdrawals = stats?.pendingWithdrawals ?? 0;
-  const pendingDeposits = stats?.pendingDeposits ?? 0;
-
-  const itemsWithBadges = navItems.map((item) => {
-    if (item.label === "Teachers") {
-      return { ...item, badge: pendingTeachers };
-    }
-    if (item.label === "Withdrawals") {
-      return { ...item, badge: pendingWithdrawals };
-    }
-    if (item.label === "Deposits") {
-      return { ...item, badge: pendingDeposits };
-    }
-    return item;
-  });
-
-  return (
-    <>
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-          onClick={onClose}
-        />
-      )}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[#0a1322] border-r border-white/10 transition-transform duration-300 lg:translate-x-0 lg:static lg:z-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-            <a href="/" className="flex items-center gap-2 font-[family-name:var(--font-dm-sans)] text-xl font-bold tracking-tight text-white">
-              ProfySpace
-              <span className="rounded-md bg-[#72d6bf] px-1.5 py-0.5 text-[10px] font-extrabold text-[#101b2d]">
-                .admin
-              </span>
-            </a>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-white lg:hidden"
-            >
-              <IconX />
-            </button>
-          </div>
-
-          <nav className="flex-1 overflow-y-auto px-4 py-4">
-            <p className="mb-3 px-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-              Navigation
-            </p>
-            <ul className="space-y-1">
-              {itemsWithBadges.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                      item.active
-                        ? "bg-[#72d6bf]/15 text-[#72d6bf]"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    <item.icon className="h-[18px] w-[18px]" />
-                    <span className="flex-1">{item.label}</span>
-                    {item.badge ? (
-                      <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-300">
-                        {item.badge}
-                      </span>
-                    ) : null}
-                    {item.active && <IconChevronRight className="h-4 w-4 text-[#72d6bf]" />}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="border-t border-white/10 px-4 py-4">
-            <a
-              href="/"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
-            >
-              <IconX className="h-[18px] w-[18px]" />
-              <span>Logout</span>
-            </a>
-          </div>
-        </div>
-      </aside>
-    </>
-  );
-}
 
 function StatCard({
   title,
@@ -271,7 +136,6 @@ export default function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
   useEffect(() => {
@@ -303,19 +167,10 @@ export default function AdminPage() {
   const pendingDeposits = stats?.pendingDeposits ?? 0;
 
   return (
-    <div className="flex min-h-screen bg-[#101b2d] text-white">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} stats={stats} />
-
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#101b2d]/90 backdrop-blur-md">
-          <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
+    <>
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#101b2d]/90 backdrop-blur-md">
+          <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6 pl-16 lg:pl-6">
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white lg:hidden"
-              >
-                <IconMenu />
-              </button>
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[.18em] text-[#72d6bf]">
                   Supervision Globale
@@ -635,7 +490,6 @@ export default function AdminPage() {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+    </>
   );
 }

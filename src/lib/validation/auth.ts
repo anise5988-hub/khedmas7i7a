@@ -7,6 +7,7 @@ export const registerSchema = z.object({
   phone: z.string().trim().min(8).max(30).optional().or(z.literal("")),
   password: z.string().min(8).max(128),
   role: z.enum(["STUDENT", "TEACHER"]),
+  ref: z.string().trim().min(1).max(64).optional().or(z.literal("")),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

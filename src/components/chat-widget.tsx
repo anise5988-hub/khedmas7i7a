@@ -1,8 +1,9 @@
-/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { IconMessageSquare, IconSend, IconX, IconPaperclip, IconUser } from "@/components/icons";
 import { SupportTicketsPanel } from "@/components/support-tickets-panel";
 
@@ -226,9 +227,9 @@ function GuestChat() {
               return (
                 <div key={m.id} className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
                   {!isMe && (
-                    <div className="mb-4 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e5f7f2] text-[#0d8d78]">
+                    <div className="relative mb-4 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e5f7f2] text-[#0d8d78]">
                       {m.senderAvatarUrl ? (
-                        <img src={m.senderAvatarUrl} alt={m.senderName} className="h-full w-full object-cover" />
+                        <Image src={m.senderAvatarUrl} alt={m.senderName} fill sizes="28px" className="object-cover" />
                       ) : (
                         <IconUser className="h-3.5 w-3.5" />
                       )}

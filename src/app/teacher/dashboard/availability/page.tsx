@@ -98,14 +98,14 @@ export default function TeacherAvailabilityPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5">
           <div>
-            <h1 className="text-3xl font-bold">Planning & Disponibilités hebdomadaires</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="text-3xl font-bold dark:text-white">Planning & Disponibilités hebdomadaires</h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Définissez les créneaux ouverts sur votre fiche publique pour permettre aux élèves de réserver.
             </p>
           </div>
@@ -120,7 +120,7 @@ export default function TeacherAvailabilityPage() {
         </div>
 
         {message && (
-          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
             {message}
           </div>
         )}
@@ -132,10 +132,10 @@ export default function TeacherAvailabilityPage() {
               <div
                 key={index}
                 className={`flex flex-wrap items-center justify-between gap-4 rounded-3xl border p-5 transition ${
-                  current.enabled ? "border-slate-200 bg-white shadow-sm" : "border-slate-100 bg-slate-50 opacity-60"
+                  current.enabled ? "border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl" : "border-slate-100 bg-slate-50 opacity-60 dark:border-white/5 dark:bg-white/[.02]"
                 }`}
               >
-                <label className="flex items-center gap-3 font-bold text-base w-36 cursor-pointer">
+                <label className="flex items-center gap-3 font-bold text-base w-36 cursor-pointer dark:text-white">
                   <input
                     type="checkbox"
                     checked={current.enabled}
@@ -152,7 +152,7 @@ export default function TeacherAvailabilityPage() {
 
                 {current.enabled ? (
                   <div className="flex items-center gap-3 text-sm">
-                    <span className="text-slate-400 font-semibold">De</span>
+                    <span className="text-slate-400 font-semibold dark:text-slate-500">De</span>
                     <input
                       type="time"
                       value={current.start}
@@ -162,9 +162,9 @@ export default function TeacherAvailabilityPage() {
                           [index]: { ...current, start: e.target.value },
                         })
                       }
-                      className="rounded-xl border border-slate-200 p-2.5 outline-none font-semibold"
+                      className="rounded-xl border border-slate-200 p-2.5 outline-none font-semibold dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                     />
-                    <span className="text-slate-400 font-semibold">à</span>
+                    <span className="text-slate-400 font-semibold dark:text-slate-500">à</span>
                     <input
                       type="time"
                       value={current.end}
@@ -174,11 +174,11 @@ export default function TeacherAvailabilityPage() {
                           [index]: { ...current, end: e.target.value },
                         })
                       }
-                      className="rounded-xl border border-slate-200 p-2.5 outline-none font-semibold"
+                      className="rounded-xl border border-slate-200 p-2.5 outline-none font-semibold dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                     />
                   </div>
                 ) : (
-                  <span className="text-xs font-semibold text-slate-400">Non disponible ce jour</span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Non disponible ce jour</span>
                 )}
               </div>
             );

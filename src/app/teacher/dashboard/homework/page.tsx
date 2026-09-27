@@ -175,14 +175,14 @@ export default function TeacherHomeworkPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Devoirs assignés</h1>
-            <p className="mt-1 text-sm text-slate-500">Assignez des devoirs à vos élèves et corrigez leurs soumissions.</p>
+            <h1 className="text-3xl font-bold dark:text-white">Devoirs assignés</h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Assignez des devoirs à vos élèves et corrigez leurs soumissions.</p>
           </div>
           <button
             onClick={() => setShowForm((v) => !v)}
@@ -193,64 +193,64 @@ export default function TeacherHomeworkPage() {
         </div>
 
         {showForm && (
-          <form onSubmit={handleCreate} className="mt-6 space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form onSubmit={handleCreate} className="mt-6 space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Élève *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Élève *</label>
               <select
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-[#0d8d78]"
+                className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-[#162844] dark:text-white"
               >
-                <option value="">Sélectionnez un élève</option>
+                <option value="" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">Sélectionnez un élève</option>
                 {students.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id} className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">{s.name}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Titre *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Titre *</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Exercices chapitre 3 - Fonctions"
-                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78]"
+                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Description / Consignes *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Description / Consignes *</label>
               <textarea
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Décrivez le travail à faire..."
-                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78]"
+                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Date limite (optionnel)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Date limite (optionnel)</label>
                 <input
                   type="date"
                   value={deadline}
                   onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Fichier joint (optionnel)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Fichier joint (optionnel)</label>
                 <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="application/pdf,image/*" className="hidden" />
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-white/15 dark:bg-white/[.05] dark:text-slate-300 dark:hover:bg-white/10"
                 >
                   {uploading ? "Envoi en cours..." : fileName ? ` ${fileName}` : "Choisir un fichier"}
                 </button>
               </div>
             </div>
-            {error && <p className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-700">{error}</p>}
+            {error && <p className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-300">{error}</p>}
             <button
               type="submit"
               disabled={submitting}
@@ -262,47 +262,47 @@ export default function TeacherHomeworkPage() {
         )}
 
         {loading ? (
-          <div className="py-20 text-center text-slate-400">Chargement des devoirs...</div>
+          <div className="py-20 text-center text-slate-400 dark:text-slate-500">Chargement des devoirs...</div>
         ) : homework.length === 0 ? (
-          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <h2 className="text-lg font-bold">Aucun devoir assigné pour le moment.</h2>
-            <p className="mt-1 text-xs text-slate-500">Assignez votre premier devoir à l&apos;un de vos élèves.</p>
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+            <h2 className="text-lg font-bold dark:text-white">Aucun devoir assigné pour le moment.</h2>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Assignez votre premier devoir à l&apos;un de vos élèves.</p>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
             {homework.map((h) => (
-              <div key={h.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div key={h.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-base">{h.title}</h3>
-                    <p className="text-xs text-slate-500">Pour {h.studentName} · {new Date(h.createdAt).toLocaleDateString("fr-TN")}</p>
+                    <h3 className="font-bold text-base dark:text-white">{h.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Pour {h.studentName} · {new Date(h.createdAt).toLocaleDateString("fr-TN")}</p>
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${
-                    h.submission ? (h.submission.feedback ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700") : "bg-amber-100 text-amber-800"
+                    h.submission ? (h.submission.feedback ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300") : "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
                   }`}>
                     {h.submission ? (h.submission.feedback ? "Corrigé" : "Soumis") : "En attente"}
                   </span>
                 </div>
-                <p className="mt-3 text-sm text-slate-600">{h.description}</p>
+                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{h.description}</p>
                 {h.fileUrl && (
-                  <a href={h.fileUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
+                  <a href={h.fileUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-[#0d8d78] hover:underline dark:text-[#72d6bf]">
                      {h.fileName || "Fichier joint"}
                   </a>
                 )}
 
                 {h.submission && (
-                  <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-2">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Soumission de l&apos;élève</p>
-                    {h.submission.comment && <p className="text-sm text-slate-700">{h.submission.comment}</p>}
+                  <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-2 dark:bg-white/[.03] dark:border-white/10">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Soumission de l&apos;élève</p>
+                    {h.submission.comment && <p className="text-sm text-slate-700 dark:text-slate-300">{h.submission.comment}</p>}
                     {h.submission.fileUrl && (
-                      <a href={h.submission.fileUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
+                      <a href={h.submission.fileUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-[#0d8d78] hover:underline dark:text-[#72d6bf]">
                          {h.submission.fileName || "Fichier soumis"}
                       </a>
                     )}
                     {h.submission.feedback ? (
-                      <div className="mt-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3">
-                        <p className="text-xs font-bold text-emerald-700">Votre correction :</p>
-                        <p className="text-sm text-emerald-800">{h.submission.feedback}</p>
+                      <div className="mt-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 dark:bg-emerald-500/10 dark:border-emerald-500/30">
+                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Votre correction :</p>
+                        <p className="text-sm text-emerald-800 dark:text-emerald-300">{h.submission.feedback}</p>
                       </div>
                     ) : (
                       <div className="mt-3 flex flex-wrap gap-2 items-center">
@@ -314,14 +314,14 @@ export default function TeacherHomeworkPage() {
                           value={gradeDrafts[h.id] || ""}
                           onChange={(e) => setGradeDrafts((prev) => ({ ...prev, [h.id]: e.target.value }))}
                           placeholder="Note /20"
-                          className="w-24 rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-[#0d8d78] outline-none focus:border-[#0d8d78]"
+                          className="w-24 rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-[#0d8d78] outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-[#72d6bf]"
                         />
                         <input
                           type="text"
                           value={feedbackDrafts[h.id] || ""}
                           onChange={(e) => setFeedbackDrafts((prev) => ({ ...prev, [h.id]: e.target.value }))}
                           placeholder="Écrire une appréciation pédagogique..."
-                          className="flex-1 min-w-[200px] rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78]"
+                          className="flex-1 min-w-[200px] rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                         />
                         <button
                           onClick={() => handleSendFeedback(h.id)}

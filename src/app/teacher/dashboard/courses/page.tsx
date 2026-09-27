@@ -247,20 +247,20 @@ export default function TeacherCoursesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 space-y-6">
         {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-6 sm:p-8 border border-slate-200 shadow-sm dark:bg-white/[.05] dark:border-white/10 dark:shadow-xl">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
             Gestion des Cours & Packs E-Learning
           </span>
-          <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-[#11233f]">
+          <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-[#11233f] dark:text-white">
             Mes Cours & Packs de Révision
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Créez des cours vidéo, définissez leurs tarifs en DT et leur visibilité (Public / Protégé / Privé).
           </p>
         </div>
@@ -277,7 +277,7 @@ export default function TeacherCoursesPage() {
       </div>
 
       {error && !showCreateModal && (
-        <div role="alert" className="flex items-start justify-between gap-4 rounded-2xl border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700">
+        <div role="alert" className="flex items-start justify-between gap-4 rounded-2xl border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
           <span>{error}</span>
           <button type="button" onClick={() => setError("")} aria-label="Fermer le message d'erreur">✕</button>
         </div>
@@ -286,13 +286,13 @@ export default function TeacherCoursesPage() {
       {/* Course List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="p-12 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200">
+          <div className="p-12 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200 dark:bg-white/[.05] dark:border-white/10 dark:text-slate-500">
             Chargement de vos cours...
           </div>
         ) : courses.length === 0 ? (
-          <div className="p-12 text-center space-y-3 bg-white rounded-3xl border border-slate-200 shadow-sm">
-            <p className="text-sm font-bold text-[#11233f]">Vous n'avez pas encore publié de cours.</p>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
+          <div className="p-12 text-center space-y-3 bg-white rounded-3xl border border-slate-200 shadow-sm dark:bg-white/[.05] dark:border-white/10 dark:shadow-xl">
+            <p className="text-sm font-bold text-[#11233f] dark:text-white">Vous n'avez pas encore publié de cours.</p>
+            <p className="text-xs text-slate-500 max-w-md mx-auto dark:text-slate-400">
               Proposez des packs de révision ou des cours e-learning à vos élèves et générez des revenus récurrents.
             </p>
             <button
@@ -310,21 +310,21 @@ export default function TeacherCoursesPage() {
             {courses.map((c) => (
               <div
                 key={c.id}
-                className="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm hover:shadow-md transition space-y-4 flex flex-col justify-between"
+                className="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm hover:shadow-md transition space-y-4 flex flex-col justify-between dark:bg-white/[.05] dark:border-white/10 dark:shadow-xl dark:hover:shadow-2xl"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-[#e5f7f2] px-3 py-1 text-[10px] font-extrabold text-[#0d8d78]">
+                    <span className="rounded-full bg-[#e5f7f2] px-3 py-1 text-[10px] font-extrabold text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:text-[#72d6bf]">
                       {c.subject}
                     </span>
 
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${
                         c.visibility === "PUBLIC"
-                          ? "bg-emerald-100 text-emerald-800"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300"
                           : c.visibility === "LOCKED"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-slate-100 text-slate-700"
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
+                          : "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300"
                       }`}
                     >
                       {c.visibility === "PUBLIC"
@@ -335,29 +335,29 @@ export default function TeacherCoursesPage() {
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-base text-[#11233f]">{c.title}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{c.description}</p>
+                  <h3 className="font-bold text-base text-[#11233f] dark:text-white">{c.title}</h3>
+                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed dark:text-slate-400">{c.description}</p>
 
-                  <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400 border-t border-slate-100">
+                  <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400 border-t border-slate-100 dark:border-white/10 dark:text-slate-500">
                     <span>{c.totalLessons} leçons</span>
                     <span>{c.studentCount} élèves inscrits</span>
-                    <span className="font-bold text-[#0d8d78]">{c.priceTnd > 0 ? `${c.priceTnd} DT` : "Gratuit"}</span>
+                    <span className="font-bold text-[#0d8d78] dark:text-[#72d6bf]">{c.priceTnd > 0 ? `${c.priceTnd} DT` : "Gratuit"}</span>
                   </div>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-slate-100 text-xs font-bold">
+                <div className="pt-2 flex items-center justify-between border-t border-slate-100 text-xs font-bold dark:border-white/10">
                   <div className="flex items-center gap-3">
-                    <Link href={`/courses/${c.id}`} className="text-[#0d8d78] hover:underline">
+                    <Link href={`/courses/${c.id}`} className="text-[#0d8d78] hover:underline dark:text-[#72d6bf]">
                       Aperçu élève ↗
                     </Link>
-                    <Link href={`/teacher/dashboard/courses/${c.id}/quizzes`} className="text-[#0d8d78] hover:underline">
+                    <Link href={`/teacher/dashboard/courses/${c.id}/quizzes`} className="text-[#0d8d78] hover:underline dark:text-[#72d6bf]">
                       Quiz
                     </Link>
                   </div>
 
                   <button
                     onClick={() => handleDeleteCourse(c.id)}
-                    className="min-h-10 rounded-xl px-2 text-rose-600 transition hover:bg-rose-50 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-100"
+                    className="min-h-10 rounded-xl px-2 text-rose-600 transition hover:bg-rose-50 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 dark:text-rose-400 dark:hover:bg-rose-500/10"
                   >
                     Supprimer
                   </button>

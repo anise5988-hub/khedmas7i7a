@@ -1,8 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SiteNavbar } from "@/components/site-navbar";
 import { VideoPlayer } from "@/components/video-player";
@@ -267,7 +267,7 @@ export function CourseDetailClient({ id }: { id: string }) {
           {/* Sticky Unlock Panel Card */}
           <div className="lg:col-span-4 rounded-3xl bg-white p-6 border border-slate-200 text-slate-800 shadow-2xl space-y-4">
             <div className="relative h-44 rounded-2xl overflow-hidden bg-slate-100">
-              <img src={course.thumbnailUrl} alt={course.title} className="h-full w-full object-cover" />
+              <Image src={course.thumbnailUrl} alt={course.title} fill sizes="(min-width:1024px) 33vw, 100vw" className="object-cover" />
             </div>
 
             <div className="flex items-center justify-between">

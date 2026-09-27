@@ -37,58 +37,58 @@ export default function StudentSupportPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 space-y-8">
         {/* Header */}
-        <div className="border-b border-slate-200 pb-5">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
+        <div className="border-b border-slate-200 dark:border-white/10 pb-5">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
             Assistance & Service Élève
           </span>
           <h1 className="mt-1 text-3xl font-bold">Centre d'Aide & Support</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Une question sur un cours, une réservation ou votre compte ? Nous sommes là pour vous aider.
           </p>
         </div>
 
         {/* Quick Contact Info Cards */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
             <div className="space-y-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                 <IconPhone className="h-5 w-5" />
               </div>
               <h3 className="font-bold text-base">Support Téléphonique</h3>
-              <p className="text-xs text-slate-500">Du Lundi au Samedi (8h - 20h)</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Du Lundi au Samedi (8h - 20h)</p>
             </div>
-            <a href="tel:+21658249938" className="mt-4 font-bold text-sm text-[#0d8d78] hover:underline">
+            <a href="tel:+21658249938" className="mt-4 font-bold text-sm text-[#0d8d78] dark:text-[#72d6bf] hover:underline">
               +216 58 249 938
             </a>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
             <div className="space-y-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                 <IconMail className="h-5 w-5" />
               </div>
               <h3 className="font-bold text-base">Email Officiel</h3>
-              <p className="text-xs text-slate-500">Réponse garantie en moins de 24h</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Réponse garantie en moins de 24h</p>
             </div>
-            <a href="mailto:profyspace@gmail.com" className="mt-4 font-bold text-sm text-[#0d8d78] hover:underline">
+            <a href="mailto:profyspace@gmail.com" className="mt-4 font-bold text-sm text-[#0d8d78] dark:text-[#72d6bf] hover:underline">
               profyspace@gmail.com
             </a>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
             <div className="space-y-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                 <IconShield className="h-5 w-5" />
               </div>
               <h3 className="font-bold text-base">Garantie & Sécurité</h3>
-              <p className="text-xs text-slate-500">Paiements et remboursements sécurisés</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Paiements et remboursements sécurisés</p>
             </div>
-            <span className="mt-4 text-xs font-bold text-slate-600">
+            <span className="mt-4 text-xs font-bold text-slate-600 dark:text-slate-300">
               Professeurs 100% vérifiés
             </span>
           </div>
@@ -101,12 +101,12 @@ export default function StudentSupportPage() {
             <h2 className="text-xl font-bold">Questions Fréquentes (FAQ)</h2>
             <div className="space-y-3">
               {faqs.map((f, idx) => (
-                <div key={idx} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
-                  <h3 className="font-bold text-sm text-[#11233f] flex items-center gap-2">
-                    <span className="text-[#0d8d78] font-bold">?</span>
+                <div key={idx} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+                  <h3 className="font-bold text-sm text-[#11233f] dark:text-white flex items-center gap-2">
+                    <span className="text-[#0d8d78] dark:text-[#72d6bf] font-bold">?</span>
                     {f.q}
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed pl-4 border-l-2 border-[#0d8d78]/30">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pl-4 border-l-2 border-[#0d8d78]/30 dark:border-[#72d6bf]/30">
                     {f.a}
                   </p>
                 </div>

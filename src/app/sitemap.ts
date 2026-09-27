@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
+import { prisma } from "@/lib/server/prisma";
+import { getApprovedTeachers } from "@/lib/server/teachers-directory";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://profyspace.online";
 
   const staticRoutes: {
@@ -21,10 +23,36 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/register", priority: 0.3, changeFrequency: "yearly" },
   ];
 
-  return staticRoutes.map((route) => ({
+  const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
     url: `${baseUrl}${route.path}`,
     lastModified: new Date(),
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
+
+  const [teachers, courses] = await Promise.all([
+    getApprovedTeachers().catch(() => []),
+    prisma.course
+      .findMany({
+        where: { visibility: { in: ["PUBLIC", "LOCKED"] } },
+        select: { id: true, updatedAt: true },
+      })
+      .catch(() => []),
+  ]);
+
+  const teacherEntries: MetadataRoute.Sitemap = teachers.map((teacher) => ({
+    url: `${baseUrl}/teachers/${teacher.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  const courseEntries: MetadataRoute.Sitemap = courses.map((course) => ({
+    url: `${baseUrl}/courses/${course.id}`,
+    lastModified: course.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...teacherEntries, ...courseEntries];
 }

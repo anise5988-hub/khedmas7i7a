@@ -1,8 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { IconSparkles, IconX, IconStar, IconSend, IconMonitor, IconUser, IconRefresh } from "@/components/icons";
 import type { ParsedIntent } from "@/lib/server/teacher-match";
@@ -60,7 +60,7 @@ function TeacherResultCard({ teacher, onNavigate }: { teacher: MatchedTeacher; o
       <div className="flex items-start gap-2.5">
         <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#72d6bf] to-[#0d8d78] text-sm font-bold text-[#11233f]">
           {teacher.avatarUrl ? (
-            <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
+            <Image src={teacher.avatarUrl} alt={teacher.name} fill sizes="40px" className="object-cover" />
           ) : (
             <span>{teacher.initials}</span>
           )}

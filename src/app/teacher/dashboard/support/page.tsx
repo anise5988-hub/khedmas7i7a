@@ -17,14 +17,14 @@ export default function TeacherSupportPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 space-y-6">
-        <div className="border-b border-slate-200 pb-5">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">Support Enseignant</span>
-          <h1 className="mt-1 text-3xl font-bold">Centre d&apos;Aide</h1>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="border-b border-slate-200 dark:border-white/10 pb-5">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">Support Enseignant</span>
+          <h1 className="mt-1 text-3xl font-bold dark:text-white">Centre d&apos;Aide</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Une question sur vos paiements, votre profil ou vos cours ? Ouvrez un ticket, l&apos;équipe ProfySpace vous répond directement ici.
           </p>
         </div>

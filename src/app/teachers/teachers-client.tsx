@@ -1,7 +1,8 @@
-/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element, react-hooks/static-components */
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/static-components */
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { PageDataState } from "@/components/page-data-state";
 import { SiteNavbar } from "@/components/site-navbar";
 import {
@@ -597,7 +598,7 @@ function FilterSidebar({
                         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                           <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-[#0d8d78] border border-[#0d8d78]/20 dark:bg-gradient-to-br dark:from-[#72d6bf] dark:to-[#0d8d78] text-base sm:text-lg font-bold dark:text-[#11233f] overflow-hidden shadow-xs">
                             {t.avatarUrl ? (
-                              <img src={t.avatarUrl} alt={t.name} className="h-full w-full object-cover" />
+                              <Image src={t.avatarUrl} alt={t.name} fill sizes="56px" className="object-cover" />
                             ) : (
                               <span>{t.initials}</span>
                             )}

@@ -1,5 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
+
+import Image from "next/image";
 
 type AvatarProps = {
   src?: string | null;
@@ -33,6 +34,14 @@ export function Avatar({
     xl: "h-20 w-20 text-2xl",
   }[size];
 
+  const sizePx = {
+    xs: 24,
+    sm: 32,
+    md: 44,
+    lg: 56,
+    xl: 80,
+  }[size];
+
   const badgeSizeStyles = {
     xs: "h-2 w-2",
     sm: "h-2.5 w-2.5",
@@ -52,10 +61,12 @@ export function Avatar({
         `}
       >
         {src ? (
-          <img
+          <Image
             src={src}
             alt={name}
-            className="h-full w-full object-cover"
+            fill
+            sizes={`${sizePx}px`}
+            className="object-cover"
           />
         ) : (
           <span>{initials}</span>

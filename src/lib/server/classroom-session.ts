@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/server/prisma";
 import { createDailyRoom, createDailyMeetingToken, isDailyConfigured } from "@/lib/server/daily";
+import { maybeAwardReferralBonus } from "@/lib/server/referral";
 
 const JOIN_WINDOW_BEFORE_MINUTES = 10;
 const JOIN_WINDOW_AFTER_MINUTES = 60; // grace period for lessons running over
@@ -103,6 +104,15 @@ export async function recordLeave(bookingId: string, role: "TEACHER" | "STUDENT"
       where: { id: bookingId, status: { in: ["CONFIRMED", "PENDING"] } },
       data: { status: "COMPLETED" },
     });
+
+    // A referral-bonus bug must never break the classroom-leave flow —
+    // the lesson is already over and recorded either way.
+    try {
+      await maybeAwardReferralBonus(bookingId);
+    } catch (error) {
+      console.error("Referral bonus award failed", error);
+    }
+
     return completed;
   }
 

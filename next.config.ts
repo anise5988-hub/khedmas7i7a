@@ -1,5 +1,15 @@
 import type { NextConfig } from "next";
 
+function supabaseImageHostname(): string | null {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").hostname || null;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseHostname = supabaseImageHostname();
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -11,6 +21,14 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      ...(supabaseHostname
+        ? [{ protocol: "https" as const, hostname: supabaseHostname, pathname: "/storage/v1/object/public/**" }]
+        : []),
+      { protocol: "https" as const, hostname: "images.unsplash.com" },
+    ],
+  },
   async headers() {
     return [
       {

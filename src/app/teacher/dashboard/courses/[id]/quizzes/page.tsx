@@ -113,15 +113,15 @@ export default function TeacherCourseQuizzesPage({ params }: { params: Promise<{
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <section className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-        <Link href="/teacher/dashboard/courses" className="text-xs font-bold text-slate-500 hover:underline">
+        <Link href="/teacher/dashboard/courses" className="text-xs font-bold text-slate-500 hover:underline dark:text-slate-400">
           ← Retour à mes cours
         </Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold">Quiz du cours</h1>
+          <h1 className="text-3xl font-bold dark:text-white">Quiz du cours</h1>
           <button
             onClick={() => setShowForm((v) => !v)}
             className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#0b7866]"
@@ -131,27 +131,27 @@ export default function TeacherCourseQuizzesPage({ params }: { params: Promise<{
         </div>
 
         {showForm && (
-          <form onSubmit={handleCreate} className="mt-6 space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form onSubmit={handleCreate} className="mt-6 space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Titre du quiz *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">Titre du quiz *</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Quiz - Chapitre 3"
-                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78]"
+                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
               />
             </div>
 
             {questions.map((q, qIndex) => (
-              <div key={qIndex} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+              <div key={qIndex} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3 dark:border-white/10 dark:bg-white/[.03]">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Question {qIndex + 1}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Question {qIndex + 1}</span>
                   {questions.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setQuestions((prev) => prev.filter((_, i) => i !== qIndex))}
-                      className="text-xs font-bold text-rose-600 hover:underline"
+                      className="text-xs font-bold text-rose-600 hover:underline dark:text-rose-400"
                     >
                       Supprimer
                     </button>
@@ -162,7 +162,7 @@ export default function TeacherCourseQuizzesPage({ params }: { params: Promise<{
                   value={q.text}
                   onChange={(e) => updateQuestion(qIndex, { text: e.target.value })}
                   placeholder="Énoncé de la question"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78]"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                 />
                 <div className="space-y-2">
                   {q.options.map((opt, oIndex) => (
@@ -179,32 +179,32 @@ export default function TeacherCourseQuizzesPage({ params }: { params: Promise<{
                         value={opt}
                         onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
                         placeholder={`Option ${oIndex + 1}`}
-                        className="flex-1 rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78]"
+                        className="flex-1 rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                       />
                       {q.options.length > 2 && (
-                        <button type="button" onClick={() => removeOption(qIndex, oIndex)} className="text-xs text-slate-400 hover:text-rose-600">
+                        <button type="button" onClick={() => removeOption(qIndex, oIndex)} className="text-xs text-slate-400 hover:text-rose-600 dark:text-slate-500 dark:hover:text-rose-400">
                           ✕
                         </button>
                       )}
                     </div>
                   ))}
-                  <button type="button" onClick={() => addOption(qIndex)} className="text-xs font-bold text-[#0d8d78] hover:underline">
+                  <button type="button" onClick={() => addOption(qIndex)} className="text-xs font-bold text-[#0d8d78] hover:underline dark:text-[#72d6bf]">
                     + Ajouter une option
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400">Cochez la bonne réponse à gauche de l&apos;option.</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">Cochez la bonne réponse à gauche de l&apos;option.</p>
               </div>
             ))}
 
             <button
               type="button"
               onClick={() => setQuestions((prev) => [...prev, emptyQuestion()])}
-              className="w-full rounded-xl border border-dashed border-slate-300 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50"
+              className="w-full rounded-xl border border-dashed border-slate-300 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:border-white/20 dark:text-slate-400 dark:hover:bg-white/10"
             >
               + Ajouter une question
             </button>
 
-            {error && <p className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-700">{error}</p>}
+            {error && <p className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-300">{error}</p>}
 
             <button
               type="submit"
@@ -217,23 +217,23 @@ export default function TeacherCourseQuizzesPage({ params }: { params: Promise<{
         )}
 
         {loading ? (
-          <div className="py-20 text-center text-slate-400">Chargement des quiz...</div>
+          <div className="py-20 text-center text-slate-400 dark:text-slate-500">Chargement des quiz...</div>
         ) : quizzes.length === 0 ? (
-          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <h2 className="text-lg font-bold">Aucun quiz pour ce cours.</h2>
-            <p className="mt-1 text-xs text-slate-500">Créez un quiz pour évaluer vos élèves sur ce cours.</p>
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+            <h2 className="text-lg font-bold dark:text-white">Aucun quiz pour ce cours.</h2>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Créez un quiz pour évaluer vos élèves sur ce cours.</p>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
             {quizzes.map((q) => (
-              <div key={q.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div key={q.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="font-bold text-base">{q.title}</h3>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                  <h3 className="font-bold text-base dark:text-white">{q.title}</h3>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
                     {q.questionCount} question{q.questionCount > 1 ? "s" : ""}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                   {q.attemptCount} tentative{q.attemptCount !== 1 ? "s" : ""}
                   {q.averageScore !== null && ` · Score moyen : ${q.averageScore}%`}
                 </p>

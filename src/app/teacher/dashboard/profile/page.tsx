@@ -1,8 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SiteNavbar } from "@/components/site-navbar";
 import { governorates, subjects as allSubjects, educationLevels } from "@/lib/domain/catalog";
 import {
@@ -172,32 +172,32 @@ export default function TeacherProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/25 px-2.5 py-0.5 text-xs font-bold text-[#0d8d78]">
+              <span className="rounded-full bg-[#e5f7f2] border border-[#0d8d78]/25 px-2.5 py-0.5 text-xs font-bold text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:border-[#72d6bf]/30 dark:text-[#72d6bf]">
                 Enseignant
               </span>
               {verificationStatus === "APPROVED" ? (
-                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300">
                   ✓ Fiche Publique Validée
                 </span>
               ) : verificationStatus === "UNDER_REVIEW" ? (
-                <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-300">
                   ⏳ En cours d'examen
                 </span>
               ) : (
-                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-xs font-bold text-slate-700">
+                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-xs font-bold text-slate-700 dark:bg-white/10 dark:border-white/15 dark:text-slate-300">
                    À compléter
                 </span>
               )}
             </div>
-            <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight">Mon Profil Enseignant</h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-500">
+            <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight dark:text-white">Mon Profil Enseignant</h1>
+            <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
               Gérez votre présentation publique, vos matières, tarifs et disponibilités hebdomadaires.
             </p>
           </div>
@@ -206,7 +206,7 @@ export default function TeacherProfilePage() {
             <Link
               href={`/teachers/${slug}`}
               target="_blank"
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-[#0d8d78] hover:text-[#0d8d78] shadow-sm"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-[#0d8d78] hover:text-[#0d8d78] shadow-sm dark:border-white/15 dark:bg-white/[.05] dark:text-slate-300 dark:hover:border-[#72d6bf] dark:hover:text-[#72d6bf] dark:shadow-xl"
             >
               Voir ma fiche publique ↗
             </Link>
@@ -217,11 +217,11 @@ export default function TeacherProfilePage() {
           <div
             className={`mt-6 rounded-2xl p-4 text-xs font-semibold flex items-center gap-2 ${
               message.type === "success"
-                ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
-                : "bg-rose-50 text-rose-900 border border-rose-200"
+                ? "bg-emerald-50 text-emerald-900 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30"
+                : "bg-rose-50 text-rose-900 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30"
             }`}
           >
-            {message.type === "success" ? <IconCheckCircle className="h-4 w-4 shrink-0 text-emerald-600" /> : <IconAlertCircle className="h-4 w-4 shrink-0 text-rose-600" />}
+            {message.type === "success" ? <IconCheckCircle className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" /> : <IconAlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />}
             <p>{message.text}</p>
           </div>
         )}
@@ -229,26 +229,26 @@ export default function TeacherProfilePage() {
         {loading ? (
           <div className="py-20 text-center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>
-            <p className="mt-4 text-xs text-slate-500">Chargement de votre profil...</p>
+            <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">Chargement de votre profil...</p>
           </div>
         ) : (
           <form onSubmit={handleSave} className="mt-8 space-y-8">
             {/* Photo de profil */}
-            <div className="rounded-3xl border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-              <h2 className="text-lg font-bold">Photo de profil</h2>
-              <p className="mt-1 text-xs text-slate-500">Ajoutez une photo professionnelle à votre fiche publique.</p>
+            <div className="rounded-3xl border-slate-200 bg-white p-6 sm:p-8 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+              <h2 className="text-lg font-bold dark:text-white">Photo de profil</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Ajoutez une photo professionnelle à votre fiche publique.</p>
               <div className="mt-4 flex-wrap items-center gap-4">
-                <div className="h-20 w-20 overflow-hidden rounded-2xl bg-[#e5f7f2] text-2xl font-bold text-[#0d8d78] flex items-center justify-center">{avatarUrl ? <img src={avatarUrl} alt="Votre photo" className="h-full w-full object-cover" /> : ""}</div>
-                <label className="cursor-pointer rounded-xl border-[#0d8d78] px-4 py-2 text-xs font-bold text-[#0d8d78] hover:bg-[#e5f7f2]">{avatarUploading ? "Upload..." : "Choisir une photo"}<input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" /></label>
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl bg-[#e5f7f2] text-2xl font-bold text-[#0d8d78] flex items-center justify-center dark:bg-[#72d6bf]/15 dark:text-[#72d6bf]">{avatarUrl ? <Image src={avatarUrl} alt="Votre photo" fill sizes="80px" className="object-cover" /> : ""}</div>
+                <label className="cursor-pointer rounded-xl border-[#0d8d78] px-4 py-2 text-xs font-bold text-[#0d8d78] hover:bg-[#e5f7f2] dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/15">{avatarUploading ? "Upload..." : "Choisir une photo"}<input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" /></label>
               </div>
             </div>
 
             {/* 1. Titre & Présentation */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold">1. Titre & Biographie Pédagogique</h2>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+              <h2 className="text-lg font-bold dark:text-white">1. Titre & Biographie Pédagogique</h2>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                   Titre professionnel / Spécialité *
                 </label>
                 <input
@@ -257,12 +257,12 @@ export default function TeacherProfilePage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Ex: Professeur de Mathématiques - Spécialiste Bac & Concours"
-                  className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                   Présentation & Méthodologie d'enseignement *
                 </label>
                 <textarea
@@ -271,13 +271,13 @@ export default function TeacherProfilePage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Décrivez votre expérience, votre parcours universitaire et vos méthodes pédagogiques pour aider les élèves à progresser..."
-                  className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                  className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                 />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                     Années d'expérience professionnelle
                   </label>
                   <input
@@ -286,12 +286,12 @@ export default function TeacherProfilePage() {
                     max={50}
                     value={experienceYears}
                     onChange={(e) => setExperienceYears(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                     Tarif horaire de base (DT / heure) *
                   </label>
                   <input
@@ -301,16 +301,16 @@ export default function TeacherProfilePage() {
                     required
                     value={hourlyRateTnd}
                     onChange={(e) => setHourlyRateTnd(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm font-bold text-[#0d8d78] outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm font-bold text-[#0d8d78] outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-[#72d6bf] dark:focus:ring-[#72d6bf]/20"
                   />
                 </div>
               </div>
             </div>
 
             {/* 2. Matières Enseignées */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold">2. Matières Enseignées</h2>
-              <p className="text-xs text-slate-500">Sélectionnez les matières que vous maîtrisez :</p>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+              <h2 className="text-lg font-bold dark:text-white">2. Matières Enseignées</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Sélectionnez les matières que vous maîtrisez :</p>
 
               <div className="flex flex-wrap gap-2">
                 {allSubjects.map((subj) => {
@@ -323,7 +323,7 @@ export default function TeacherProfilePage() {
                       className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
                         isSelected
                           ? "bg-[#0d8d78] text-white shadow-xs"
-                          : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                          : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-white/15 dark:bg-white/[.05] dark:text-slate-300 dark:hover:bg-white/10"
                       }`}
                     >
                       {isSelected ? "✓ " : "+ "}
@@ -335,9 +335,9 @@ export default function TeacherProfilePage() {
             </div>
 
             {/* 3. Niveaux Enseignés */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold">3. Niveaux Enseignés</h2>
-              <p className="text-xs text-slate-500">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+              <h2 className="text-lg font-bold dark:text-white">3. Niveaux Enseignés</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Sélectionnez les niveaux scolaires que vous encadrez — utilisé pour vous faire apparaître dans les recherches par niveau.
               </p>
 
@@ -352,7 +352,7 @@ export default function TeacherProfilePage() {
                       className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
                         isSelected
                           ? "bg-[#0d8d78] text-white shadow-xs"
-                          : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                          : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-white/15 dark:bg-white/[.05] dark:text-slate-300 dark:hover:bg-white/10"
                       }`}
                     >
                       {isSelected ? "✓ " : "+ "}
@@ -362,28 +362,28 @@ export default function TeacherProfilePage() {
                 })}
               </div>
               {selectedLevels.length === 0 && (
-                <p className="text-[11px] text-amber-600">
+                <p className="text-[11px] text-amber-600 dark:text-amber-400">
                   Aucun niveau sélectionné — vous n&apos;apparaîtrez pas dans les recherches filtrées par niveau.
                 </p>
               )}
             </div>
 
             {/* 4. Localisation & Formats */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold">4. Localisation & Formats de Cours</h2>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+              <h2 className="text-lg font-bold dark:text-white">4. Localisation & Formats de Cours</h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                     Gouvernorat
                   </label>
                   <select
                     value={governorate}
                     onChange={(e) => setGovernorate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-[#162844] dark:text-white dark:focus:ring-[#72d6bf]/20"
                   >
                     {governorates.map((g) => (
-                      <option key={g} value={g}>
+                      <option key={g} value={g} className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">
                         {g}
                       </option>
                     ))}
@@ -391,7 +391,7 @@ export default function TeacherProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                     Ville / Délégation
                   </label>
                   <input
@@ -399,13 +399,13 @@ export default function TeacherProfilePage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Ex: La Marsa, Menzah, Sahloul..."
-                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                    className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
                   />
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-4 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
                   <input
                     type="checkbox"
                     checked={online}
@@ -415,7 +415,7 @@ export default function TeacherProfilePage() {
                   <span> Cours en ligne (WebRTC)</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
                   <input
                     type="checkbox"
                     checked={inPerson}
@@ -428,16 +428,16 @@ export default function TeacherProfilePage() {
             </div>
 
             {/* 4. Créneaux de Disponibilité */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-white/10">
                 <div>
-                  <h2 className="text-lg font-bold">5. Créneaux Hebdomadaires</h2>
-                  <p className="text-xs text-slate-500">Indiquez vos plages horaires ouvertes aux réservations :</p>
+                  <h2 className="text-lg font-bold dark:text-white">5. Créneaux Hebdomadaires</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Indiquez vos plages horaires ouvertes aux réservations :</p>
                 </div>
                 <button
                   type="button"
                   onClick={addAvailabilitySlot}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/25 px-3 py-1.5 text-xs font-bold text-[#0d8d78] hover:bg-[#d4f2e9] transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/25 px-3 py-1.5 text-xs font-bold text-[#0d8d78] hover:bg-[#d4f2e9] transition dark:bg-[#72d6bf]/15 dark:border-[#72d6bf]/30 dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/25"
                 >
                   <IconPlus className="h-3.5 w-3.5" />
                   <span>Ajouter un créneau</span>
@@ -445,46 +445,46 @@ export default function TeacherProfilePage() {
               </div>
 
               {availabilities.length === 0 ? (
-                <div className="py-6 text-center text-xs text-slate-400">
+                <div className="py-6 text-center text-xs text-slate-400 dark:text-slate-500">
                   Aucun créneau défini. Cliquez sur « Ajouter un créneau » pour ouvrir vos disponibilités.
                 </div>
               ) : (
                 <div className="space-y-2.5">
                   {availabilities.map((slot, index) => (
-                    <div key={index} className="flex flex-wrap items-center gap-3 rounded-2xl bg-slate-50 p-3 border border-slate-100 text-xs">
+                    <div key={index} className="flex flex-wrap items-center gap-3 rounded-2xl bg-slate-50 p-3 border border-slate-100 text-xs dark:bg-white/[.03] dark:border-white/10">
                       <select
                         value={slot.dayOfWeek}
                         onChange={(e) => updateSlot(index, "dayOfWeek", Number(e.target.value))}
-                        className="rounded-xl border border-slate-200 bg-white p-2 font-bold outline-none"
+                        className="rounded-xl border border-slate-200 bg-white p-2 font-bold outline-none dark:border-white/15 dark:bg-[#162844] dark:text-white"
                       >
                         {dayNames.map((d, dIdx) => (
-                          <option key={dIdx} value={dIdx}>
+                          <option key={dIdx} value={dIdx} className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">
                             {d}
                           </option>
                         ))}
                       </select>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-400">De</span>
+                        <span className="text-slate-400 dark:text-slate-500">De</span>
                         <input
                           type="time"
                           value={slot.startTime}
                           onChange={(e) => updateSlot(index, "startTime", e.target.value)}
-                          className="rounded-xl border border-slate-200 bg-white p-2 font-mono outline-none"
+                          className="rounded-xl border border-slate-200 bg-white p-2 font-mono outline-none dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                         />
-                        <span className="text-slate-400">à</span>
+                        <span className="text-slate-400 dark:text-slate-500">à</span>
                         <input
                           type="time"
                           value={slot.endTime}
                           onChange={(e) => updateSlot(index, "endTime", e.target.value)}
-                          className="rounded-xl border border-slate-200 bg-white p-2 font-mono outline-none"
+                          className="rounded-xl border border-slate-200 bg-white p-2 font-mono outline-none dark:border-white/15 dark:bg-white/[.05] dark:text-white"
                         />
                       </div>
 
                       <button
                         type="button"
                         onClick={() => removeAvailabilitySlot(index)}
-                        className="ml-auto rounded-xl p-1.5 text-rose-500 hover:bg-rose-50 transition"
+                        className="ml-auto rounded-xl p-1.5 text-rose-500 hover:bg-rose-50 transition dark:text-rose-400 dark:hover:bg-rose-500/10"
                         title="Supprimer ce créneau"
                       >
                         <IconTrash className="h-4 w-4" />

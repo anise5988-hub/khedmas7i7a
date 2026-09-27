@@ -54,14 +54,14 @@ export default function StudentClassesPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5">
           <div>
             <h1 className="text-3xl font-bold">Mon Apprentissage & Mes Cours</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Retrouvez vos séances en direct ainsi que vos cours et packs e-learning débloqués.
             </p>
           </div>
@@ -70,7 +70,7 @@ export default function StudentClassesPage() {
             <button
               onClick={() => setActiveTab("BOOKINGS")}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-                activeTab === "BOOKINGS" ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700"
+                activeTab === "BOOKINGS" ? "bg-[#11233f] text-white" : "bg-white border border-slate-200 text-slate-700 dark:bg-white/10 dark:border-white/15 dark:text-slate-300"
               }`}
             >
                Séances Live ({bookings.length})
@@ -78,7 +78,7 @@ export default function StudentClassesPage() {
             <button
               onClick={() => setActiveTab("COURSES")}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-                activeTab === "COURSES" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700"
+                activeTab === "COURSES" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-700 dark:bg-white/10 dark:border-white/15 dark:text-slate-300"
               }`}
             >
                Packs & Cours ({purchasedCourses.length})
@@ -91,7 +91,7 @@ export default function StudentClassesPage() {
             <button
               onClick={() => setBookingFilter("ALL")}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                bookingFilter === "ALL" ? "bg-slate-800 text-white" : "bg-white border border-slate-200 text-slate-600"
+                bookingFilter === "ALL" ? "bg-slate-800 text-white" : "bg-white border border-slate-200 text-slate-600 dark:bg-white/10 dark:border-white/15 dark:text-slate-300"
               }`}
             >
               Toutes ({bookings.length})
@@ -99,7 +99,7 @@ export default function StudentClassesPage() {
             <button
               onClick={() => setBookingFilter("UPCOMING")}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                bookingFilter === "UPCOMING" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-600"
+                bookingFilter === "UPCOMING" ? "bg-[#0d8d78] text-white" : "bg-white border border-slate-200 text-slate-600 dark:bg-white/10 dark:border-white/15 dark:text-slate-300"
               }`}
             >
               À venir
@@ -107,7 +107,7 @@ export default function StudentClassesPage() {
             <button
               onClick={() => setBookingFilter("PAST")}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                bookingFilter === "PAST" ? "bg-slate-600 text-white" : "bg-white border border-slate-200 text-slate-600"
+                bookingFilter === "PAST" ? "bg-slate-600 text-white" : "bg-white border border-slate-200 text-slate-600 dark:bg-white/10 dark:border-white/15 dark:text-slate-300"
               }`}
             >
               Passées
@@ -118,16 +118,16 @@ export default function StudentClassesPage() {
         {loading ? (
           <div className="py-20 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0d8d78] border-t-transparent mx-auto"></div>
-            <p className="mt-3 text-sm text-slate-500">Chargement de votre espace...</p>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Chargement de votre espace...</p>
           </div>
         ) : activeTab === "BOOKINGS" ? (
           filteredBookings.length === 0 ? (
-            <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
+            <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3 dark:bg-white/10 dark:text-slate-400">
                 <IconCalendar className="h-7 w-7" />
               </div>
               <h2 className="text-lg font-bold">Aucune séance en direct réservée.</h2>
-              <p className="mt-1 text-xs text-slate-500">Choisissez un professeur et commencez votre apprentissage.</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Choisissez un professeur et commencez votre apprentissage.</p>
               <Link
                 href="/teachers"
                 className="mt-5 inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
@@ -140,20 +140,20 @@ export default function StudentClassesPage() {
               {filteredBookings.map((b) => (
                 <div
                   key={b.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl dark:hover:border-white/20"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
                       {b.teacherName.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
                       <h3 className="font-bold text-base">{b.teacherName}</h3>
-                      <p className="text-xs font-bold text-[#0d8d78]">{b.subject}</p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="text-xs font-bold text-[#0d8d78] dark:text-[#72d6bf]">{b.subject}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                          {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} à{" "}
                         {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-400">
+                      <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                         Durée : {b.durationMinutes} min · Tarif : {b.amountTnd} DT
                       </p>
                     </div>
@@ -163,10 +163,10 @@ export default function StudentClassesPage() {
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-bold ${
                         b.status === "CONFIRMED"
-                          ? "bg-emerald-100 text-emerald-800"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300"
                           : b.status === "COMPLETED"
-                          ? "bg-slate-100 text-slate-700"
-                          : "bg-amber-100 text-amber-800"
+                          ? "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300"
+                          : "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
                       }`}
                     >
                       {b.status}
@@ -185,9 +185,9 @@ export default function StudentClassesPage() {
           )
         ) : (
           purchasedCourses.length === 0 ? (
-            <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+            <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
               <h2 className="text-lg font-bold">Aucun pack ou cours vidéo débloqué.</h2>
-              <p className="mt-1 text-xs text-slate-500">Parcourez le catalogue et débloquez des cours pour étudier à votre rythme.</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Parcourez le catalogue et débloquez des cours pour étudier à votre rythme.</p>
               <Link
                 href="/courses"
                 className="mt-5 inline-block rounded-xl bg-[#0d8d78] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
@@ -198,15 +198,15 @@ export default function StudentClassesPage() {
           ) : (
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               {purchasedCourses.map(({ course }) => (
-                <div key={course.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between space-y-4">
+                <div key={course.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between space-y-4 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
                   <div className="space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#0d8d78]">{course.subject}</span>
-                    <h3 className="font-bold text-base text-[#11233f]">{course.title}</h3>
-                    <p className="text-xs text-slate-500 line-clamp-2">{course.description}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">{course.subject}</span>
+                    <h3 className="font-bold text-base text-[#11233f] dark:text-white">{course.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{course.description}</p>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs text-slate-400">{course.totalLessons} leçons ({course.durationMinutes} min)</span>
+                  <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                    <span className="text-xs text-slate-400 dark:text-slate-500">{course.totalLessons} leçons ({course.durationMinutes} min)</span>
                     <Link
                       href={`/courses/${course.id}`}
                       className="rounded-xl bg-[#11233f] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#1a355e]"

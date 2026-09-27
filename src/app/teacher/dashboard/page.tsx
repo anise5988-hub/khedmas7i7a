@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
+import { AchievementBadges } from "@/components/achievement-badges";
 import { formatTndFromMillimes } from "@/lib/finance/withdrawal";
 import {
   IconCalendar,
@@ -16,6 +17,7 @@ import {
   IconChevronRight,
   IconSparkles,
   IconBookOpen,
+  IconImage,
 } from "@/components/icons";
 import { Course } from "@/lib/server/courses-store";
 
@@ -462,6 +464,10 @@ export default function TeacherDashboardPage() {
           </div>
         </div>
 
+        <div className="mt-6">
+          <AchievementBadges endpoint="/api/teacher/dashboard/achievements" />
+        </div>
+
         {/* Main Content Grid */}
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
 
@@ -681,6 +687,20 @@ export default function TeacherDashboardPage() {
                   <div className="flex-1">
                     <p className="text-sm font-bold text-[#11233f]">Modifier mon profil</p>
                     <p className="text-[11px] text-slate-400">Bio, tarifs, matières</p>
+                  </div>
+                  <IconChevronRight className="h-4 w-4 text-slate-300 group-hover:text-[#0d8d78] transition" />
+                </Link>
+
+                <Link
+                  href="/teacher/dashboard/portfolio"
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 hover:border-[#0d8d78] hover:bg-[#0d8d78]/5 transition group"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition">
+                    <IconImage className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-[#11233f]">Mon portfolio de travaux</p>
+                    <p className="text-[11px] text-slate-400">Exemples publiés sur votre fiche publique</p>
                   </div>
                   <IconChevronRight className="h-4 w-4 text-slate-300 group-hover:text-[#0d8d78] transition" />
                 </Link>

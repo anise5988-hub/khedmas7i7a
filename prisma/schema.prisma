@@ -60,6 +60,7 @@ enum TransactionType {
   TEACHER_EARNING
   WITHDRAWAL
   WITHDRAWAL_FEE
+  REFERRAL_BONUS
 }
 
 enum DepositMethod {
@@ -96,6 +97,10 @@ model User {
   conversationsAsTeacher Conversation[] @relation("ConversationsAsTeacher")
   homeworkAsStudent      Homework[]
   quizAttempts           QuizAttempt[]
+  referredById           String?
+  referredBy             User?      @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals              User[]     @relation("UserReferrals")
+  referralBonusAwardedAt DateTime?
 }
 
 model StudentProfile {
@@ -133,6 +138,7 @@ model TeacherProfile {
   courses             Course[]
   verificationDocuments TeacherVerificationDocument[]
   homework            Homework[]
+  portfolioItems      TeacherPortfolioItem[]
 }
 
 model TeacherVerificationDocument {
@@ -146,6 +152,36 @@ model TeacherVerificationDocument {
   teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@index([teacherId])
+}
+
+enum PortfolioItemType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+  LINK
+}
+
+/// Examples of a teacher's own work (past papers, corrections, exercise
+/// sheets, recorded explanations). Publiс reads only expose items whose
+/// `isPublic` is true and whose owner is an APPROVED teacher.
+model TeacherPortfolioItem {
+  id           String            @id @default(cuid())
+  teacherId    String
+  title        String
+  description  String?
+  type         PortfolioItemType @default(IMAGE)
+  subject      String?
+  level        String?
+  mediaUrl     String
+  thumbnailUrl String?
+  externalUrl  String?
+  isPublic     Boolean           @default(true)
+  sortOrder    Int               @default(0)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  teacher      TeacherProfile    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId, isPublic, sortOrder])
 }
 
 model TeacherSubject {
@@ -418,14 +454,17 @@ model WithdrawalRequest {
 }
 
 model Review {
-  id         String @id @default(cuid())
-  studentId  String
-  teacherId  String
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
-  student    User @relation(fields: [studentId], references: [id])
-  teacher    TeacherProfile @relation(fields: [teacherId], references: [id])
+  id           String @id @default(cuid())
+  studentId    String
+  teacherId    String
+  rating       Int
+  comment      String?
+  photoUrl     String?
+  teacherReply String?
+  repliedAt    DateTime?
+  createdAt    DateTime @default(now())
+  student      User @relation(fields: [studentId], references: [id])
+  teacher      TeacherProfile @relation(fields: [teacherId], references: [id])
   @@index([teacherId, createdAt])
 }
 

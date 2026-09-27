@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { getOrCreateConversation, getUserConversations } from "@/lib/server/chat-repository";
+import { getBookingConversationId } from "@/lib/server/booking-communication";
 import { presenceStore } from "@/lib/server/chat-store";
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
@@ -15,6 +16,20 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const teacherId = searchParams.get("teacherId");
+  const bookingId = searchParams.get("bookingId");
+
+  // "Discuter de cette séance" opens the thread attached to a booking. The
+  // booking is resolved server-side and the caller must be one of its two
+  // participants, so a guessed bookingId exposes nothing.
+  if (bookingId) {
+    const { conversationId, side } = await getBookingConversationId(user.id, bookingId);
+    if (!conversationId || !side) {
+      return NextResponse.json({ error: "Réservation introuvable ou non autorisée." }, { status: 404 });
+    }
+    const allList = await getUserConversations(user.id);
+    const activeConversation = allList.find((c) => c.id === conversationId) || null;
+    return NextResponse.json({ conversations: allList, activeConversation, booking: side.booking });
+  }
 
   if (teacherId) {
     let teacherUserId = teacherId;

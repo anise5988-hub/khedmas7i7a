@@ -369,6 +369,14 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                           <span>Mes Cours & Formations</span>
                         </Link>
                         <Link
+                          href="/teacher/dashboard/portfolio"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
+                        >
+                          <span className="text-sm">🖼️</span>
+                          <span>Mon Portfolio</span>
+                        </Link>
+                        <Link
                           href="/teacher/dashboard/homework"
                           onClick={() => setProfileDropdownOpen(false)}
                           className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/10 transition"
@@ -559,6 +567,9 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
                 </Link>
                 <Link href="/teacher/dashboard/courses" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Mes Cours & Formations
+                </Link>
+                <Link href="/teacher/dashboard/portfolio" onClick={() => setMobileMenuOpen(false)} className="py-1">
+                  Mon Portfolio de Travaux
                 </Link>
                 <Link href="/teacher/dashboard/students" onClick={() => setMobileMenuOpen(false)} className="py-1">
                   Mes Élèves

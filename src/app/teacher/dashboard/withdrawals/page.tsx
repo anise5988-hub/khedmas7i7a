@@ -80,12 +80,12 @@ export default function TeacherWithdrawalsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-        <h1 className="text-3xl font-bold">Retraits & Revenus</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-3xl font-bold dark:text-white">Retraits & Revenus</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Demandez le versement de vos gains vers votre compte bancaire, D17 ou Flouci avec calcul automatique de la commission (10%).
         </p>
 
@@ -93,8 +93,8 @@ export default function TeacherWithdrawalsPage() {
           <div
             className={`mt-6 rounded-2xl p-4 text-sm font-semibold ${
               message.type === "success"
-                ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
-                : "border border-rose-200 bg-rose-50 text-rose-800"
+                ? "border border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
+                : "border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300"
             }`}
           >
             {message.text}
@@ -103,11 +103,11 @@ export default function TeacherWithdrawalsPage() {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           {/* Withdrawal Form */}
-          <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-            <h2 className="text-xl font-bold">Nouvelle demande de retrait</h2>
+          <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+            <h2 className="text-xl font-bold dark:text-white">Nouvelle demande de retrait</h2>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                 Montant à retirer (DT) *
               </label>
               <input
@@ -117,28 +117,28 @@ export default function TeacherWithdrawalsPage() {
                 required
                 value={amountTnd}
                 onChange={(e) => setAmountTnd(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                 Moyen de réception *
               </label>
               <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value as never)}
-                className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-[#162844] dark:text-white dark:focus:ring-[#72d6bf]/20"
               >
-                <option value="D17">La Poste Tunisienne (D17 / e-Dinar)</option>
-                <option value="BANK_TRANSFER">Virement Bancaire (RIB 20 chiffres)</option>
-                <option value="FLOUCI">Flouci Wallet</option>
-                <option value="DIGIPOST">DigiPost</option>
+                <option value="D17" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">La Poste Tunisienne (D17 / e-Dinar)</option>
+                <option value="BANK_TRANSFER" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">Virement Bancaire (RIB 20 chiffres)</option>
+                <option value="FLOUCI" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">Flouci Wallet</option>
+                <option value="DIGIPOST" className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">DigiPost</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 dark:text-slate-400">
                 Coordonnées de paiement (RIB, Téléphone D17 ou Identifiant) *
               </label>
               <input
@@ -147,7 +147,7 @@ export default function TeacherWithdrawalsPage() {
                 value={accountDetails}
                 onChange={(e) => setAccountDetails(e.target.value)}
                 placeholder="Ex: RIB 08000... ou N° téléphone D17 +216..."
-                className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9]"
+                className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none transition focus:border-[#0d8d78] focus:ring-2 focus:ring-[#d9f1e9] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:ring-[#72d6bf]/20"
               />
             </div>
 
@@ -162,53 +162,53 @@ export default function TeacherWithdrawalsPage() {
 
           {/* Fee Calculation Breakdown Card */}
           <div className="space-y-4">
-            <div className="rounded-3xl border border-slate-200 bg-[#e7f5f1] p-6 sm:p-8">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78]">
+            <div className="rounded-3xl border border-slate-200 bg-[#e7f5f1] p-6 sm:p-8 dark:border-[#72d6bf]/30 dark:bg-[#72d6bf]/10">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
                 Décompte financier en direct
               </span>
-              <h3 className="mt-1 text-xl font-bold">Transparence 10%</h3>
+              <h3 className="mt-1 text-xl font-bold dark:text-white">Transparence 10%</h3>
 
               <div className="mt-6 space-y-3 text-sm">
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-slate-600 dark:text-slate-300">
                   <span>Montant demandé :</span>
-                  <span className="font-bold">{formatTndFromMillimes(calculation.requestedAmountInMillimes)}</span>
+                  <span className="font-bold dark:text-white">{formatTndFromMillimes(calculation.requestedAmountInMillimes)}</span>
                 </div>
 
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-slate-600 dark:text-slate-300">
                   <span>Frais plateforme ProfySpace (10%) :</span>
-                  <span className="font-bold text-amber-800">
+                  <span className="font-bold text-amber-800 dark:text-amber-300">
                     - {formatTndFromMillimes(calculation.feeAmountInMillimes)}
                   </span>
                 </div>
 
-                <div className="border-t border-slate-300 pt-3 flex justify-between font-bold text-base text-[#11233f]">
+                <div className="border-t border-slate-300 dark:border-white/10 pt-3 flex justify-between font-bold text-base text-[#11233f] dark:text-white">
                   <span>Vous recevez net :</span>
-                  <span className="text-[#0d8d78] text-lg">
+                  <span className="text-[#0d8d78] text-lg dark:text-[#72d6bf]">
                     {formatTndFromMillimes(calculation.payoutAmountInMillimes)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm text-xs text-slate-500 leading-relaxed">
-              <p className="font-bold text-slate-700 mb-1">⏱ Délais de versement :</p>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm text-xs text-slate-500 leading-relaxed dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl dark:text-slate-400">
+              <p className="font-bold text-slate-700 mb-1 dark:text-slate-300">⏱ Délais de versement :</p>
               <p>Les demandes sont traitées sous 24h ouvrées. Vous recevrez une notification par SMS / Email une fois le virement émis.</p>
             </div>
           </div>
         </div>
 
         {/* Withdrawals History Table */}
-        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-xl font-bold">Historique de mes retraits</h2>
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
+          <h2 className="text-xl font-bold dark:text-white">Historique de mes retraits</h2>
 
           {loading ? (
-            <div className="py-12 text-center text-slate-400">Chargement...</div>
+            <div className="py-12 text-center text-slate-400 dark:text-slate-500">Chargement...</div>
           ) : withdrawals.length === 0 ? (
-            <div className="py-12 text-center text-slate-400">Aucune demande de retrait passée.</div>
+            <div className="py-12 text-center text-slate-400 dark:text-slate-500">Aucune demande de retrait passée.</div>
           ) : (
-            <div className="mt-4 divide-y divide-slate-100 overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="border-b border-slate-100 text-xs font-bold uppercase text-slate-400">
+            <div className="mt-4 divide-y divide-slate-100 dark:divide-white/10 overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                <thead className="border-b border-slate-100 text-xs font-bold uppercase text-slate-400 dark:border-white/10 dark:text-slate-500">
                   <tr>
                     <th className="py-3">Méthode</th>
                     <th className="py-3">Montant Brut</th>
@@ -218,22 +218,22 @@ export default function TeacherWithdrawalsPage() {
                     <th className="py-3 text-right">Statut</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 text-xs">
+                <tbody className="divide-y divide-slate-50 dark:divide-white/5 text-xs">
                   {withdrawals.map((w) => (
                     <tr key={w.id}>
-                      <td className="py-3 font-bold text-slate-800">{w.method}</td>
-                      <td className="py-3 text-slate-700">{formatTndFromMillimes(w.requestedMillimes)}</td>
-                      <td className="py-3 text-amber-700">- {formatTndFromMillimes(w.feeMillimes)}</td>
-                      <td className="py-3 font-bold text-[#0d8d78]">{formatTndFromMillimes(w.payoutMillimes)}</td>
-                      <td className="py-3 text-slate-400">{new Date(w.createdAt).toLocaleDateString("fr-TN")}</td>
+                      <td className="py-3 font-bold text-slate-800 dark:text-white">{w.method}</td>
+                      <td className="py-3 text-slate-700 dark:text-slate-300">{formatTndFromMillimes(w.requestedMillimes)}</td>
+                      <td className="py-3 text-amber-700 dark:text-amber-400">- {formatTndFromMillimes(w.feeMillimes)}</td>
+                      <td className="py-3 font-bold text-[#0d8d78] dark:text-[#72d6bf]">{formatTndFromMillimes(w.payoutMillimes)}</td>
+                      <td className="py-3 text-slate-400 dark:text-slate-500">{new Date(w.createdAt).toLocaleDateString("fr-TN")}</td>
                       <td className="py-3 text-right">
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                             w.status === "PAID" || w.status === "APPROVED"
-                              ? "bg-emerald-100 text-emerald-800"
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300"
                               : w.status === "PENDING"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-rose-100 text-rose-800"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
+                              : "bg-rose-100 text-rose-800 dark:bg-rose-500/10 dark:text-rose-300"
                           }`}
                         >
                           {w.status === "PAID" || w.status === "APPROVED" ? "Payé" : w.status === "PENDING" ? "En cours" : "Rejeté"}

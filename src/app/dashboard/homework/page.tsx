@@ -95,33 +95,33 @@ export default function StudentHomeworkPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
+    <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
 
       <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
         <h1 className="text-3xl font-bold">Mes devoirs</h1>
-        <p className="mt-1 text-sm text-slate-500">Devoirs assignés par vos professeurs.</p>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Devoirs assignés par vos professeurs.</p>
 
         {loading ? (
-          <div className="py-20 text-center text-slate-400">Chargement des devoirs...</div>
+          <div className="py-20 text-center text-slate-400 dark:text-slate-500">Chargement des devoirs...</div>
         ) : homework.length === 0 ? (
-          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
             <h2 className="text-lg font-bold">Aucun devoir pour le moment.</h2>
-            <p className="mt-1 text-xs text-slate-500">Vos devoirs apparaîtront ici dès qu&apos;un professeur vous en assigne un.</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Vos devoirs apparaîtront ici dès qu&apos;un professeur vous en assigne un.</p>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
             {homework.map((h) => {
               const isOverdue = h.deadline && !h.submission && new Date(h.deadline) < new Date();
               return (
-                <div key={h.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div key={h.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h3 className="font-bold text-base text-[#11233f]">{h.title}</h3>
-                      <p className="text-xs text-slate-500">
-                        Assigné par <span className="font-semibold text-slate-700">{h.teacherName}</span>
+                      <h3 className="font-bold text-base text-[#11233f] dark:text-white">{h.title}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Assigné par <span className="font-semibold text-slate-700 dark:text-slate-200">{h.teacherName}</span>
                         {h.deadline && (
-                          <span className={isOverdue ? "text-rose-600 font-bold ml-1" : "text-slate-600 ml-1"}>
+                          <span className={isOverdue ? "text-rose-600 font-bold ml-1 dark:text-rose-400" : "text-slate-600 ml-1 dark:text-slate-300"}>
                             · Date limite : {new Date(h.deadline).toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })}
                           </span>
                         )}
@@ -129,43 +129,43 @@ export default function StudentHomeworkPage() {
                     </div>
                     <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                       h.submission
-                        ? h.submission.feedback ? "bg-emerald-100 text-emerald-800 border border-emerald-200" : "bg-blue-100 text-blue-800 border border-blue-200"
-                        : isOverdue ? "bg-rose-100 text-rose-800 border border-rose-200" : "bg-amber-100 text-amber-800 border border-amber-200"
+                        ? h.submission.feedback ? "bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30" : "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30"
+                        : isOverdue ? "bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30" : "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"
                     }`}>
                       {h.submission ? (h.submission.feedback ? "✓ Corrigé & Noté" : "⏳ Soumis (En attente)") : isOverdue ? "⚠ En retard" : "📝 À faire"}
                     </span>
                   </div>
-                  <p className="mt-3 text-sm text-slate-600">{h.description}</p>
+                  <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{h.description}</p>
                   {h.fileUrl && (
-                    <a href={h.fileUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
+                    <a href={h.fileUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-[#0d8d78] dark:text-[#72d6bf] hover:underline">
                        {h.fileName || "Fichier joint par le professeur"}
                     </a>
                   )}
 
                   {h.submission ? (
-                    <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Votre soumission</p>
-                      {h.submission.comment && <p className="text-sm text-slate-700">{h.submission.comment}</p>}
+                    <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-2 dark:bg-white/[.03] dark:border-white/10">
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Votre soumission</p>
+                      {h.submission.comment && <p className="text-sm text-slate-700 dark:text-slate-200">{h.submission.comment}</p>}
                       {h.submission.fileUrl && (
-                        <a href={h.submission.fileUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-[#0d8d78] hover:underline">
+                        <a href={h.submission.fileUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-[#0d8d78] dark:text-[#72d6bf] hover:underline">
                            {h.submission.fileName || "Votre fichier"}
                         </a>
                       )}
                       {h.submission.feedback && (
-                        <div className="mt-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3">
-                          <p className="text-xs font-bold text-emerald-700">Correction du professeur :</p>
-                          <p className="text-sm text-emerald-800">{h.submission.feedback}</p>
+                        <div className="mt-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 dark:bg-emerald-500/10 dark:border-emerald-500/30">
+                          <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Correction du professeur :</p>
+                          <p className="text-sm text-emerald-800 dark:text-emerald-200">{h.submission.feedback}</p>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-3">
+                    <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-3 dark:bg-white/[.03] dark:border-white/10">
                       <textarea
                         rows={2}
                         value={comments[h.id] || ""}
                         onChange={(e) => setComments((prev) => ({ ...prev, [h.id]: e.target.value }))}
                         placeholder="Votre réponse ou commentaire..."
-                        className="w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-[#0d8d78]"
+                        className="w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-white/[.05] dark:text-white dark:focus:border-[#72d6bf]"
                       />
                       <div className="flex flex-wrap items-center gap-2">
                         <input
@@ -179,7 +179,7 @@ export default function StudentHomeworkPage() {
                           type="button"
                           onClick={() => fileInputRefs.current[h.id]?.click()}
                           disabled={uploadingId === h.id}
-                          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-white/15 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/15"
                         >
                           {uploadingId === h.id ? "Envoi..." : uploadedFiles[h.id] ? ` ${uploadedFiles[h.id].name}` : "Joindre un fichier"}
                         </button>

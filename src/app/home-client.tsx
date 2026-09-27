@@ -1,8 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SiteNavbar } from "@/components/site-navbar";
 import { HeroNewsLandscape } from "@/components/hero-news-landscape";
 import { BacCountdownBadge } from "@/components/bac-countdown-badge";
@@ -49,6 +49,8 @@ type RealReview = {
   teacherName: string;
   rating: number;
   text: string;
+  photoUrl?: string | null;
+  teacherReply?: string | null;
   createdAt: string;
 };
 
@@ -121,6 +123,9 @@ export function HomePageClient() {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewStatus, setReviewStatus] = useState({ type: "", text: "" });
+  const [reviewPhotoUrl, setReviewPhotoUrl] = useState("");
+  const [reviewPhotoUploading, setReviewPhotoUploading] = useState(false);
+  const reviewPhotoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/teachers")
@@ -176,6 +181,29 @@ export function HomePageClient() {
       .catch(() => {});
   }
 
+  async function handleReviewPhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setReviewStatus({ type: "error", text: "Veuillez choisir un fichier image." });
+      return;
+    }
+    setReviewPhotoUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", "image");
+    try {
+      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok) setReviewPhotoUrl(data.url);
+      else setReviewStatus({ type: "error", text: data.error || "Envoi de la photo impossible." });
+    } catch {
+      setReviewStatus({ type: "error", text: "Erreur de connexion au serveur." });
+    } finally {
+      setReviewPhotoUploading(false);
+    }
+  }
+
   async function handleReviewSubmit(e: React.FormEvent) {
     e.preventDefault();
     setReviewSubmitting(true);
@@ -188,6 +216,7 @@ export function HomePageClient() {
         body: JSON.stringify({
           rating: reviewRating,
           comment: reviewComment.trim(),
+          photoUrl: reviewPhotoUrl || undefined,
         }),
       });
 
@@ -198,6 +227,7 @@ export function HomePageClient() {
           text: "Merci ! Votre avis a été publié avec succès !",
         });
         setReviewComment("");
+        setReviewPhotoUrl("");
         loadReviews();
         setTimeout(() => {
           setReviewModalOpen(false);
@@ -555,7 +585,7 @@ export function HomePageClient() {
                     <div className="flex items-center gap-3 sm:gap-4">
                       <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#72d6bf] to-[#0d8d78] font-bold text-base sm:text-lg text-[#11233f] overflow-hidden shadow-xs">
                         {teacher.avatarUrl ? (
-                          <img src={teacher.avatarUrl} alt={teacher.name} className="h-full w-full object-cover" />
+                          <Image src={teacher.avatarUrl} alt={teacher.name} fill sizes="56px" className="object-cover" />
                         ) : (
                           <span>{teacher.initials}</span>
                         )}
@@ -670,10 +700,12 @@ export function HomePageClient() {
                     <div>
                       {/* Image Thumbnail with Overlay Badges */}
                       <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-900 border-b border-slate-100 dark:border-white/10">
-                        <img
+                        <Image
                           src={course.thumbnailUrl}
                           alt={course.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          fill
+                          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
                           <span className="rounded-xl bg-[#11233f]/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white shadow-sm border border-white/10">
@@ -884,6 +916,19 @@ export function HomePageClient() {
                     <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-200 leading-relaxed italic">
                       "{r.text}"
                     </p>
+                    {r.photoUrl && (
+                      <div className="relative mt-3 h-28 w-full overflow-hidden rounded-2xl">
+                        <Image src={r.photoUrl} alt="Photo de l'avis" fill sizes="(min-width:1024px) 33vw, 100vw" className="object-cover" />
+                      </div>
+                    )}
+                    {r.teacherReply && (
+                      <div className="mt-3 rounded-xl bg-[#e5f7f2] dark:bg-[#72d6bf]/10 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
+                          Réponse de {r.teacherName}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-700 dark:text-slate-200 leading-relaxed">{r.teacherReply}</p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-6 border-t border-slate-100 dark:border-white/10 pt-3 flex items-center justify-between">
@@ -1044,6 +1089,40 @@ export function HomePageClient() {
                   placeholder="Partagez votre avis sur les cours, la pédagogie et vos résultats..."
                   className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition focus:border-[#0d8d78]"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  Photo (optionnel)
+                </label>
+                <input
+                  type="file"
+                  ref={reviewPhotoInputRef}
+                  accept="image/*"
+                  onChange={handleReviewPhotoUpload}
+                  className="hidden"
+                />
+                {reviewPhotoUrl ? (
+                  <div className="relative inline-block h-20 w-20">
+                    <Image src={reviewPhotoUrl} alt="Aperçu" fill sizes="80px" className="rounded-xl object-cover border border-slate-200" />
+                    <button
+                      type="button"
+                      onClick={() => setReviewPhotoUrl("")}
+                      className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold shadow"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => reviewPhotoInputRef.current?.click()}
+                    disabled={reviewPhotoUploading}
+                    className="rounded-xl border border-dashed border-slate-300 px-4 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-[#0d8d78] hover:text-[#0d8d78] disabled:opacity-50"
+                  >
+                    {reviewPhotoUploading ? "Envoi en cours..." : "+ Ajouter une photo"}
+                  </button>
+                )}
               </div>
 
               <div className="flex gap-2 justify-end pt-2">

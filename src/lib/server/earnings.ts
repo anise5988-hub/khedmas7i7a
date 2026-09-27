@@ -35,3 +35,31 @@ export async function creditTeacherEarning(
     },
   });
 }
+
+/**
+ * Credits a flat bonus amount straight to a wallet, with no commission
+ * deduction — unlike creditTeacherEarning, which nets out the platform
+ * commission rate and would silently shrink a fixed promotional amount
+ * like a referral reward.
+ */
+export async function creditWalletBonus(
+  tx: TxClient,
+  params: { userId: string; amountMillimes: number; type: "REFERRAL_BONUS"; reference: string },
+): Promise<void> {
+  if (params.amountMillimes <= 0) return;
+
+  const wallet = await tx.wallet.upsert({
+    where: { userId: params.userId },
+    update: { availableMillimes: { increment: params.amountMillimes } },
+    create: { userId: params.userId, availableMillimes: params.amountMillimes, pendingMillimes: 0 },
+  });
+
+  await tx.walletTransaction.create({
+    data: {
+      walletId: wallet.id,
+      type: params.type,
+      amountMillimes: params.amountMillimes,
+      reference: params.reference,
+    },
+  });
+}

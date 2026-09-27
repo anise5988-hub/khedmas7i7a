@@ -47,26 +47,6 @@ export default function AdminBookingsPage() {
   return (
     <main className="min-h-screen bg-[#101b2d] px-4 py-8 sm:px-6 sm:py-10 text-white">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
-          <div className="flex items-center gap-4">
-            <a href="/admin" className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
-              <span>ProfySpace</span>
-              <span className="rounded-md bg-[#72d6bf] px-1.5 py-0.5 text-xs font-extrabold text-[#101b2d]">.admin</span>
-            </a>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-slate-300">
-              Réservations & Cours
-            </span>
-          </div>
-
-          <a
-            href="/admin"
-            className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/10"
-          >
-            ← Retour Dashboard
-          </a>
-        </div>
-
         {/* Title & Filters */}
         <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
