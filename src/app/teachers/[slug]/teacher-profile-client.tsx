@@ -119,7 +119,7 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
   const [selectedDate, setSelectedDate] = useState(getTomorrowDateString);
   const [selectedTime, setSelectedTime] = useState("18:00");
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [bookingResult, setBookingResult] = useState<{ success: boolean; message: string; bookingId?: string } | null>(null);
+  const [bookingResult, setBookingResult] = useState<{ success: boolean; message: string; bookingId?: string; needsTopUp?: boolean } | null>(null);
 
   const bookingRef = useRef<HTMLDivElement>(null);
   const availabilitiesRef = useRef<HTMLDivElement>(null);
@@ -220,6 +220,12 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
           setBookingResult({
             success: false,
             message: "Veuillez vous connecter avec votre compte élève pour confirmer votre réservation.",
+          });
+        } else if (res.status === 402 || data.code === "INSUFFICIENT_BALANCE") {
+          setBookingResult({
+            success: false,
+            needsTopUp: true,
+            message: data.error || "Solde insuffisant : rechargez votre portefeuille pour réserver cette séance.",
           });
         } else {
           setBookingResult({
@@ -633,6 +639,14 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                       className="mt-2 inline-block font-bold text-[#0d8d78] dark:text-[#72d6bf] underline"
                     >
                       Se connecter maintenant →
+                    </a>
+                  )}
+                  {!bookingResult.success && bookingResult.needsTopUp && (
+                    <a
+                      href="/dashboard/wallet/add-money"
+                      className="mt-3 block rounded-xl bg-[#0d8d78] py-2 text-center font-bold text-white transition hover:bg-[#0b7866]"
+                    >
+                      Recharger mon portefeuille →
                     </a>
                   )}
                 </div>

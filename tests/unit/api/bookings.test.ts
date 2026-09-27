@@ -10,6 +10,7 @@ const walletFindUnique = vi.fn();
 const bookingCreate = vi.fn();
 const bookingFindMany = vi.fn();
 const walletUpdate = vi.fn();
+const walletUpdateMany = vi.fn();
 const walletUpsert = vi.fn();
 const walletTransactionCreate = vi.fn();
 const paymentCreate = vi.fn();
@@ -25,7 +26,7 @@ vi.mock("@/lib/server/prisma", () => ({
     $transaction: async (fn: (tx: unknown) => unknown) =>
       fn({
         booking: { create: bookingCreate, findMany: bookingFindMany },
-        wallet: { update: walletUpdate, upsert: walletUpsert },
+        wallet: { update: walletUpdate, updateMany: walletUpdateMany, upsert: walletUpsert },
         walletTransaction: { create: walletTransactionCreate },
         payment: { create: paymentCreate },
         platformSettings: { findUnique: vi.fn().mockResolvedValue({ commissionRate: 10 }) },
@@ -65,6 +66,7 @@ describe("POST /api/bookings", () => {
     bookingCreate.mockReset();
     bookingFindMany.mockReset();
     walletUpdate.mockReset();
+    walletUpdateMany.mockReset();
     walletUpsert.mockReset();
     walletTransactionCreate.mockReset();
     paymentCreate.mockReset();
@@ -73,6 +75,7 @@ describe("POST /api/bookings", () => {
     teacherProfileFindFirst.mockResolvedValue(TEACHER);
     teacherProfileFindUnique.mockResolvedValue({ userId: TEACHER.userId });
     walletFindUnique.mockResolvedValue({ id: "wallet_1", userId: STUDENT.id, availableMillimes: 1_000_000 });
+    walletUpdateMany.mockResolvedValue({ count: 1 });
     walletUpsert.mockResolvedValue({ id: "teacher_wallet_1", userId: TEACHER.userId });
     bookingFindMany.mockResolvedValue([]);
     bookingCreate.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
@@ -97,9 +100,58 @@ describe("POST /api/bookings", () => {
     expect(bookingCreate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ amountMillimes: 30_000 }) }),
     );
-    expect(walletUpdate).toHaveBeenCalledWith(
+    expect(walletUpdateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: { availableMillimes: { decrement: 30_000 } } }),
     );
+  });
+
+  it("refuses the booking when the student's balance cannot cover it", async () => {
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    walletFindUnique.mockResolvedValue({ id: "wallet_1", userId: STUDENT.id, availableMillimes: 5_000 });
+    // The conditional debit matches no row, which is how the reservation loop
+    // signals an insufficient balance.
+    walletUpdateMany.mockResolvedValue({ count: 0 });
+
+    const response = await POST(
+      makeRequest({
+        teacherId: "prof-maths",
+        startsAt: futureDate,
+        durationMinutes: 60,
+        amountInMillimes: 30_000,
+        mode: "ONLINE",
+      }),
+    );
+
+    expect(response.status).toBe(402);
+    const payload = await response.json();
+    expect(payload.code).toBe("INSUFFICIENT_BALANCE");
+    expect(payload.requiredMillimes).toBe(30_000);
+    expect(payload.availableMillimes).toBe(5_000);
+    expect(payload.shortfallMillimes).toBe(25_000);
+    // No pending payment may be left behind by the rejection.
+    expect(paymentCreate).not.toHaveBeenCalled();
+  });
+
+  it("refuses the booking when the student has no wallet at all", async () => {
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    walletFindUnique.mockResolvedValue(null);
+
+    const response = await POST(
+      makeRequest({
+        teacherId: "prof-maths",
+        startsAt: futureDate,
+        durationMinutes: 60,
+        amountInMillimes: 30_000,
+        mode: "ONLINE",
+      }),
+    );
+
+    expect(response.status).toBe(402);
+    expect(walletUpdateMany).not.toHaveBeenCalled();
+    // Nothing may be persisted: the transaction rolls back the draft booking,
+    // so no unpaid booking and no PENDING payment can survive.
+    expect(paymentCreate).not.toHaveBeenCalled();
+    expect(walletTransactionCreate).not.toHaveBeenCalled();
   });
 
   it("computes the price from duration and the teacher's rate for a longer session", async () => {

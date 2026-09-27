@@ -161,45 +161,45 @@ export async function POST(request: Request) {
             },
           });
 
-          if (wallet && wallet.availableMillimes >= amountToUse) {
-            await tx.wallet.update({
-              where: { id: wallet.id },
-              data: { availableMillimes: { decrement: amountToUse } },
-            });
+          // A session may only be created against money the student actually
+          // holds. Debiting and creating the booking must happen together: a
+          // booking with an unpaid Payment would stay CONFIRMED forever (no
+          // code path ever settles a PENDING payment after a top-up), locking
+          // the slot and leaving the teacher unpaid.
+          const reserved = wallet
+            ? await tx.wallet.updateMany({
+                where: { id: wallet.id, availableMillimes: { gte: amountToUse } },
+                data: { availableMillimes: { decrement: amountToUse } },
+              })
+            : null;
 
-            await tx.walletTransaction.create({
-              data: {
-                walletId: wallet.id,
-                type: "BOOKING_PAYMENT",
-                amountMillimes: -amountToUse,
-                reference: `BOOK-${newBooking.id.slice(-6).toUpperCase()}`,
-              },
-            });
-
-            await tx.payment.create({
-              data: {
-                bookingId: newBooking.id,
-                amountMillimes: amountToUse,
-                status: "PAID",
-                idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
-              },
-            });
-
-            await creditTeacherEarning(tx, {
-              teacherUserId: teacher.userId,
-              grossAmountMillimes: amountToUse,
-              reference: `EARN-BOOK-${newBooking.id}`,
-            });
-          } else {
-            await tx.payment.create({
-              data: {
-                bookingId: newBooking.id,
-                amountMillimes: amountToUse,
-                status: "PENDING",
-                idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
-              },
-            });
+          if (!reserved || reserved.count !== 1) {
+            throw new Error("INSUFFICIENT_BALANCE");
           }
+
+          await tx.walletTransaction.create({
+            data: {
+              walletId: wallet!.id,
+              type: "BOOKING_PAYMENT",
+              amountMillimes: -amountToUse,
+              reference: `BOOK-${newBooking.id.slice(-6).toUpperCase()}`,
+            },
+          });
+
+          await tx.payment.create({
+            data: {
+              bookingId: newBooking.id,
+              amountMillimes: amountToUse,
+              status: "PAID",
+              idempotencyKey: `pay-${newBooking.id}-${Date.now()}`,
+            },
+          });
+
+          await creditTeacherEarning(tx, {
+            teacherUserId: teacher.userId,
+            grossAmountMillimes: amountToUse,
+            reference: `EARN-BOOK-${newBooking.id}`,
+          });
 
           return newBooking;
         },
@@ -210,6 +210,18 @@ export async function POST(request: Request) {
         return NextResponse.json(
           { error: "Ce créneau vient d'être réservé par un autre élève. Veuillez choisir un autre horaire." },
           { status: 409 },
+        );
+      }
+      if (error instanceof Error && error.message === "INSUFFICIENT_BALANCE") {
+        return NextResponse.json(
+          {
+            error: `Solde insuffisant : cette séance coûte ${(amountToUse / 1000).toFixed(3)} DT. Rechargez votre portefeuille pour réserver.`,
+            code: "INSUFFICIENT_BALANCE",
+            requiredMillimes: amountToUse,
+            availableMillimes: wallet?.availableMillimes ?? 0,
+            shortfallMillimes: Math.max(0, amountToUse - (wallet?.availableMillimes ?? 0)),
+          },
+          { status: 402 },
         );
       }
       // Serializable isolation surfaces real concurrent conflicts as a
