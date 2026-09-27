@@ -10,6 +10,7 @@ import {
   IconCheckCircle,
 } from "@/components/icons";
 import { AvailabilityWeekGrid } from "@/components/availability-week-grid";
+import { groupLevelSlugsByCycle } from "@/lib/domain/catalog";
 
 type PortfolioItem = {
   id: string;
@@ -42,6 +43,7 @@ type TeacherData = {
   inPerson: boolean;
   verificationStatus: string;
   subjects: string[];
+  levels: string[];
   rating: number;
   reviewsCount: number;
   availabilities: { id: string; dayOfWeek: number; startTime: string; endTime: string }[];
@@ -113,6 +115,9 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  // Level slug carried in ?level=..., used only to highlight which of the
+  // teacher's levels the visitor arrived from.
+  const [levelFilter, setLevelFilter] = useState<string | null>(null);
 
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
   const [mode, setMode] = useState<"ONLINE" | "IN_PERSON">("ONLINE");
@@ -144,6 +149,18 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
       .then((data) => setCurrentUserId(data?.user?.id || null))
       .catch(() => {});
   }, [slug]);
+
+  // Read the incoming ?level= from the URL. useSearchParams() would force this
+  // client component behind a Suspense boundary for no benefit here, so the
+  // value is read from window on mount and on every back/forward navigation.
+  useEffect(() => {
+    function syncLevelFromUrl() {
+      setLevelFilter(new URLSearchParams(window.location.search).get("level"));
+    }
+    syncLevelFromUrl();
+    window.addEventListener("popstate", syncLevelFromUrl);
+    return () => window.removeEventListener("popstate", syncLevelFromUrl);
+  }, []);
 
   const [copied, setCopied] = useState(false);
 
@@ -446,6 +463,45 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Levels taught — grouped by cycle so a teacher covering the whole
+                primary school reads as one line instead of six chips. */}
+            {teacher.levels.length > 0 && (
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm text-[#11233f] dark:border-white/15 dark:bg-[#101b2d] dark:text-white dark:shadow-xl">
+                <h2 className="text-lg sm:text-xl font-bold text-[#11233f] dark:text-white">Niveaux enseignés</h2>
+                <div className="mt-3.5 sm:mt-4 space-y-4">
+                  {groupLevelSlugsByCycle(teacher.levels).map((group) => (
+                    <div key={group.cycle}>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        {group.label}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {group.levels.map((lvl) => {
+                          const isActive = levelFilter === lvl.slug;
+                          return (
+                            <Link
+                              key={lvl.slug}
+                              href={`/teachers?level=${lvl.slug}`}
+                              title={`Voir tous les professeurs de ${lvl.name}`}
+                              className={`rounded-xl border px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold transition ${
+                                isActive
+                                  ? "bg-[#0d8d78] border-[#0d8d78] text-white dark:bg-[#72d6bf] dark:border-[#72d6bf] dark:text-slate-950"
+                                  : "bg-slate-50 border-slate-200 text-slate-700 hover:border-[#0d8d78] hover:text-[#0d8d78] dark:bg-white/5 dark:border-white/15 dark:text-slate-200 dark:hover:border-[#72d6bf] dark:hover:text-[#72d6bf]"
+                              }`}
+                            >
+                              {lvl.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-4 text-[11px] text-slate-400 dark:text-slate-500">
+                  Cliquez sur un niveau pour voir tous les professeurs qui l&apos;enseignent.
+                </p>
               </div>
             )}
 

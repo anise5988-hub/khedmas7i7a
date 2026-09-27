@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
-import { getCurrentUser } from "@/lib/server/auth";
 import { getPublicPortfolio } from "@/lib/server/portfolio";
+import { sortLevelSlugs } from "@/lib/domain/catalog";
 
 export async function GET(
   request: Request,
@@ -16,6 +16,7 @@ export async function GET(
       include: {
         user: { select: { firstName: true, lastName: true, email: true, phone: true } },
         subjects: { select: { subject: true } },
+        levels: { select: { levelSlug: true } },
         availabilities: true,
         reviews: {
           include: {
@@ -26,15 +27,12 @@ export async function GET(
       },
     });
 
-    // Not yet approved by an admin: invisible to the public, same as a
-    // profile that doesn't exist — except to the teacher previewing their
-    // own pending profile, or an admin reviewing it.
+    // Not yet approved by an admin: this public page must keep returning 404,
+    // never a 403 — a distinct status would leak the existence of pending or
+    // rejected applications to anyone who guesses a slug. The owner previews
+    // their own profile through the teacher dashboard, not this route.
     if (profile && profile.verificationStatus !== "APPROVED") {
-      const viewer = await getCurrentUser(request);
-      const canPreview = viewer && (viewer.id === profile.userId || viewer.role === "ADMIN");
-      if (!canPreview) {
-        return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
-      }
+      return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
     }
 
     if (profile) {
@@ -64,6 +62,7 @@ export async function GET(
         inPerson: profile.inPerson,
         verificationStatus: profile.verificationStatus,
         subjects: profile.subjects.map((s) => s.subject),
+        levels: sortLevelSlugs(profile.levels.map((l) => l.levelSlug)),
         availabilities: profile.availabilities,
         rating: avgRating,
         reviewsCount: profile.reviews.length,
@@ -100,11 +99,7 @@ export async function GET(
     const t = user.teacher;
 
     if (t.verificationStatus !== "APPROVED") {
-      const viewer = await getCurrentUser(request);
-      const canPreview = viewer && (viewer.id === t.userId || viewer.role === "ADMIN");
-      if (!canPreview) {
-        return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
-      }
+      return NextResponse.json({ error: "Professeur introuvable." }, { status: 404 });
     }
 
     const name = `${user.firstName} ${user.lastName}`.trim();
@@ -128,6 +123,7 @@ export async function GET(
       inPerson: t.inPerson,
       verificationStatus: t.verificationStatus,
       subjects: t.subjects || ["Mathématiques"],
+      levels: sortLevelSlugs(t.levels ?? []),
       availabilities: t.availabilities,
       rating: t.rating ?? 5.0,
       reviewsCount: t.reviewsCount ?? (t.reviews?.length || 0),

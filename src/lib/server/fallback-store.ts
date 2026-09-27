@@ -55,6 +55,7 @@ export type StoredUser = {
     inPerson: boolean;
     verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
     subjects: string[];
+    levels?: string[];
     rating?: number;
     reviewsCount?: number;
     reviews?: StoredTeacherReview[];

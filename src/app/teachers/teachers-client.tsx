@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { PageDataState } from "@/components/page-data-state";
 import { SiteNavbar } from "@/components/site-navbar";
 import {
@@ -10,6 +11,7 @@ import {
   subjects,
   educationLevels,
   academicSections,
+  sortLevelSlugs,
 } from "@/lib/domain/catalog";
 import {
   IconStar,
@@ -631,12 +633,20 @@ function FilterSidebar({
                             {s}
                           </span>
                         ))}
-                        {t.levels.length > 0 && (
-                          <span className="rounded-lg bg-slate-100 text-slate-600 dark:bg-white/10 dark:border dark:border-white/10 px-2 py-0.5 text-[11px] font-semibold dark:text-slate-300">
-                            {levelName(t.levels[0])}
-                            {t.levels.length > 1 ? ` +${t.levels.length - 1}` : ""}
-                          </span>
-                        )}
+                        {/* Every level is shown, not just the first one with a
+                            "+N" counter: level is what students filter on, so
+                            hiding it behind a count forced them to open the
+                            profile to find out whether it even matched. */}
+                        {sortLevelSlugs(t.levels).map((slug) => (
+                          <Link
+                            key={slug}
+                            href={`/teachers?level=${slug}`}
+                            title={`Voir tous les professeurs de ${levelName(slug)}`}
+                            className="rounded-lg bg-slate-100 text-slate-600 dark:bg-white/10 dark:border dark:border-white/10 px-2 py-0.5 text-[11px] font-semibold dark:text-slate-300 hover:bg-[#e5f7f2] hover:text-[#0d8d78] dark:hover:text-[#72d6bf] transition"
+                          >
+                            {levelName(slug)}
+                          </Link>
+                        ))}
                       </div>
 
                       {/* Bio */}
