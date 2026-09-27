@@ -104,6 +104,9 @@ export const DailyRoom = forwardRef<DailyRoomHandle, {
 }>(function DailyRoom({ bookingId, currentUserName, onStatusChange, onAudioMuteChange, onVideoMuteChange, onScreenShareChange }, ref) {
   const callRef = useRef<DailyCallObject | null>(null);
   const mountedRef = useRef(true);
+  // The device-recovery effect runs once and outlives the join effect's scope,
+  // so it reaches refreshTiles through a ref rather than a stale closure.
+  const refreshTilesRef = useRef<(() => void) | null>(null);
   const [tiles, setTiles] = useState<ParticipantTile[]>([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -181,6 +184,7 @@ export const DailyRoom = forwardRef<DailyRoomHandle, {
       const participants = call.participants();
       setTiles(Object.values(participants).map((p) => toTile(p as DailyParticipant)));
     }
+    refreshTilesRef.current = refreshTiles;
 
     async function start() {
       try {
@@ -206,7 +210,13 @@ export const DailyRoom = forwardRef<DailyRoomHandle, {
           return;
         }
 
-        call = DailyIframe.createCallObject({ videoSource: true, audioSource: true });
+        // videoSource/audioSource as plain `true` snapshots the device list once
+        // at construction. After the OS sleeps, the browser invalidates the old
+        // track identifiers and Daily keeps trying to reacquire a device it no
+        // longer knows — the camera and mic come back dead until a full reload.
+        // Passing no source makes Daily resolve the device at join time and
+        // again on every re-acquisition instead of pinning the initial one.
+        call = DailyIframe.createCallObject();
         callRef.current = call;
 
         call.on("joined-meeting", () => {
@@ -268,6 +278,61 @@ export const DailyRoom = forwardRef<DailyRoomHandle, {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId, currentUserName]);
+
+  // Laptop lids, OS sleep and device switching all leave Daily holding stale
+  // track ids: the camera/mic stop working mid-lesson with no way back short of
+  // a reload. Re-enumerating the devices and re-publishing the local tracks on
+  // wake is what actually restores them.
+  useEffect(() => {
+    let recovering = false;
+
+    async function recoverDevices() {
+      const call = callRef.current;
+      if (!call || recovering || document.visibilityState !== "visible") return;
+      recovering = true;
+      try {
+        // Resolve the input devices again — this also re-triggers the browser's
+        // own permission/device state after a sleep cycle.
+        const devices = await call.enumerateDevices().catch(() => null);
+        const hasCamera = Boolean(devices?.devices?.some((d) => d.kind === "videoinput"));
+        const hasMic = Boolean(devices?.devices?.some((d) => d.kind === "audioinput"));
+
+        const local = call.participants()?.local;
+        const videoDead = local?.tracks.video?.state === "interrupted" || local?.tracks.video?.state === "off";
+        const audioDead = local?.tracks.audio?.state === "interrupted" || local?.tracks.audio?.state === "off";
+
+        if (hasCamera && videoDead) {
+          // setLocalVideo(true) on an already-enabled track is a no-op, so cycle
+          // it off then on to force a fresh capture. These return the call
+          // object, not a promise — they are not awaitable.
+          call.setLocalVideo(false);
+          call.setLocalVideo(true);
+        }
+        if (hasMic && audioDead) {
+          call.setLocalAudio(false);
+          call.setLocalAudio(true);
+        }
+        refreshTilesRef.current?.();
+      } finally {
+        recovering = false;
+      }
+    }
+
+    function onVisibility() {
+      if (document.visibilityState === "visible") void recoverDevices();
+    }
+
+    window.addEventListener("focus", onVisibility);
+    document.addEventListener("visibilitychange", onVisibility);
+    // `online` covers the network dropping while the laptop slept.
+    window.addEventListener("online", onVisibility);
+
+    return () => {
+      window.removeEventListener("focus", onVisibility);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("online", onVisibility);
+    };
+  }, []);
 
   if (error) {
     return (

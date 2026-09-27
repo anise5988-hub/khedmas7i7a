@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ book
   let joinToken: string | null = null;
   if (canJoin) {
     try {
-      joinToken = await mintJoinToken(session, `${user.firstName} ${user.lastName}`.trim(), participant.isTeacher || participant.isAdmin);
+      joinToken = await mintJoinToken(session, `${user.firstName} ${user.lastName}`.trim(), participant.isTeacher || participant.isAdmin, user.id);
     } catch (error) {
       console.error("Daily meeting token creation failed", error);
     }

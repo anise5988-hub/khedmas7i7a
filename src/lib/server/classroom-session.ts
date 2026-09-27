@@ -51,9 +51,9 @@ export async function getOrCreateClassroomSession(bookingId: string) {
   }
 }
 
-export async function mintJoinToken(session: { roomName: string; roomUrl: string | null }, userName: string, isOwner: boolean) {
+export async function mintJoinToken(session: { roomName: string; roomUrl: string | null }, userName: string, isOwner: boolean, userId?: string) {
   if (!session.roomUrl) return null;
-  return createDailyMeetingToken(session.roomName, userName, isOwner);
+  return createDailyMeetingToken(session.roomName, userName, isOwner, userId);
 }
 
 export function getJoinWindow(session: { scheduledStart: Date; scheduledEnd: Date }) {
