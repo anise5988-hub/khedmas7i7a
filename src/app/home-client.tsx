@@ -777,7 +777,7 @@ export function HomePageClient() {
       </section>
 
       {/* Trust & Guarantee Section */}
-      <section className="bg-slate-50 border-b border-slate-200 text-[#11233f] px-6 py-16 lg:px-10 dark:bg-[#0f1d32] dark:border-white/10 dark:text-white">
+      <section className="profy-defer-render bg-slate-50 border-b border-slate-200 text-[#11233f] px-6 py-16 lg:px-10 dark:bg-[#0f1d32] dark:border-white/10 dark:text-white">
         <div className="mx-auto max-w-7xl">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0d8d78]/10 text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:border dark:border-[#72d6bf]/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider dark:text-[#72d6bf]">
@@ -833,7 +833,7 @@ export function HomePageClient() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="mx-auto max-w-7xl px-6 py-20 lg:px-10 text-[#11233f] dark:text-white border-t border-slate-200 dark:border-white/10">
+      <section id="how" className="profy-defer-render mx-auto max-w-7xl px-6 py-20 lg:px-10 text-[#11233f] dark:text-white border-t border-slate-200 dark:border-white/10">
         <div className="grid gap-12 lg:grid-cols-[.7fr_1.3fr]">
           <div>
             <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0d8d78] dark:text-[#72d6bf]">Méthode & Simplicité</p>
@@ -868,7 +868,7 @@ export function HomePageClient() {
       </section>
 
       {/* Real Reviews Section - Connected to Database */}
-      <section className="bg-slate-50 border-y border-slate-200 text-[#11233f] px-6 py-20 lg:px-10 dark:bg-[#0f1d32] dark:border-white/10 dark:text-white">
+      <section className="profy-defer-render bg-slate-50 border-y border-slate-200 text-[#11233f] px-6 py-20 lg:px-10 dark:bg-[#0f1d32] dark:border-white/10 dark:text-white">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
             <div>
@@ -948,7 +948,7 @@ export function HomePageClient() {
       </section>
 
       {/* FAQ Section */}
-      <section className="mx-auto max-w-4xl px-6 py-20 lg:px-10 text-[#11233f] dark:text-white border-t border-slate-200 dark:border-white/10">
+      <section className="profy-defer-render mx-auto max-w-4xl px-6 py-20 lg:px-10 text-[#11233f] dark:text-white border-t border-slate-200 dark:border-white/10">
         <div className="text-center mb-12">
           <p className="text-xs font-bold uppercase tracking-[.2em] text-[#0d8d78] dark:text-[#72d6bf]">Foire Aux Questions</p>
           <h2 className="mt-2 font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl font-bold tracking-tight text-[#11233f] dark:text-white">
@@ -984,7 +984,7 @@ export function HomePageClient() {
       </section>
 
       {/* Support Card (Email Only) */}
-      <section className="border-t border-slate-200 bg-white dark:bg-[#09111c] dark:border-white/10 px-6 py-16 lg:px-10">
+      <section className="profy-defer-render border-t border-slate-200 bg-white dark:bg-[#09111c] dark:border-white/10 px-6 py-16 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-[#11233f] to-[#1a365d] p-8 sm:p-12 text-white shadow-xl dark:border-white/15 dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>

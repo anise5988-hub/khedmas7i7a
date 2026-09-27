@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SiteNavbar } from "@/components/site-navbar";
 import { Conversation, CustomOffer } from "@/lib/server/chat-store";
 import { IconPaperclip, IconFileText } from "@/components/icons";
+import { MessageBubble } from "@/components/message-bubble";
 
 type SessionContext = {
   id: string;
@@ -16,6 +17,18 @@ type SessionContext = {
   teacherName?: string;
 };
 
+/** Résumé léger d'une conversation renvoyé par /api/chat/poll (sans messages). */
+type ConversationSummary = {
+  id: string;
+  studentId: string;
+  studentName: string;
+  teacherId: string;
+  teacherName: string;
+  teacherSlug?: string;
+  lastMessageAt: string;
+  messageCount: number;
+};
+
 const SESSION_STATUS_LABELS: Record<string, string> = {
   PENDING: "En attente",
   CONFIRMED: "Confirmée",
@@ -23,17 +36,38 @@ const SESSION_STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Annulée",
 };
 
-export default function MessagesPage() {  const router = useRouter();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+/**
+ * Intervalle de sondage adaptatif.
+ *
+ * Un fil actif est interrogé souvent (l'utilisateur attend une réponse),
+ * mais dès que l'onglet passe en arrière-plan ou que la fenêtre perd le
+ * focus, on arrête complètement : plus aucune requête ni travail de rendu
+ * tant que l'utilisateur ne regarde pas la page. C'est ce qui évite de faire
+ * chauffer un téléphone d'entrée de gamme resté ouvert sur la messagerie.
+ */
+const POLL_INTERVAL_MS = 2500;
+
+export default function MessagesPage() {
+  const router = useRouter();
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [text, setText] = useState("");
   const [attachedFile, setAttachedFile] = useState<{ url: string; name: string } | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setPending] = useState(false);
+  /** Fil ouvert, pour l'affichage. `activeIdRef` sert au sondage. */
+  const [activeConvId, setActiveConvId] = useState<string | null>(null);
   /** Séance ouverte depuis « Discuter de cette séance » (bouton des réservations). */
   const [sessionContext, setSessionContext] = useState<SessionContext | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Références : évitent de relancer la boucle de sondage à chaque rendu
+  // (dépendances stables) tout en lisant toujours l'état le plus récent.
+  const activeIdRef = useRef<string | null>(null);
+  const lastSyncRef = useRef<string | null>(null);
+  const inFlightRef = useRef(false);
+
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -74,85 +108,203 @@ export default function MessagesPage() {  const router = useRouter();
   const [offerError, setOfferError] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
 
-  function getAuthHeaders(): Record<string, string> {
+  const getAuthHeaders = useCallback((): Record<string, string> => {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (userId) headers["x-user-id"] = userId;
     return headers;
-  }
+  }, []);
+
+  /**
+   * Ouvre une conversation : charge son historique une seule fois, puis
+   * mémorise son identifiant pour le sondage différentiel.
+   */
+  const openConversation = useCallback(
+    async (summary: ConversationSummary) => {
+      activeIdRef.current = summary.id;
+      setActiveConvId(summary.id);
+      shouldAutoScrollRef.current = true;
+
+      // Affichage immédiat de l'en-tête (nom, rôle) sans attendre le réseau :
+      // le clic donne une impression d'instantanéité.
+      setActiveConv({
+        id: summary.id,
+        studentId: summary.studentId,
+        studentName: summary.studentName,
+        teacherId: summary.teacherId,
+        teacherName: summary.teacherName,
+        teacherSlug: summary.teacherSlug,
+        lastMessageAt: summary.lastMessageAt as unknown as Date,
+        messages: [],
+      });
+
+      try {
+        const res = await fetch(
+          `/api/chat/messages?conversationId=${encodeURIComponent(summary.id)}`,
+          { headers: getAuthHeaders() },
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setActiveConv((prev) =>
+          prev && prev.id === summary.id
+            ? {
+                ...prev,
+                messages: data.messages || [],
+                lastMessageAt: (data.lastMessageAt || prev.lastMessageAt) as unknown as Date,
+              }
+            : prev,
+        );
+        lastSyncRef.current = new Date().toISOString();
+      } catch {}
+    },
+    [getAuthHeaders],
+  );
+
+  /**
+   * Une passe de synchronisation : un seul aller-retour qui rapporte la liste
+   * des conversations ET, s'il y a du nouveau, l'historique du fil ouvert.
+   */
+  const syncChat = useCallback(
+    async () => {
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
+      try {
+        const params =
+          typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+        const query = new URLSearchParams();
+        if (activeIdRef.current) query.set("active", activeIdRef.current);
+        if (lastSyncRef.current) query.set("since", lastSyncRef.current);
+        const bookingId = params.get("bookingId");
+        if (bookingId) query.set("bookingId", bookingId);
+
+        const res = await fetch(`/api/chat/poll?${query.toString()}`, { headers: getAuthHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        setConversations(data.conversations || []);
+        if (data.booking) setSessionContext(data.booking);
+        if (data.serverTime) lastSyncRef.current = data.serverTime;
+
+        const activeId: string | null = data.activeConversationId || null;
+        const summaries: ConversationSummary[] = data.conversations || [];
+
+        // Premier chargement (ou changement de fil décidé par le serveur) :
+        // on ouvre la conversation demandée par l'URL, sinon la plus récente.
+        if (!activeIdRef.current && activeId) {
+          const requestedId = params.get("conversationId");
+          const target =
+            (requestedId && summaries.find((s) => s.id === requestedId)) ||
+            summaries.find((s) => s.id === activeId) ||
+            summaries[0];
+          if (target) await openConversation(target);
+          return;
+        }
+
+        // Rafraîchissement : on ne touche à l'état que si le contenu a
+        // réellement changé, sinon React re-rend tout l'arbre pour rien.
+        if (data.messagesChanged && activeId && activeIdRef.current === activeId) {
+          const incoming = data.messages || [];
+          setActiveConv((prev) => {
+            if (!prev || prev.id !== activeId) return prev;
+            const last = prev.messages[prev.messages.length - 1];
+            const incomingLast = incoming[incoming.length - 1];
+            if (last && incomingLast && last.id === incomingLast.id && prev.messages.length === incoming.length) {
+              return prev;
+            }
+            return { ...prev, messages: incoming };
+          });
+        }
+      } catch {} finally {
+        inFlightRef.current = false;
+      }
+    },
+    [getAuthHeaders, openConversation],
+  );
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("profyspace_user");
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u?.id) Promise.resolve().then(() => setCurrentUserId(u.id));
-        if (u?.role) Promise.resolve().then(() => setUserRole(u.role));
-      }
-    } catch {}
+    // Identité locale et paramètres d'URL lus une seule fois, hors du corps
+    // synchrone de l'effet pour ne pas provoquer de rendu en cascade.
+    const boot = setTimeout(() => {
+      try {
+        const stored = localStorage.getItem("profyspace_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u?.id) setCurrentUserId(u.id);
+          if (u?.role) setUserRole(u.role);
+        }
+      } catch {}
+    }, 0);
 
     const params = new URLSearchParams(window.location.search);
     const teacherId = params.get("teacherId");
-    fetchConversations(teacherId);
 
-    // Fast polling every 2 seconds for instant messaging responsiveness
-    const interval = setInterval(() => {
-      fetchConversations(null, true);
-    }, 2000);
-
-    // Set default offer date to tomorrow 14:00 if not set
-    Promise.resolve().then(() => {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(14, 0, 0, 0);
-      setOfferStartsAt(tomorrow.toISOString().slice(0, 16));
-    });
-
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeConv?.messages]);
-
-  async function fetchConversations(teacherId?: string | null, isSilent = false) {
-    if (!isSilent) setLoading(true);
-    try {
-      const params =
-        typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
-      const bookingId = params.get("bookingId");
-      const conversationId = params.get("conversationId");
-      const url = teacherId
-        ? `/api/chat/conversations?teacherId=${teacherId}`
-        : bookingId
-        ? `/api/chat/conversations?bookingId=${encodeURIComponent(bookingId)}`
-        : "/api/chat/conversations";
-      const res = await fetch(url, { headers: getAuthHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        setConversations(data.conversations || []);
-        if (data.booking) setSessionContext(data.booking);
-        const requested =
-          (data.activeConversation as Conversation | null) ||
-          (conversationId
-            ? (data.conversations || []).find((c: Conversation) => c.id === conversationId)
-            : undefined);
-        if (requested && !isSilent) {
-          setActiveConv(requested);
-        } else if (data.conversations && data.conversations.length > 0 && !activeConv) {
-          setActiveConv(data.conversations[0]);
-        } else if (activeConv) {
-          // Update active conversation in place without clearing history
-          const updated = (data.conversations || []).find((c: Conversation) => c.id === activeConv.id);
-          if (updated) setActiveConv(updated);
-        }
+    (async () => {
+      // Ouverture directe d'un fil depuis la fiche d'un professeur : on passe
+      // par l'endpoint dédié qui crée la conversation si besoin.
+      if (teacherId) {
+        try {
+          const res = await fetch(`/api/chat/conversations?teacherId=${encodeURIComponent(teacherId)}`, {
+            headers: getAuthHeaders(),
+          });
+          const data = await res.json();
+          const target = (data.activeConversation as Conversation | null) || null;
+          if (target) {
+            activeIdRef.current = target.id;
+            setActiveConv(target);
+            lastSyncRef.current = new Date().toISOString();
+          }
+        } catch {}
       }
-    } catch {} finally {
-      if (!isSilent) setLoading(false);
-    }
-  }
+      await syncChat();
+      setLoading(false);
+    })();
+
+    // Sondage adaptatif : coupé net quand l'onglet est masqué ou la fenêtre
+    // en arrière-plan, relancé immédiatement au retour. Aucune requête ne
+    // part pendant que l'utilisateur ne regarde pas la page.
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      if (timer) return;
+      timer = setInterval(() => {
+        if (document.visibilityState === "visible") syncChat();
+      }, POLL_INTERVAL_MS);
+    };
+    const stopPolling = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        syncChat();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      clearTimeout(boot);
+      stopPolling();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [getAuthHeaders, syncChat]);
+
+  // Défilement automatique uniquement si l'utilisateur est déjà en bas du fil :
+  // sinon on lui arrachait sa position de lecture toutes les 2 secondes.
+  const messageCount = activeConv?.messages.length ?? 0;
+  useEffect(() => {
+    if (!shouldAutoScrollRef.current) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+  }, [messageCount]);
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -179,33 +331,75 @@ export default function MessagesPage() {  const router = useRouter();
     }
   }
 
+  /**
+   * Envoi optimiste : le message apparaît immédiatement dans le fil, puis on
+   * réconcilie avec la réponse serveur. Le champ est vidé dans le même clic,
+   * donc l'interface répond sans attendre le réseau.
+   */
   async function handleSendMessage(e?: React.FormEvent) {
     if (e) e.preventDefault();
     if ((!text.trim() && !attachedFile) || !activeConv) return;
 
-    const messageText = text.trim() ? (attachedFile ? `${text.trim()}\n📎 ${attachedFile.name}: ${attachedFile.url}` : text.trim()) : `📎 ${attachedFile?.name}: ${attachedFile?.url}`;
+    const conversationId = activeConv.id;
+    const messageText = text.trim()
+      ? attachedFile
+        ? `${text.trim()}\n📎 ${attachedFile.name}: ${attachedFile.url}`
+        : text.trim()
+      : `📎 ${attachedFile?.name}: ${attachedFile?.url}`;
+
+    const tempId = `pending-${Date.now()}`;
+    const optimistic = {
+      id: tempId,
+      conversationId,
+      senderId: currentUserId,
+      senderName: "Vous",
+      senderRole: (userRole === "TEACHER" ? "TEACHER" : "STUDENT") as "TEACHER" | "STUDENT",
+      text: messageText,
+      createdAt: new Date(),
+    };
+
     setText("");
     setAttachedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    shouldAutoScrollRef.current = true;
+    setActiveConv((prev) => (prev ? { ...prev, messages: [...prev.messages, optimistic] } : null));
     setPending(true);
 
     try {
       const res = await fetch("/api/chat/messages", {
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify({
-          conversationId: activeConv.id,
-          text: messageText,
-        }),
+        body: JSON.stringify({ conversationId, text: messageText }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.message) {
-          setActiveConv((prev) => prev ? { ...prev, messages: [...prev.messages, data.message] } : null);
-        }
+        // Remplace le message temporaire par le message confirmé du serveur.
+        setActiveConv((prev) => {
+          if (!prev || prev.id !== conversationId) return prev;
+          const withoutTemp = prev.messages.filter((m) => m.id !== tempId);
+          return data.message ? { ...prev, messages: [...withoutTemp, data.message] } : { ...prev, messages: withoutTemp };
+        });
+        lastSyncRef.current = new Date().toISOString();
+        syncChat();
+      } else {
+        // Échec : on retire le message fantôme plutôt que de laisser croire
+        // qu'il a été envoyé.
+        setActiveConv((prev) =>
+          prev && prev.id === conversationId
+            ? { ...prev, messages: prev.messages.filter((m) => m.id !== tempId) }
+            : prev,
+        );
+        setText(messageText);
       }
-    } catch {} finally {
+    } catch {
+      setActiveConv((prev) =>
+        prev && prev.id === conversationId
+          ? { ...prev, messages: prev.messages.filter((m) => m.id !== tempId) }
+          : prev,
+      );
+      setText(messageText);
+    } finally {
       setPending(false);
     }
   }
@@ -243,6 +437,7 @@ export default function MessagesPage() {  const router = useRouter();
       if (data.message) {
         setActiveConv((prev) => prev ? { ...prev, messages: [...prev.messages, data.message] } : null);
         setShowOfferModal(false);
+        lastSyncRef.current = new Date().toISOString();
       }
     } catch {
       setOfferPending(false);
@@ -267,7 +462,8 @@ export default function MessagesPage() {  const router = useRouter();
       }
 
       alert("Offre acceptée et séance réservée avec succès ! Le montant a été prélevé de votre portefeuille.");
-      fetchConversations(null, true);
+      lastSyncRef.current = null;
+      syncChat();
     } catch {
       alert("Erreur de connexion.");
     }
@@ -280,7 +476,8 @@ export default function MessagesPage() {  const router = useRouter();
         headers: getAuthHeaders(),
       });
       if (res.ok) {
-        fetchConversations(null, true);
+        lastSyncRef.current = null;
+        syncChat();
       }
     } catch {}
   }
@@ -350,11 +547,15 @@ export default function MessagesPage() {  const router = useRouter();
           ) : (
             conversations.map((c) => {
               const otherName = userRole === "TEACHER" ? c.studentName : c.teacherName;
-              const isActive = activeConv?.id === c.id;
+              // Comparaison sur l'état React, jamais sur la ref : lire une ref
+              // pendant le rendu donne un affichage qui peut ne pas se mettre à
+              // jour (et React l'interdit). La ref reste réservée à la boucle
+              // de sondage, qui n'a pas besoin de re-rendre.
+              const isActive = activeConvId === c.id;
               return (
                 <div
                   key={c.id}
-                  onClick={() => setActiveConv(c)}
+                  onClick={() => openConversation(c)}
                   className={`flex items-center gap-3 rounded-2xl p-3.5 cursor-pointer transition ${
                     isActive ? "bg-[#11233f] text-white shadow-md" : "hover:bg-slate-50 text-slate-700"
                   }`}
@@ -369,7 +570,7 @@ export default function MessagesPage() {  const router = useRouter();
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold truncate">{otherName}</p>
                     <p className={`text-[11px] truncate mt-0.5 ${isActive ? "text-slate-300" : "text-slate-400"}`}>
-                      {c.messages.length > 0 ? c.messages[c.messages.length - 1].text : "Nouvelle discussion"}
+                      {c.messageCount > 0 ? `${c.messageCount} message${c.messageCount > 1 ? "s" : ""}` : "Nouvelle discussion"}
                     </p>
                   </div>
                 </div>
@@ -433,94 +634,18 @@ export default function MessagesPage() {  const router = useRouter();
               </div>
 
               {/* Messages Feed */}
-              <div className="flex-1 overflow-y-auto py-4 space-y-4 max-h-[420px] pr-2">
-                {activeConv.messages.map((m) => {
-                  const isMe = m.senderId === currentUserId;
-                  const isSystem = m.senderRole === "ADMIN";
-
-                  if (isSystem) {
-                    return (
-                      <div key={m.id} className="text-center py-2">
-                        <span className="inline-block rounded-full bg-slate-100 px-4 py-1.5 text-[11px] font-semibold text-slate-500">
-                          {m.text}
-                        </span>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div key={m.id} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
-                      <span className="text-[10px] font-bold text-slate-400 mb-1 px-1">
-                        {m.senderName}
-                      </span>
-                      <div
-                        className={`max-w-[85%] rounded-3xl p-4 text-xs leading-relaxed ${
-                          isMe
-                            ? "bg-[#11233f] text-white rounded-br-xs shadow-sm"
-                            : "bg-slate-100 text-slate-800 rounded-bl-xs"
-                        }`}
-                      >
-                        <p>{m.text}</p>
-
-                        {/* Custom Offer Card in Chat (Permanently Saved in History) */}
-                        {m.offer && (
-                          <div className="mt-3 rounded-2xl bg-white p-4 border border-slate-200 text-slate-800 shadow-md space-y-2.5">
-                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d8d78]">
-                                Offre Sur-Mesure
-                              </span>
-                              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
-                                m.offer.status === "ACCEPTED"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : m.offer.status === "REJECTED"
-                                  ? "bg-rose-100 text-rose-700"
-                                  : "bg-amber-100 text-amber-800"
-                              }`}>
-                                {m.offer.status === "ACCEPTED" ? "✓ Acceptée" : m.offer.status === "REJECTED" ? "✕ Refusée" : "En attente"}
-                              </span>
-                            </div>
-
-                            <div>
-                              <p className="font-bold text-sm text-[#11233f]">{m.offer.subject}</p>
-                              <div className="mt-1 flex flex-wrap items-center gap-3 text-slate-500 text-[11px]">
-                                <span>Durée : {m.offer.durationMinutes} min</span>
-                                <span>Date : {new Date(m.offer.startsAt).toLocaleDateString("fr-TN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                              <span className="text-xs text-slate-500">Tarif proposé :</span>
-                              <span className="text-base font-extrabold text-[#0d8d78]">
-                                {m.offer.amountTnd} DT
-                              </span>
-                            </div>
-
-                            {/* Action Buttons for Student */}
-                            {userRole === "STUDENT" && m.offer.status === "PENDING" && (
-                              <div className="pt-2 flex gap-2">
-                                <button
-                                  onClick={() => handleAcceptOffer(m.offer!)}
-                                  className="flex-1 rounded-xl bg-[#0d8d78] py-2 text-center text-xs font-bold text-white transition hover:bg-[#0b7866]"
-                                >
-                                  Accepter l'offre ({m.offer.amountTnd} DT) →
-                                </button>
-                                <button
-                                  onClick={() => handleRejectOffer(m.offer!)}
-                                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100"
-                                >
-                                  Refuser
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-[9px] text-slate-400 mt-1 px-1">
-                        {new Date(m.createdAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                  );
-                })}
+              <div className="flex-1 overflow-y-auto overscroll-contain py-4 space-y-4 max-h-[420px] pr-2">
+                {activeConv.messages.map((m) => (
+                  <MessageBubble
+                    key={m.id}
+                    message={m}
+                    isMe={m.senderId === currentUserId}
+                    isSystem={m.senderRole === "ADMIN"}
+                    canRespondToOffer={userRole === "STUDENT"}
+                    onAcceptOffer={handleAcceptOffer}
+                    onRejectOffer={handleRejectOffer}
+                  />
+                ))}
                 <div ref={messagesEndRef} />
               </div>
 

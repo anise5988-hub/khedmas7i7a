@@ -159,6 +159,9 @@ body {
 
 .profy-reveal {
   animation: profy-reveal 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Les animations sont purement opacity/transform, donc composées sur le
+     GPU : elles ne déclenchent ni layout ni paint pendant le défilement. */
+  will-change: opacity, transform;
 }
 .profy-reveal-delay-1 { animation-delay: 100ms; }
 .profy-reveal-delay-2 { animation-delay: 200ms; }
@@ -170,11 +173,36 @@ body {
 }
 
 .card-hover {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* `all` faisait surveiller chaque propriété animable (dont des propriétés
+     coûteuses comme box-shadow) sur chaque survol ; on cible explicitement
+     les deux seules qui bougent. */
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 35px -10px rgba(17, 35, 63, 0.1), 0 0 1px 1px rgba(13, 141, 120, 0.15);
+}
+
+/*
+ * Rendu différé des sections hors écran.
+ *
+ * Sur une longue page (accueil, annuaire, tableaux de bord), le navigateur
+ * calculait la mise en page et peignait tout le document d'un coup. Avec
+ * `content-visibility: auto`, il saute le rendu des blocs tant qu'ils ne
+ * s'approchent pas de la fenêtre, tout en réservant leur hauteur via
+ * `contain-intrinsic-size` pour que la barre de défilement ne saute pas.
+ * Le contenu reste dans le DOM (donc l'accessibilité et le référencement
+ * sont intacts) — c'est uniquement le travail de rendu qui est évité.
+ */
+.profy-defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+/* Défilement fluide uniquement pour les ancres internes, jamais imposé
+   globalement (scroll-behavior: smooth sur html pénalise le scroll manuel). */
+.profy-smooth-anchor {
+  scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {

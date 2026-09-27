@@ -35,6 +35,16 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      {
+        // Les fichiers de /public (logos, illustrations, polices locales)
+        // n'avaient aucune politique de cache : le navigateur les
+        // revalideait à chaque navigation. Sur une connexion mobile lente,
+        // c'est un aller-retour réseau évitable à chaque page.
+        // immutable est sûr ici : ces fichiers portent un nom stable mais ne
+        // changent qu'avec un déploiement, et on les sert avec un ETag.
+        source: "/:path*.(png|jpg|jpeg|gif|webp|avif|svg|ico|woff|woff2|ttf)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }],
+      },
     ];
   },
 };

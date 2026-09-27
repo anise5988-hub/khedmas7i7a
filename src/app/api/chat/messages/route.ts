@@ -1,7 +1,53 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { getConversationById, sendMessage } from "@/lib/server/chat-repository";
+import { getConversationById, getConversationMessages, sendMessage } from "@/lib/server/chat-repository";
 import { notifyUser } from "@/lib/server/notification-service";
+
+/**
+ * GET /api/chat/messages?conversationId=…
+ *
+ * Historique borné d'UNE conversation. Remplace l'ancien chargement massif qui
+ * renvoyait tous les messages de toutes les conversations à chaque sondage.
+ * L'appartenance de l'appelant à la conversation est vérifiée ici : un
+ * identifiant deviné ne donne accès à rien.
+ */
+export async function GET(request: Request) {
+  const user = await getCurrentUser(request);
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const conversationId = searchParams.get("conversationId");
+  if (!conversationId) {
+    return NextResponse.json({ error: "Conversation ID requis" }, { status: 400 });
+  }
+
+  try {
+    const conv = await getConversationById(conversationId);
+    if (!conv) {
+      return NextResponse.json({ error: "Conversation introuvable" }, { status: 404 });
+    }
+    if (user.id !== conv.studentId && user.id !== conv.teacherId) {
+      return NextResponse.json({ error: "Vous ne faites pas partie de cette conversation." }, { status: 403 });
+    }
+
+    const { messages, truncated } = await getConversationMessages(conversationId);
+    return NextResponse.json(
+      {
+        messages,
+        truncated,
+        lastMessageAt: conv.lastMessageAt,
+        studentName: conv.studentName,
+        teacherName: conv.teacherName,
+      },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
+  } catch (error) {
+    console.error("Chat history fetch failed", error);
+    return NextResponse.json({ error: "Impossible de charger les messages." }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   const user = await getCurrentUser(request);

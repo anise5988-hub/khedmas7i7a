@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 
 export type NotificationItem = {
   id: string;
@@ -53,7 +53,7 @@ export function NotificationCenter({ dark = false }: { dark?: boolean }) {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
       const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
@@ -65,14 +65,55 @@ export function NotificationCenter({ dark = false }: { dark?: boolean }) {
         setUnreadCount(data.unreadCount || 0);
       }
     } catch {}
-  };
+  }, []);
+
+  /**
+   * Sondage minimal : uniquement le nombre de non-lues, sans les 50 lignes
+   * d'avis. La pastille se met donc à jour sans transférer ni re-rendre la
+   * liste tant que le panneau n'est pas ouvert.
+   */
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
+      const headers: Record<string, string> = userId ? { "x-user-id": userId } : {};
+      const res = await fetch("/api/notifications?scope=count", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadCount((prev) => (prev === data.unreadCount ? prev : data.unreadCount || 0));
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
-    Promise.resolve().then(() => fetchNotifications());
+    // Hors du corps synchrone de l'effet : évite un rendu en cascade au montage.
+    const initial = setTimeout(fetchUnreadCount, 0);
 
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 15000); // refresh every 15s
+    // Aucun sondage en arrière-plan : la cloche ne se rafraîchit que lorsque
+    // l'onglet est réellement visible, et immédiatement au retour.
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => {
+        if (document.visibilityState === "visible") fetchUnreadCount();
+      }, 30000);
+    };
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchUnreadCount();
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    if (document.visibilityState === "visible") start();
+    document.addEventListener("visibilitychange", onVisibility);
 
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -82,10 +123,19 @@ export function NotificationCenter({ dark = false }: { dark?: boolean }) {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      clearInterval(interval);
+      clearTimeout(initial);
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [fetchUnreadCount]);
+
+  // La liste complète n'est chargée qu'à l'ouverture du panneau.
+  useEffect(() => {
+    if (!open) return;
+    const initial = setTimeout(fetchNotifications, 0);
+    return () => clearTimeout(initial);
+  }, [open, fetchNotifications]);
 
   async function handleMarkAsRead(id?: string) {
     setLoading(true);

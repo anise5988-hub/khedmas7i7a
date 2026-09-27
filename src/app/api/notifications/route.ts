@@ -8,9 +8,40 @@ export async function GET(request: Request) {
     return NextResponse.json({ notifications: [], unreadCount: 0 }, { status: 200 });
   }
 
+  const { searchParams } = new URL(request.url);
+
+  // Sondage léger : la cloche n'a besoin que du compteur pour afficher sa
+  // pastille. Renvoyer 50 avis complets toutes les 15 s sur chaque page
+  // coûtait une requête Base et un transfert inutiles (et déclenchait un
+  // rendu de la liste même fermée).
+  if (searchParams.get("scope") === "count") {
+    try {
+      const unreadCount = await prisma.notification.count({
+        where: { userId: user.id, read: false },
+      });
+      return NextResponse.json(
+        { unreadCount },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    } catch (error) {
+      console.error("Notification count failed", error);
+      return NextResponse.json({ error: "Impossible de charger le compteur." }, { status: 500 });
+    }
+  }
+
   try {
-    const notifications = await prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 50 });
-    return NextResponse.json({ notifications, unreadCount: notifications.filter((notification) => !notification.read).length });
+    const notifications = await prisma.notification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+    return NextResponse.json(
+      {
+        notifications,
+        unreadCount: notifications.filter((notification) => !notification.read).length,
+      },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
   } catch (error) {
     console.error("Notifications fetch failed", error);
     return NextResponse.json({ error: "Impossible de charger les notifications." }, { status: 500 });

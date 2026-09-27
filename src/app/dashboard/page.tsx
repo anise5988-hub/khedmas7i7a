@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SiteNavbar } from "@/components/site-navbar";
 import { AchievementBadges } from "@/components/achievement-badges";
 import { SessionCommunication } from "@/components/session-communication";
@@ -324,8 +325,12 @@ export default function StudentDashboard() {
                             href={`/teachers/${fav.slug}`}
                             className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 transition hover:border-[#0d8d78]/30 hover:bg-[#e5f7f2]/30 dark:border-white/10 dark:bg-white/[.03] dark:hover:border-[#72d6bf]/30 dark:hover:bg-[#72d6bf]/10"
                           >
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#11233f] text-sm font-bold text-white">
-                              {fav.name.slice(0, 2).toUpperCase()}
+                            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#11233f] text-sm font-bold text-white">
+                              {fav.avatarUrl ? (
+                                <Image src={fav.avatarUrl} alt={fav.name} fill sizes="48px" className="object-cover" />
+                              ) : (
+                                fav.name.slice(0, 2).toUpperCase()
+                              )}
                             </div>
                             <div className="min-w-0">
                               <h3 className="truncate font-bold text-sm">{fav.name}</h3>
@@ -449,8 +454,18 @@ export default function StudentDashboard() {
                         href={`/teachers/${teacher.slug}`}
                         className="flex flex-col items-center rounded-2xl border border-slate-100 bg-slate-50/50 p-5 text-center transition hover:border-[#0d8d78]/30 hover:bg-[#e5f7f2]/30 dark:border-white/10 dark:bg-white/[.03] dark:hover:border-[#72d6bf]/30 dark:hover:bg-[#72d6bf]/10"
                       >
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#11233f] text-xl font-bold text-white">
-                          {teacher.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                        <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#11233f] text-xl font-bold text-white">
+                          {teacher.avatarUrl ? (
+                            <Image
+                              src={teacher.avatarUrl}
+                              alt={teacher.name}
+                              fill
+                              sizes="64px"
+                              className="object-cover"
+                            />
+                          ) : (
+                            teacher.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
+                          )}
                         </div>
                         <h3 className="mt-3 font-bold text-sm">{teacher.name}</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400">{teacher.title}</p>

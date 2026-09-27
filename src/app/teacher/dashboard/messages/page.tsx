@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { SiteNavbar } from "@/components/site-navbar";
 import { Conversation } from "@/lib/server/chat-store";
 import {
@@ -11,6 +11,7 @@ import {
   IconPaperclip,
   IconFileText,
 } from "@/components/icons";
+import { MessageBubble } from "@/components/message-bubble";
 
 type SessionContext = {
   id: string;
@@ -21,6 +22,24 @@ type SessionContext = {
   studentName?: string;
 };
 
+/** Résumé léger d'une conversation renvoyé par /api/chat/poll (sans messages). */
+type ConversationSummary = {
+  id: string;
+  studentId: string;
+  studentName: string;
+  teacherId: string;
+  teacherName: string;
+  teacherSlug?: string;
+  lastMessageAt: string;
+  messageCount: number;
+};
+
+/**
+ * Intervalle de sondage. La boucle s'arrête complètement quand l'onglet est
+ * masqué : plus aucune requête ni rendu tant que personne ne regarde.
+ */
+const POLL_INTERVAL_MS = 2500;
+
 const SESSION_STATUS_LABELS: Record<string, string> = {
   PENDING: "En attente",
   CONFIRMED: "Confirmée",
@@ -29,7 +48,7 @@ const SESSION_STATUS_LABELS: Record<string, string> = {
 };
 
 export default function TeacherMessagesPage() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [text, setText] = useState("");
@@ -40,6 +59,8 @@ export default function TeacherMessagesPage() {
   const [sessionContext, setSessionContext] = useState<SessionContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setPending] = useState(false);
+  /** Fil ouvert, pour l'affichage. `activeIdRef` sert à la boucle de sondage. */
+  const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [currentUserId] = useState<string>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -68,65 +89,163 @@ export default function TeacherMessagesPage() {
   const [offerError, setOfferError] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Dépendances stables pour la boucle de sondage, état le plus récent lu via refs.
+  const activeIdRef = useRef<string | null>(null);
+  const lastSyncRef = useRef<string | null>(null);
+  const inFlightRef = useRef(false);
+  const shouldAutoScrollRef = useRef(true);
 
-  function getAuthHeaders(): Record<string, string> {
+  const getAuthHeaders = useCallback((): Record<string, string> => {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (userId) headers["x-user-id"] = userId;
     return headers;
-  }
-
-  async function fetchConversations(isSilent = false) {
-    if (!isSilent) setLoading(true);
-    try {
-      const bookingId =
-        typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingId") : null;
-      const url = bookingId
-        ? `/api/chat/conversations?bookingId=${encodeURIComponent(bookingId)}`
-        : "/api/chat/conversations";
-      const res = await fetch(url, { headers: getAuthHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        const convs = data.conversations || [];
-        setConversations(convs);
-        if (data.booking) setSessionContext(data.booking);
-        // Une conversation ciblée par l'URL (séance ou liste de gauche) est
-        // prioritaire : sinon on retombe sur la plus récente.
-        const requestedId =
-          typeof window !== "undefined"
-            ? new URLSearchParams(window.location.search).get("conversationId")
-            : null;
-        const requested =
-          (data.activeConversation as Conversation | null) ||
-          (requestedId ? convs.find((c: Conversation) => c.id === requestedId) : undefined);
-
-        if (requested && !isSilent) {
-          setActiveConv(requested);
-        } else if (convs.length > 0 && !activeConv && !isSilent) {
-          setActiveConv(convs[0]);
-        } else if (activeConv) {
-          const updated = convs.find((c: Conversation) => c.id === activeConv.id);
-          if (updated) setActiveConv(updated);
-        }
-      }
-    } catch {} finally {
-      if (!isSilent) setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchConversations();
-    const interval = setInterval(() => {
-      fetchConversations(true);
-    }, 2500);
-
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Ouvre un fil : historique chargé une fois, puis suivi par le sondage
+   * différentiel. L'en-tête s'affiche immédiatement, sans attendre le réseau.
+   */
+  const openConversation = useCallback(
+    async (summary: ConversationSummary) => {
+      activeIdRef.current = summary.id;
+      setActiveConvId(summary.id);
+      shouldAutoScrollRef.current = true;
+      setActiveConv({
+        id: summary.id,
+        studentId: summary.studentId,
+        studentName: summary.studentName,
+        teacherId: summary.teacherId,
+        teacherName: summary.teacherName,
+        teacherSlug: summary.teacherSlug,
+        lastMessageAt: summary.lastMessageAt as unknown as Date,
+        messages: [],
+      });
+
+      try {
+        const res = await fetch(`/api/chat/messages?conversationId=${encodeURIComponent(summary.id)}`, {
+          headers: getAuthHeaders(),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setActiveConv((prev) =>
+          prev && prev.id === summary.id ? { ...prev, messages: data.messages || [] } : prev,
+        );
+        lastSyncRef.current = new Date().toISOString();
+      } catch {}
+    },
+    [getAuthHeaders],
+  );
+
+  /**
+   * Une passe de synchronisation = un seul aller-retour : liste des
+   * conversations + historique du fil ouvert uniquement s'il a changé.
+   */
+  const syncChat = useCallback(async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    try {
+      const params =
+        typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+      const query = new URLSearchParams();
+      if (activeIdRef.current) query.set("active", activeIdRef.current);
+      if (lastSyncRef.current) query.set("since", lastSyncRef.current);
+      const bookingId = params.get("bookingId");
+      if (bookingId) query.set("bookingId", bookingId);
+
+      const res = await fetch(`/api/chat/poll?${query.toString()}`, { headers: getAuthHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      const summaries: ConversationSummary[] = data.conversations || [];
+      setConversations(summaries);
+      if (data.booking) setSessionContext(data.booking);
+      if (data.serverTime) lastSyncRef.current = data.serverTime;
+
+      const activeId: string | null = data.activeConversationId || null;
+
+      // Premier chargement : on privilégie le fil ciblé par l'URL (séance ou
+      // lien direct), sinon la conversation la plus récente.
+      if (!activeIdRef.current && activeId) {
+        const requestedId = params.get("conversationId");
+        const target =
+          (requestedId && summaries.find((s) => s.id === requestedId)) ||
+          summaries.find((s) => s.id === activeId) ||
+          summaries[0];
+        if (target) await openConversation(target);
+        return;
+      }
+
+      // Rafraîchissement : on ne met à jour que si le contenu a bougé.
+      if (data.messagesChanged && activeId && activeIdRef.current === activeId) {
+        const incoming = data.messages || [];
+        setActiveConv((prev) => {
+          if (!prev || prev.id !== activeId) return prev;
+          const last = prev.messages[prev.messages.length - 1];
+          const incomingLast = incoming[incoming.length - 1];
+          if (last && incomingLast && last.id === incomingLast.id && prev.messages.length === incoming.length) {
+            return prev;
+          }
+          return { ...prev, messages: incoming };
+        });
+      }
+    } catch {} finally {
+      inFlightRef.current = false;
+    }
+  }, [getAuthHeaders, openConversation]);
+
+  useEffect(() => {
+    syncChat().finally(() => setLoading(false));
+
+    // Sondage adaptatif : aucune requête quand l'onglet est masqué ou la
+    // fenêtre en arrière-plan, reprise immédiate au retour.
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const startPolling = () => {
+      if (timer) return;
+      timer = setInterval(() => {
+        if (document.visibilityState === "visible") syncChat();
+      }, POLL_INTERVAL_MS);
+    };
+    const stopPolling = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        syncChat();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [syncChat]);
+
+  // Défilement automatique seulement si l'utilisateur est déjà en bas.
+  const messageCount = activeConv?.messages.length ?? 0;
+  useEffect(() => {
+    if (!shouldAutoScrollRef.current) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+  }, [messageCount]);
+
+  /**
+   * Envoi optimiste : le message s'affiche immédiatement, le champ est vidé
+   * dans le même clic, puis on réconcilie avec la réponse du serveur.
+   */
   async function handleSendMessage(e?: React.FormEvent) {
     if (e) e.preventDefault();
     if ((!text.trim() && !attachedFile) || !activeConv) return;
+
+    const conversationId = activeConv.id;
 
     // Le fil est un chat texte côté serveur : on transmet la pièce jointe
     // comme un lien cliquable, comme le fait déjà l'espace élève.
@@ -136,28 +255,59 @@ export default function TeacherMessagesPage() {
         : text.trim()
       : `📎 ${attachedFile?.name}: ${attachedFile?.url}`;
 
+    const tempId = `pending-${Date.now()}`;
+    const optimistic = {
+      id: tempId,
+      conversationId,
+      senderId: currentUserId,
+      senderName: "Vous",
+      senderRole: "TEACHER" as const,
+      text: messageText,
+      createdAt: new Date(),
+    };
+
     setText("");
     setAttachedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    shouldAutoScrollRef.current = true;
+    setActiveConv((prev) => (prev ? { ...prev, messages: [...prev.messages, optimistic] } : null));
     setPending(true);
 
     try {
       const res = await fetch("/api/chat/messages", {
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify({
-          conversationId: activeConv.id,
-          text: messageText,
-        }),
+        body: JSON.stringify({ conversationId, text: messageText }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.message) {
-          setActiveConv((prev) => (prev ? { ...prev, messages: [...prev.messages, data.message] } : null));
-        }
+        setActiveConv((prev) => {
+          if (!prev || prev.id !== conversationId) return prev;
+          const withoutTemp = prev.messages.filter((m) => m.id !== tempId);
+          return data.message
+            ? { ...prev, messages: [...withoutTemp, data.message] }
+            : { ...prev, messages: withoutTemp };
+        });
+        lastSyncRef.current = new Date().toISOString();
+        syncChat();
+      } else {
+        // Échec : on retire le message fantôme et on rend le texte à l'utilisateur.
+        setActiveConv((prev) =>
+          prev && prev.id === conversationId
+            ? { ...prev, messages: prev.messages.filter((m) => m.id !== tempId) }
+            : prev,
+        );
+        setText(messageText);
       }
-    } catch {} finally {
+    } catch {
+      setActiveConv((prev) =>
+        prev && prev.id === conversationId
+          ? { ...prev, messages: prev.messages.filter((m) => m.id !== tempId) }
+          : prev,
+      );
+      setText(messageText);
+    } finally {
       setPending(false);
     }
   }
@@ -217,9 +367,10 @@ export default function TeacherMessagesPage() {
       }
 
       if (data.message) {
-        setActiveConv((prev) => (prev ? { ...prev, messages: [...prev.messages, data.message] } : null));
-        setShowOfferModal(false);
-      }
+          setActiveConv((prev) => (prev ? { ...prev, messages: [...prev.messages, data.message] } : null));
+          setShowOfferModal(false);
+          lastSyncRef.current = new Date().toISOString();
+        }
     } catch {
       setOfferPending(false);
       setOfferError("Erreur de connexion.");
@@ -293,12 +444,13 @@ export default function TeacherMessagesPage() {
                 </div>
               ) : (
                 filteredConversations.map((c) => {
-                  const isActive = activeConv?.id === c.id;
-                  const lastMsg = c.messages[c.messages.length - 1];
+                  // Comparaison sur l'état React, jamais sur la ref : lire une
+                  // ref pendant le rendu peut laisser un surlignage périmé.
+                  const isActive = activeConvId === c.id;
                   return (
                     <div
                       key={c.id}
-                      onClick={() => setActiveConv(c)}
+                      onClick={() => openConversation(c)}
                       className={`flex items-center gap-3 rounded-2xl p-3 cursor-pointer transition ${
                         isActive ? "bg-[#11233f] text-white shadow-md" : "hover:bg-slate-50 text-slate-700 dark:hover:bg-white/10 dark:text-slate-300"
                       }`}
@@ -313,14 +465,14 @@ export default function TeacherMessagesPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-bold truncate">{c.studentName}</p>
-                          {lastMsg && (
-                            <span className={`text-[9px] font-mono ${isActive ? "text-slate-300" : "text-slate-400 dark:text-slate-500"}`}>
-                              {new Date(lastMsg.createdAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
-                            </span>
-                          )}
+                          <span className={`text-[9px] font-mono ${isActive ? "text-slate-300" : "text-slate-400 dark:text-slate-500"}`}>
+                            {new Date(c.lastMessageAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
                         </div>
                         <p className={`text-[11px] truncate mt-0.5 ${isActive ? "text-slate-300" : "text-slate-400 dark:text-slate-500"}`}>
-                          {lastMsg ? lastMsg.text : "Nouvelle discussion"}
+                          {c.messageCount > 0
+                            ? `${c.messageCount} message${c.messageCount > 1 ? "s" : ""}`
+                            : "Nouvelle discussion"}
                         </p>
                       </div>
                     </div>
@@ -386,90 +538,18 @@ export default function TeacherMessagesPage() {
                 </div>
 
                 {/* Messages Feed */}
-                <div className="flex-1 overflow-y-auto py-4 space-y-4 max-h-[440px] pr-2">
-                  {activeConv.messages.map((m) => {
-                    const isMe = m.senderId === currentUserId || m.senderRole === "TEACHER";
-                    const isSystem = m.senderRole === "ADMIN";
-
-                    if (isSystem) {
-                      return (
-                        <div key={m.id} className="text-center py-2">
-                          <span className="inline-block rounded-full bg-slate-100 px-4 py-1.5 text-[11px] font-semibold text-slate-500 dark:bg-white/10 dark:text-slate-400">
-                            {m.text}
-                          </span>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div key={m.id} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
-                        <span className="text-[10px] font-bold text-slate-400 mb-1 px-1 dark:text-slate-500">
-                          {isMe ? "Vous (Professeur)" : m.senderName}
-                        </span>
-                        <div
-                          className={`max-w-[85%] rounded-3xl p-4 text-xs leading-relaxed ${
-                            isMe
-                              ? "bg-[#11233f] text-white rounded-br-xs shadow-sm"
-                              : "bg-slate-100 text-slate-800 rounded-bl-xs dark:bg-white/10 dark:text-slate-200"
-                          }`}
-                        >
-                          <p>{m.text}</p>
-
-                          {/* Custom Offer Box */}
-                          {m.offer && (
-                            <div className="mt-3 rounded-2xl bg-white p-4 border border-slate-200 text-slate-800 shadow-md space-y-2.5 dark:bg-[#101b2d] dark:border-white/15 dark:text-slate-200">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-2 dark:border-white/10">
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d8d78] dark:text-[#72d6bf]">
-                                  Offre Sur-Mesure Envoyée
-                                </span>
-                                <span
-                                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
-                                    m.offer.status === "ACCEPTED"
-                                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-                                      : m.offer.status === "REJECTED"
-                                      ? "bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"
-                                      : "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
-                                  }`}
-                                >
-                                  {m.offer.status === "ACCEPTED"
-                                    ? "✓ Acceptée par l'élève"
-                                    : m.offer.status === "REJECTED"
-                                    ? "✕ Refusée"
-                                    : "En attente de réponse"}
-                                </span>
-                              </div>
-
-                              <div>
-                                <p className="font-bold text-sm text-[#11233f] dark:text-white">{m.offer.subject}</p>
-                                <div className="mt-1 flex flex-wrap items-center gap-3 text-slate-500 text-[11px] dark:text-slate-400">
-                                  <span>Durée : {m.offer.durationMinutes} min</span>
-                                  <span>
-                                    Date :{" "}
-                                    {new Date(m.offer.startsAt).toLocaleDateString("fr-TN", {
-                                      day: "numeric",
-                                      month: "short",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/10">
-                                <span className="text-xs text-slate-500 dark:text-slate-400">Tarif proposé :</span>
-                                <span className="text-base font-extrabold text-[#0d8d78] dark:text-[#72d6bf]">
-                                  {m.offer.amountTnd} DT
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-[9px] text-slate-400 mt-1 px-1 font-mono dark:text-slate-500">
-                          {new Date(m.createdAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      </div>
-                    );
-                  })}
+                <div className="flex-1 overflow-y-auto overscroll-contain py-4 space-y-4 max-h-[440px] pr-2">
+                  {activeConv.messages.map((m) => (
+                    <MessageBubble
+                      key={m.id}
+                      message={m}
+                      isMe={m.senderId === currentUserId || m.senderRole === "TEACHER"}
+                      isSystem={m.senderRole === "ADMIN"}
+                      canRespondToOffer={false}
+                      onAcceptOffer={() => {}}
+                      onRejectOffer={() => {}}
+                    />
+                  ))}
                   <div ref={messagesEndRef} />
                 </div>
 
