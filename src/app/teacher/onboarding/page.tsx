@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
-import { subjects, governorates } from "@/lib/domain/catalog";
+import { governorates } from "@/lib/domain/catalog";
+import { useSubjectCatalog } from "@/lib/hooks/use-subject-catalog";
 import { IconCamera, IconCheck, IconShield, IconUser } from "@/components/icons";
 
 const documentTypeLabels: Record<string, string> = {
@@ -47,6 +48,7 @@ export default function TeacherOnboardingPage() {
   const [online, setOnline] = useState(true);
   const [inPerson, setInPerson] = useState(false);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(["Mathématiques"]);
+  const subjectOptions = useSubjectCatalog();
   const [availabilities, setAvailabilities] = useState<{ [dayIndex: number]: { start: string; end: string; enabled: boolean } }>({
     0: { start: "17:00", end: "20:00", enabled: true },
     1: { start: "17:00", end: "20:00", enabled: true },
@@ -461,20 +463,20 @@ export default function TeacherOnboardingPage() {
             <p className="text-xs text-slate-500">Sélectionnez les matières que vous maîtrisez :</p>
 
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4">
-              {subjects.map((subj) => {
-                const isSelected = selectedSubjects.includes(subj);
+              {subjectOptions.map((subj) => {
+                const isSelected = selectedSubjects.includes(subj.name);
                 return (
                   <button
                     type="button"
-                    key={subj}
-                    onClick={() => toggleSubject(subj)}
+                    key={subj.id ?? subj.name}
+                    onClick={() => toggleSubject(subj.name)}
                     className={`flex items-center justify-between rounded-xl border p-3 text-left text-xs font-semibold transition ${
                       isSelected
                         ? "border-[#0d8d78] bg-[#e5f7f2] text-[#0d8d78] ring-1 ring-[#0d8d78]"
                         : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                     }`}
                   >
-                    <span>{subj}</span>
+                    <span>{subj.name}</span>
                     <span>{isSelected ? "✓" : "+"}</span>
                   </button>
                 );

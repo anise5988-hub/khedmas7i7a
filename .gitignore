@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local QA scripts & artifacts (throwaway browser/DB harnesses — never shared)
 .qa-*
+
+# scratch file for composing commit messages
+.commit-msg.txt

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SiteNavbar } from "@/components/site-navbar";
-import { governorates, subjects as allSubjects, educationLevels } from "@/lib/domain/catalog";
+import { governorates, educationLevels } from "@/lib/domain/catalog";
+import { useSubjectCatalog } from "@/lib/hooks/use-subject-catalog";
 import {
   IconCheckCircle,
   IconAlertCircle,
@@ -40,6 +41,7 @@ export default function TeacherProfilePage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(["Mathématiques"]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const subjectOptions = useSubjectCatalog();
   const [availabilities, setAvailabilities] = useState<AvailabilitySlot[]>([
     { dayOfWeek: 0, startTime: "17:00", endTime: "20:00" },
     { dayOfWeek: 2, startTime: "17:00", endTime: "20:00" },
@@ -313,13 +315,13 @@ export default function TeacherProfilePage() {
               <p className="text-xs text-slate-500 dark:text-slate-400">Sélectionnez les matières que vous maîtrisez :</p>
 
               <div className="flex flex-wrap gap-2">
-                {allSubjects.map((subj) => {
-                  const isSelected = selectedSubjects.includes(subj);
+                {subjectOptions.map((subj) => {
+                  const isSelected = selectedSubjects.includes(subj.name);
                   return (
                     <button
                       type="button"
-                      key={subj}
-                      onClick={() => toggleSubject(subj)}
+                      key={subj.id ?? subj.name}
+                      onClick={() => toggleSubject(subj.name)}
                       className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
                         isSelected
                           ? "bg-[#0d8d78] text-white shadow-xs"
@@ -327,7 +329,7 @@ export default function TeacherProfilePage() {
                       }`}
                     >
                       {isSelected ? "✓ " : "+ "}
-                      {subj}
+                      {subj.name}
                     </button>
                   );
                 })}

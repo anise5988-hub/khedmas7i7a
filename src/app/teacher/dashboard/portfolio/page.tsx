@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SiteNavbar } from "@/components/site-navbar";
-import { subjects as allSubjects, educationLevels } from "@/lib/domain/catalog";
+import { educationLevels } from "@/lib/domain/catalog";
+import { useSubjectCatalog } from "@/lib/hooks/use-subject-catalog";
 import {
   IconPlus,
   IconTrash,
@@ -68,7 +69,13 @@ export default function TeacherPortfolioPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<PortfolioItemType>("IMAGE");
-  const [subject, setSubject] = useState<string>(allSubjects[0] ?? "Mathématiques");
+  const [subject, setSubject] = useState<string>("");
+  const subjectOptions = useSubjectCatalog();
+  // Masque le sélecteur tant que la première option n'est pas connue : garde `subject`
+  // aligné sur le catalogue admin sans setState dans un effet.
+  const effectiveSubject = subjectOptions.some((s) => s.name === subject)
+    ? subject
+    : subjectOptions[0]?.name ?? "";
   const [level, setLevel] = useState<string>("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
@@ -99,7 +106,7 @@ export default function TeacherPortfolioPage() {
     setTitle("");
     setDescription("");
     setType("IMAGE");
-    setSubject(allSubjects[0] ?? "Mathématiques");
+    setSubject(subjectOptions[0]?.name ?? "Mathématiques");
     setLevel("");
     setMediaUrl("");
     setExternalUrl("");
@@ -176,7 +183,7 @@ export default function TeacherPortfolioPage() {
           title: title.trim(),
           description: description.trim(),
           type,
-          subject,
+          subject: effectiveSubject,
           level,
           mediaUrl,
           externalUrl: externalUrl.trim(),
@@ -356,13 +363,13 @@ export default function TeacherPortfolioPage() {
                   Matière
                 </label>
                 <select
-                  value={subject}
+                  value={effectiveSubject}
                   onChange={(e) => setSubject(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 p-3.5 text-sm outline-none focus:border-[#0d8d78] dark:border-white/15 dark:bg-[#162844] dark:text-white"
                 >
-                  {allSubjects.map((s) => (
-                    <option key={s} value={s} className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">
-                      {s}
+                  {subjectOptions.map((s) => (
+                    <option key={s.id ?? s.name} value={s.name} className="bg-white text-[#11233f] dark:bg-[#11233f] dark:text-white">
+                      {s.name}
                     </option>
                   ))}
                 </select>

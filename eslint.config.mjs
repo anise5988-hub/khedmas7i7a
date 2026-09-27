@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone QA scripts executed with `node`, not part of the app build.
+    "*.cjs",
   ]),
 ]);
 
