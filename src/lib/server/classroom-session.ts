@@ -3,9 +3,12 @@ import { prisma } from "@/lib/server/prisma";
 import { createDailyRoom, createDailyMeetingToken, isDailyConfigured } from "@/lib/server/daily";
 import { maybeAwardReferralBonus } from "@/lib/server/referral";
 
-const JOIN_WINDOW_BEFORE_MINUTES = 10;
 const JOIN_WINDOW_AFTER_MINUTES = 60; // grace period for lessons running over
 const ROOM_EXPIRY_AFTER_MINUTES = JOIN_WINDOW_AFTER_MINUTES + 30; // buffer past the join grace period
+
+// Not applied right now — the join window is disabled in getJoinWindow().
+// Kept so the previous behaviour can be restored with one edit.
+const JOIN_WINDOW_BEFORE_MINUTES = 10;
 
 function generateRoomName(bookingId: string): string {
   // The booking id alone isn't secret (visible in dashboard URLs), so the
@@ -54,15 +57,19 @@ export async function mintJoinToken(session: { roomName: string; roomUrl: string
 }
 
 export function getJoinWindow(session: { scheduledStart: Date; scheduledEnd: Date }) {
-  const opensAt = new Date(session.scheduledStart.getTime() - JOIN_WINDOW_BEFORE_MINUTES * 60_000);
-  const closesAt = new Date(session.scheduledEnd.getTime() + JOIN_WINDOW_AFTER_MINUTES * 60_000);
-  const now = new Date();
+  // The join window is intentionally disabled: a participant can enter the room
+  // at any time, before or after the scheduled slot. The booking still decides
+  // *who* may join (see authorizeBookingParticipant), which is the check that
+  // actually protects a private session; the clock no longer decides *when*.
+  // Re-enable by restoring the opensAt/closesAt comparisons below.
+  const opensAt = session.scheduledStart;
+  const closesAt = session.scheduledEnd;
   return {
     opensAt,
     closesAt,
-    canJoinNow: now >= opensAt && now <= closesAt,
-    isTooEarly: now < opensAt,
-    isTooLate: now > closesAt,
+    canJoinNow: true,
+    isTooEarly: false,
+    isTooLate: false,
   };
 }
 

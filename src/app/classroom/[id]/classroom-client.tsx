@@ -111,8 +111,13 @@ export function ClassroomClient({
   const [deviceCheck, setDeviceCheck] = useState<DeviceCheck | null>(null);
   const [isCheckingDevices, setIsCheckingDevices] = useState(false);
   const [hasEnteredRoom, setHasEnteredRoom] = useState(false);
-  const [joinWindow, setJoinWindow] = useState<{ canJoin: boolean; opensAt: string; closesAt: string } | null>(null);
-  const [nowTick, setNowTick] = useState(() => Date.now());
+  const [joinWindow, setJoinWindow] = useState<{
+    canJoin: boolean;
+    opensAt: string;
+    closesAt: string;
+    isTooEarly: boolean;
+    isTooLate: boolean;
+  } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
@@ -167,7 +172,13 @@ export function ClassroomClient({
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (!cancelled && data) {
-            setJoinWindow({ canJoin: data.canJoin, opensAt: data.opensAt, closesAt: data.closesAt });
+            setJoinWindow({
+              canJoin: data.canJoin,
+              opensAt: data.opensAt,
+              closesAt: data.closesAt,
+              isTooEarly: data.isTooEarly === true,
+              isTooLate: data.isTooLate === true,
+            });
           }
         })
         .catch(() => {});
@@ -180,12 +191,6 @@ export function ClassroomClient({
       clearInterval(interval);
     };
   }, [bookingId, hasEnteredRoom]);
-
-  useEffect(() => {
-    if (hasEnteredRoom) return;
-    const interval = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, [hasEnteredRoom]);
 
   // Load chat/notes history once on entry.
   useEffect(() => {
@@ -386,18 +391,13 @@ export function ClassroomClient({
     },
   ];
 
-  // The server poll only refreshes every 15s, but the on-screen countdown
-  // ticks every second — deriving the actual open/closed state from the
-  // client clock against the server-supplied opensAt/closesAt keeps the
-  // button unlocking exactly when the countdown hits 00:00 instead of
-  // lagging up to 15s behind it. joinWindow.canJoin (which also covers the
-  // admin bypass) still wins if the server already says yes.
-  const effectiveCanJoin = joinWindow
-    ? joinWindow.canJoin ||
-      (nowTick >= new Date(joinWindow.opensAt).getTime() && nowTick <= new Date(joinWindow.closesAt).getTime())
-    : false;
-  const effectiveIsTooEarly = joinWindow ? !effectiveCanJoin && nowTick < new Date(joinWindow.opensAt).getTime() : false;
-  const effectiveIsTooLate = joinWindow ? !effectiveCanJoin && nowTick > new Date(joinWindow.closesAt).getTime() : false;
+  // The time window is disabled server-side: getJoinWindow() always reports
+  // canJoinNow, so the room is open before and after the scheduled slot. The
+  // server still owns the decision — if it ever refuses a join, the flags it
+  // sends back (isTooEarly/isTooLate) are what the UI reacts to.
+  const effectiveCanJoin = joinWindow ? joinWindow.canJoin : false;
+  const effectiveIsTooEarly = joinWindow ? joinWindow.isTooEarly === true : false;
+  const effectiveIsTooLate = joinWindow ? joinWindow.isTooLate === true : false;
 
   if (!hasEnteredRoom) {
     return (
@@ -420,17 +420,9 @@ export function ClassroomClient({
               </span>
             </div>
             {effectiveIsTooEarly && (
-              <div className="pt-2 border-t border-white/10 text-center">
-                <p className="text-[11px] text-amber-300 font-bold uppercase tracking-wider">La salle ouvre dans</p>
-                <p className="text-xl font-mono font-extrabold text-[#72d6bf]">
-                  {(() => {
-                    const diffSec = Math.max(0, Math.floor((new Date(joinWindow!.opensAt).getTime() - nowTick) / 1000));
-                    const m = Math.floor(diffSec / 60).toString().padStart(2, "0");
-                    const s = (diffSec % 60).toString().padStart(2, "0");
-                    return `${m}:${s}`;
-                  })()}
-                </p>
-              </div>
+              <p className="pt-2 border-t border-white/10 text-center text-xs font-bold text-amber-300">
+                La salle n&apos;est pas encore ouverte. Réessayez plus tard.
+              </p>
             )}
             {effectiveIsTooLate && (
               <p className="pt-2 border-t border-white/10 text-center text-xs font-bold text-rose-300">

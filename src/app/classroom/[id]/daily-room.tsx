@@ -165,11 +165,9 @@ export const DailyRoom = forwardRef<DailyRoomHandle, {
           return;
         }
         if (!data.canJoin) {
-          setError(
-            data.isTooEarly
-              ? `La salle ouvre 10 minutes avant l'heure prévue (${new Date(data.opensAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}).`
-              : "Cette séance est terminée et la salle n'est plus accessible.",
-          );
+          // Reachable only when the server refuses the join for a reason other
+          // than the clock (the time window is disabled server-side).
+          setError(data.error || "La salle n'est pas accessible pour le moment.");
           onStatusChange?.("error");
           return;
         }
