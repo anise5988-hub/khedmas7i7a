@@ -20,6 +20,13 @@ type Booking = {
   createdAt: string;
 };
 
+const BOOKING_STATUS_LABELS: Record<string, string> = {
+  PENDING: "En attente",
+  CONFIRMED: "Confirmée",
+  COMPLETED: "Terminée",
+  CANCELLED: "Refusée / Annulée",
+};
+
 export default function StudentClassesPage() {
   const [activeTab, setActiveTab] = useState<"BOOKINGS" | "COURSES">("BOOKINGS");
   const [bookingFilter, setBookingFilter] = useState<"ALL" | "UPCOMING" | "PAST">("ALL");
@@ -243,13 +250,19 @@ export default function StudentClassesPage() {
                           ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300"
                           : b.status === "COMPLETED"
                           ? "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300"
+                          : b.status === "CANCELLED"
+                          ? "bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"
                           : "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
                       }`}
                     >
-                      {b.status}
+                      {BOOKING_STATUS_LABELS[b.status] ?? b.status}
                     </span>
 
-                    {b.status === "COMPLETED" ? (
+                    {b.status === "PENDING" ? (
+                      <span className="rounded-xl border border-amber-300 px-4 py-2.5 text-xs font-bold text-amber-700 dark:border-amber-500/30 dark:text-amber-300">
+                        En attente du professeur
+                      </span>
+                    ) : b.status === "COMPLETED" ? (
                       reviewedTeacherIds.has(b.teacherId) ? (
                         <span className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-400 dark:border-white/15 dark:text-slate-500">
                           Avis publié ✓
@@ -262,7 +275,7 @@ export default function StudentClassesPage() {
                           ⭐ Laisser un avis
                         </button>
                       )
-                    ) : (
+                    ) : b.status === "CANCELLED" ? null : (
                       <Link
                         href={`/classroom/${b.id}`}
                         className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"

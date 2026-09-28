@@ -174,7 +174,7 @@ export async function POST(
       title: "Réservation confirmée ! ",
       message: `Votre séance pour "${existingOffer.subject}" avec ${existingOffer.teacherName} est confirmée.`,
       emailSubject: `Votre réservation pour "${existingOffer.subject}" est confirmée`,
-      link: "/dashboard/bookings",
+      link: "/dashboard/classes",
       dedupeKey: `offer_accept_student:${offerId}`,
     }),
   ]);

@@ -3,7 +3,6 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { bookingRequestSchema } from "@/lib/validation/booking";
 import { notifyUser } from "@/lib/server/notification-service";
-import { creditTeacherEarning } from "@/lib/server/earnings";
 import { promoteRecordingIfReady } from "@/lib/server/classroom-session";
 
 export async function GET(request: Request) {
@@ -148,10 +147,14 @@ export async function POST(request: Request) {
     try {
       booking = await prisma.$transaction(
         async (tx) => {
+          // A slot is unavailable as soon as another request holds it, not
+          // just once the teacher confirms — otherwise two students could
+          // both pay for the same overlapping time and the teacher could
+          // only ever accept one.
           const candidates = await tx.booking.findMany({
             where: {
               teacherId: teacher.id,
-              status: "CONFIRMED",
+              status: { in: ["CONFIRMED", "PENDING"] },
               startsAt: { lt: newEnd, gte: new Date(newStart.getTime() - MAX_DURATION_MS) },
             },
             select: { startsAt: true, durationMinutes: true },
@@ -164,6 +167,13 @@ export async function POST(request: Request) {
             throw new Error("SLOT_CONFLICT");
           }
 
+          // PENDING, not CONFIRMED — this is a request to the teacher, who
+          // must explicitly accept or decline (see /accept and /decline)
+          // before the slot is really theirs and before they see a cent of
+          // it. The student's payment is taken up front either way, held
+          // against the booking rather than the teacher's wallet, so a
+          // decline can refund it in full with nothing to unwind on the
+          // teacher's side.
           const newBooking = await tx.booking.create({
             data: {
               studentId: user.id,
@@ -171,15 +181,15 @@ export async function POST(request: Request) {
               startsAt: parsed.data.startsAt,
               durationMinutes: parsed.data.durationMinutes,
               amountMillimes: amountToUse,
-              status: "CONFIRMED",
+              status: "PENDING",
             },
           });
 
           // A session may only be created against money the student actually
           // holds. Debiting and creating the booking must happen together: a
-          // booking with an unpaid Payment would stay CONFIRMED forever (no
+          // booking with an unpaid Payment would stay PENDING forever (no
           // code path ever settles a PENDING payment after a top-up), locking
-          // the slot and leaving the teacher unpaid.
+          // the slot for nothing.
           const reserved = wallet
             ? await tx.wallet.updateMany({
                 where: { id: wallet.id, availableMillimes: { gte: amountToUse } },
@@ -209,11 +219,7 @@ export async function POST(request: Request) {
             },
           });
 
-          await creditTeacherEarning(tx, {
-            teacherUserId: teacher.userId,
-            grossAmountMillimes: amountToUse,
-            reference: `EARN-BOOK-${newBooking.id}`,
-          });
+          // Not credited to the teacher yet — see POST /api/bookings/[id]/accept.
 
           return newBooking;
         },
@@ -251,13 +257,32 @@ export async function POST(request: Request) {
     }
 
     const teacherUser = await prisma.teacherProfile.findUnique({ where: { id: teacher.id }, select: { userId: true } });
-    const bookingLink = `/dashboard/bookings?bookingId=${booking.id}`;
     await Promise.all([
-      notifyUser({ userId: user.id, type: "NEW_BOOKING", title: "Demande de réservation envoyée", message: "Votre demande de séance a été envoyée au professeur.", emailSubject: "Votre demande de réservation Profy a été envoyée", link: bookingLink, dedupeKey: `booking:${booking.id}:student` }),
-      ...(teacherUser ? [notifyUser({ userId: teacherUser.userId, type: "NEW_BOOKING", title: "Nouvelle demande de réservation", message: `${user.firstName} ${user.lastName} souhaite réserver une séance.`, emailSubject: "Vous avez une nouvelle demande de séance sur Profy", link: bookingLink, dedupeKey: `booking:${booking.id}:teacher` })] : []),
+      notifyUser({
+        userId: user.id,
+        type: "NEW_BOOKING",
+        title: "Demande de réservation envoyée",
+        message: "Votre demande de séance a été envoyée au professeur. Vous serez notifié dès qu'il l'aura acceptée.",
+        emailSubject: "Votre demande de réservation Profy a été envoyée",
+        link: "/dashboard/classes",
+        dedupeKey: `booking:${booking.id}:student`,
+      }),
+      ...(teacherUser
+        ? [
+            notifyUser({
+              userId: teacherUser.userId,
+              type: "NEW_BOOKING",
+              title: "Nouvelle demande de réservation",
+              message: `${user.firstName} ${user.lastName} souhaite réserver une séance. Acceptez ou refusez la demande.`,
+              emailSubject: "Vous avez une nouvelle demande de séance sur Profy",
+              link: "/teacher/dashboard/bookings",
+              dedupeKey: `booking:${booking.id}:teacher`,
+            }),
+          ]
+        : []),
     ]);
 
-    return NextResponse.json({ success: true, bookingId: booking.id, status: booking.status, message: "Séance réservée avec succès !" }, { status: 201 });
+    return NextResponse.json({ success: true, bookingId: booking.id, status: booking.status, message: "Demande de réservation envoyée au professeur ! Vous serez notifié dès sa réponse." }, { status: 201 });
   } catch (error) {
     console.error("Booking creation failed", error);
     return NextResponse.json({ error: "Impossible de créer la réservation." }, { status: 500 });

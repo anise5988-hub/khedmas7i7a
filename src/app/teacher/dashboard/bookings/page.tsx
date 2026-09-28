@@ -54,6 +54,8 @@ const RECORDING_COLORS: Record<string, string> = {
 export default function TeacherBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     fetch("/api/bookings")
@@ -70,6 +72,26 @@ export default function TeacherBookingsPage() {
     );
   }
 
+  async function decide(bookingId: string, action: "accept" | "decline") {
+    setDecidingId(bookingId);
+    setActionError("");
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/${action}`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setActionError(data.error || "Action impossible.");
+        return;
+      }
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, status: action === "accept" ? "CONFIRMED" : "CANCELLED" } : b)),
+      );
+    } catch {
+      setActionError("Erreur de connexion au serveur.");
+    } finally {
+      setDecidingId(null);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f] dark:bg-[#0c1626] dark:text-white">
       <SiteNavbar dark={false} />
@@ -79,6 +101,12 @@ export default function TeacherBookingsPage() {
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Retrouvez les cours programmés avec vos élèves et rejoignez la classe virtuelle.
         </p>
+
+        {actionError && (
+          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-800 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
+            {actionError}
+          </div>
+        )}
 
         {loading ? (
           <div className="py-20 text-center text-slate-400 dark:text-slate-500">Chargement...</div>
@@ -124,7 +152,24 @@ export default function TeacherBookingsPage() {
                       {RECORDING_LABELS[b.recordingStatus]}
                     </span>
                   )}
-                  {b.recordingStatus === "AVAILABLE" && b.recordingUrl ? (
+                  {b.status === "PENDING" ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => decide(b.id, "accept")}
+                        disabled={decidingId === b.id}
+                        className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50"
+                      >
+                        {decidingId === b.id ? "..." : "Accepter"}
+                      </button>
+                      <button
+                        onClick={() => decide(b.id, "decline")}
+                        disabled={decidingId === b.id}
+                        className="rounded-xl border border-rose-300 px-4 py-2.5 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50 dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                      >
+                        Refuser
+                      </button>
+                    </div>
+                  ) : b.recordingStatus === "AVAILABLE" && b.recordingUrl ? (
                     <a
                       href={b.recordingUrl}
                       target="_blank"

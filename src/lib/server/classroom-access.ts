@@ -100,6 +100,19 @@ export async function getBookingAccess(
     return { ok: false, code: "CANCELLED", status: 403, error: "Cette séance a été annulée. La classe n'est plus accessible." };
   }
 
+  if (booking.status === "PENDING" && !party.isAdmin) {
+    // Neither side has anything to join yet — the teacher must accept or
+    // decline the request first. Applies to the teacher too, not just the
+    // student: opening a live room for a booking nobody has confirmed makes
+    // no sense on either end.
+    return {
+      ok: false,
+      code: "BOOKING_NOT_CONFIRMED",
+      status: 403,
+      error: "Cette séance n'a pas encore été confirmée par le professeur.",
+    };
+  }
+
   if (party.isStudent && !party.isAdmin) {
     // A student can only enter a room that is paid for — an unpaid reservation
     // (PENDING wallet payment, failed provider payment) must not open the
@@ -111,14 +124,6 @@ export async function getBookingAccess(
         code: "PAYMENT_NOT_CONFIRMED",
         status: 402,
         error: "Le paiement de cette séance n'est pas confirmé. La classe sera accessible après confirmation.",
-      };
-    }
-    if (booking.status === "PENDING") {
-      return {
-        ok: false,
-        code: "BOOKING_NOT_CONFIRMED",
-        status: 403,
-        error: "Cette séance n'a pas encore été confirmée par le professeur.",
       };
     }
   }
