@@ -46,6 +46,7 @@ type TeacherData = {
   levels: string[];
   rating: number;
   reviewsCount: number;
+  badges?: { slug: string; title: string }[];
   availabilities: { id: string; dayOfWeek: number; startTime: string; endTime: string }[];
   reviews: { id: string; studentName: string; rating: number; comment: string | null; photoUrl?: string | null; teacherReply?: string | null; createdAt: string }[];
   portfolio?: PortfolioItem[];
@@ -349,6 +350,20 @@ export function TeacherProfileClient({ slug }: { slug: string }) {
                       </span>
                     )}
                   </div>
+
+                  {teacher.badges && teacher.badges.length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      {teacher.badges.map((badge) => (
+                        <span
+                          key={badge.slug}
+                          className="inline-flex items-center gap-1 rounded-xl bg-[#e5f7f2] border border-[#0d8d78]/20 text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:border-[#72d6bf]/30 px-2.5 py-1 text-xs font-bold dark:text-[#72d6bf]"
+                        >
+                          <IconCheckCircle className="h-3.5 w-3.5" />
+                          {badge.title}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Rating Box on Desktop */}

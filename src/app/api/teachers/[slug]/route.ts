@@ -3,6 +3,7 @@ import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
 import { getPublicPortfolio } from "@/lib/server/portfolio";
 import { sortLevelSlugs } from "@/lib/domain/catalog";
+import { getTeacherAchievements } from "@/lib/server/achievements";
 
 export async function GET(
   request: Request,
@@ -14,7 +15,7 @@ export async function GET(
     const profile = await prisma.teacherProfile.findUnique({
       where: { slug },
       include: {
-        user: { select: { firstName: true, lastName: true, email: true, phone: true } },
+        user: { select: { firstName: true, lastName: true, email: true, phone: true, createdAt: true } },
         subjects: { select: { subject: true } },
         levels: { select: { levelSlug: true } },
         availabilities: true,
@@ -44,6 +45,12 @@ export async function GET(
       const portfolio =
         profile.verificationStatus === "APPROVED" ? await getPublicPortfolio(profile.id) : [];
 
+      // Only earned badges are shown publicly — a "locked" badge is useful
+      // context on the teacher's own dashboard, but on a profile visitors
+      // use to decide whether to book, it would read as a shortcoming.
+      const achievements = await getTeacherAchievements(profile.id, profile.user.createdAt);
+      const badges = achievements.filter((a) => a.earned).map((a) => ({ slug: a.slug, title: a.title }));
+
       return NextResponse.json({
         id: profile.id,
         userId: profile.userId,
@@ -66,6 +73,7 @@ export async function GET(
         availabilities: profile.availabilities,
         rating: avgRating,
         reviewsCount: profile.reviews.length,
+        badges,
         portfolio: portfolio.map((item) => ({
           id: item.id,
           title: item.title,
@@ -127,6 +135,7 @@ export async function GET(
       availabilities: t.availabilities,
       rating: t.rating ?? 5.0,
       reviewsCount: t.reviewsCount ?? (t.reviews?.length || 0),
+      badges: [],
       portfolio: [],
       reviews: t.reviews?.map((r) => ({
         id: r.id,
