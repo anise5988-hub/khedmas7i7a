@@ -41,8 +41,27 @@ export async function GET(request: Request, { params }: { params: Promise<{ book
   });
   if (!booking) return NextResponse.json({ error: "Cette séance n'existe pas." }, { status: 404 });
 
-  const session = await getOrCreateClassroomSession(bookingId, booking.startsAt, booking.durationMinutes);
+  let session = await getOrCreateClassroomSession(bookingId, booking.startsAt, booking.durationMinutes);
   if (!session) return NextResponse.json({ error: "Séance introuvable." }, { status: 404 });
+
+  // The session's schedule is only ever set once, at first creation — if the
+  // booking is later rescheduled (POST /api/bookings/[id]/reschedule), that
+  // endpoint updates Booking.startsAt but has no reason to know a
+  // ClassroomSession row already exists for it, so the session's cached
+  // scheduledStart/scheduledEnd silently goes stale. That stale end time
+  // then drives the room-expiry check just below with the wrong timestamp.
+  // Re-derive from the booking (fetched fresh above) on every request so a
+  // reschedule can never leave this permanently out of sync.
+  const correctScheduledEnd = new Date(booking.startsAt.getTime() + booking.durationMinutes * 60_000);
+  if (
+    session.scheduledStart.getTime() !== booking.startsAt.getTime() ||
+    session.scheduledEnd.getTime() !== correctScheduledEnd.getTime()
+  ) {
+    session = await prisma.classroomSession.update({
+      where: { bookingId },
+      data: { scheduledStart: booking.startsAt, scheduledEnd: correctScheduledEnd },
+    });
+  }
 
   // Rooms are always open. A Daily room carries its own `exp` timestamp set
   // to scheduledEnd + 90min — past that the provider rejects the join token

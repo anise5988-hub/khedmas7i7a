@@ -82,7 +82,14 @@ export async function createDailyMeetingToken(
         // default can silently drop a capability.
         permissions: {
           canSend: ["video", "audio", ...(opts?.canScreenShare === false ? [] : ["screenVideo", "screenAudio"])],
-          canAdmin: isOwner ? ["participants", "recording"] : [],
+          // Daily's `canAdmin` only accepts participants/streaming/transcription
+          // now — "recording" is rejected outright with a 400, which was
+          // silently failing every host's join-token mint (host joins always
+          // request is_owner: true) and showing up as a permanently disabled
+          // "Rejoindre la classe" button. Recording start/stop goes through
+          // its own dedicated token (createDailyRecordingToken below), so the
+          // join token only needs "participants" for host UI controls.
+          canAdmin: isOwner ? ["participants"] : [],
         },
         // Short-lived — minted fresh on every join request rather than
         // reused, so it can't be captured once and replayed long after.
@@ -116,7 +123,10 @@ export async function createDailyRecordingToken(roomName: string): Promise<strin
       properties: {
         room_name: roomName,
         is_owner: true,
-        permissions: { canAdmin: ["recording"] },
+        // Daily renamed/folded the old "recording" canAdmin value into
+        // "streaming" — the literal string "recording" is now rejected with
+        // a 400 (see createDailyMeetingToken above for the same fix).
+        permissions: { canAdmin: ["streaming"] },
         exp: Math.floor(Date.now() / 1000) + 60 * 30,
       },
     }),

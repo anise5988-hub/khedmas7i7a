@@ -426,8 +426,16 @@ export function ClassroomClient({
       setPreviewError(null);
       const videoTrack = stream.getVideoTracks()[0];
       const audioTrack = stream.getAudioTracks()[0];
-      setMicEnabled(audioTrack?.enabled ?? true);
-      setCamEnabled(videoTrack?.enabled ?? true);
+      // This is the very first camera/mic acquisition for this visit — there's
+      // no prior user choice to respect yet, so force both on rather than
+      // trusting track.enabled, which was intermittently coming back false
+      // right after getUserMedia() and showing an instant "Caméra coupée"
+      // with no user action. (switchPreviewDevice, used for later device
+      // changes, correctly re-applies the user's actual toggle state.)
+      if (audioTrack) audioTrack.enabled = true;
+      if (videoTrack) videoTrack.enabled = true;
+      setMicEnabled(true);
+      setCamEnabled(true);
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all);
       const cams = all.filter((d) => d.kind === "videoinput");
