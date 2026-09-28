@@ -1117,10 +1117,6 @@ export function ClassroomClient({
                   Vous avez été retiré de cette classe.
                 </p>
               )}
-              {sessionError?.code === "NETWORK" && (
-                <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-200">{sessionError.message}</p>
-              )}
-
               <div className="mt-auto flex flex-col gap-2">
                 <button
                   onClick={() => {
