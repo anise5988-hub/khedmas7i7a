@@ -48,14 +48,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ book
   const phase = computePhase(session);
   const { party } = access;
 
-  // Waiting room: the caller must be admitted before receiving a token.
+  // Rooms are always open: lock and waiting-room gating were removed by
+  // product decision, so every authorized participant is admitted directly.
+  // The DB fields remain (default false) but are no longer enforced.
   const callerParticipant = await prisma.classroomParticipant.findUnique({
     where: { sessionId_userId: { sessionId: session.id, userId: user!.id } },
   });
-  const hostWantsWaitingRoom = session.waitingRoomEnabled && !party.isHost;
-  const needsAdmission = hostWantsWaitingRoom && (!callerParticipant || callerParticipant.admission !== "ADMITTED");
+  const needsAdmission = false;
   const removed = callerParticipant?.admission === "REMOVED";
-  const lockedOut = session.locked && !party.isHost && !removed;
+  const lockedOut = false;
   const canJoin = window.canJoinNow || party.isHost;
 
   const waitingQueue = party.isHost

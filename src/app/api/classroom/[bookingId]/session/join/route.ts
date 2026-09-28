@@ -35,12 +35,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ boo
   if (participant?.admission === "REMOVED") {
     return NextResponse.json({ error: "Vous avez été retiré de cette classe." }, { status: 403 });
   }
-  if (session.locked && role === "STUDENT") {
-    return NextResponse.json({ error: "La classe est verrouillée. Attendez que l'enseignant l'ouvre." }, { status: 423 });
-  }
-  if (session.waitingRoomEnabled && role === "STUDENT" && participant?.admission !== "ADMITTED") {
-    return NextResponse.json({ admission: "PENDING", message: "En attente que votre enseignant vous autorise à entrer." });
-  }
+  // Rooms are always open — lock and waiting-room gating were removed by
+  // product decision. Any authorized participant joins directly.
 
   const body = await request.json().catch(() => null);
   const isReconnect = Boolean(body?.isReconnect);

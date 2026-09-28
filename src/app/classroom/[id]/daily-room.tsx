@@ -54,15 +54,22 @@ function toTile(p: DailyParticipant): DailyTile {
   const video = p.tracks.video;
   const audio = p.tracks.audio;
   const screen = p.tracks.screenVideo;
+  // Keep the track object across "interrupted" (bandwidth adaptation, camera
+  // re-acquisition) so the <video> element never unmounts and flash black.
+  // Only a real "off" (user disabled the device) drops the track.
+  const trackLive = (t: { state?: string; persistentTrack?: MediaStreamTrack | null }) =>
+    (t?.state === "playable" || t?.state === "interrupted") && t?.persistentTrack ? t.persistentTrack : null;
+  const localVideoOff = p.local ? Boolean(p.tracks.video?.off) : false;
+  const localAudioOff = p.local ? Boolean(p.tracks.audio?.off) : false;
   return {
     sessionId: p.session_id,
     userName: p.user_name || (p.local ? "Vous" : "Participant"),
     local: p.local,
-    videoTrack: video?.state === "playable" && video.persistentTrack ? video.persistentTrack : null,
-    audioTrack: audio?.state === "playable" && audio.persistentTrack ? audio.persistentTrack : null,
-    screenTrack: screen?.state === "playable" && screen.persistentTrack ? screen.persistentTrack : null,
-    audioOn: !p.local ? audio?.state === "playable" : !p.tracks.audio?.off,
-    videoOn: video?.state === "playable",
+    videoTrack: trackLive(video),
+    audioTrack: trackLive(audio),
+    screenTrack: trackLive(screen),
+    audioOn: p.local ? !localAudioOff : audio?.state === "playable",
+    videoOn: p.local ? !localVideoOff : video?.state === "playable",
     screenOn: screen?.state === "playable",
     audioLevel: (p as unknown as { audioLevel?: number }).audioLevel ?? 0,
     handRaised: Boolean((p as unknown as { handRaised?: boolean }).handRaised),
@@ -129,7 +136,11 @@ function VideoTile({
     audioRef.current.srcObject = tile.audioTrack ? new MediaStream([tile.audioTrack]) : null;
   }, [tile.audioTrack, tile.local]);
 
-  const hasScreen = Boolean(tile.screenOn && tile.screenTrack);
+  // The video element stays mounted whenever a track exists (even briefly
+  // "interrupted" ones) — the avatar is an overlay, not a replacement, so a
+  // bandwidth blip can no longer flash the tile black.
+  const hasScreen = Boolean(tile.screenTrack);
+  const showAvatar = !hasScreen && !tile.videoOn;
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden rounded-2xl bg-[#0c1626] ${
@@ -142,7 +153,7 @@ function VideoTile({
       )}
 
       {/* Camera layer — hidden while sharing a screen */}
-      {tile.videoOn && !hasScreen ? (
+      {tile.videoTrack && !hasScreen ? (
         <video
           ref={videoRef}
           autoPlay
@@ -150,14 +161,17 @@ function VideoTile({
           muted={tile.local}
           className={`h-full w-full ${fit === "contain" ? "object-contain" : "object-cover"}`}
         />
-      ) : !hasScreen ? (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#132238] to-[#0c1626]">
+      ) : null}
+
+      {/* Avatar overlay (video off) — sits above the persistent video element */}
+      {!hasScreen && showAvatar && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#132238] to-[#0c1626]">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#0d8d78] text-xl font-bold text-white">
             {tile.userName.charAt(0).toUpperCase()}
           </div>
           <p className="text-xs font-semibold text-slate-300">{tile.userName}</p>
         </div>
-      ) : null}
+      )}
 
       {!tile.local && !hasScreen && <audio ref={audioRef} autoPlay />}
 
@@ -168,7 +182,7 @@ function VideoTile({
         ) : (
           <IconMicrophoneOff className="h-3 w-3 shrink-0 text-rose-300" />
         )}
-        {!tile.videoOn && <IconCameraOff className="h-3 w-3 shrink-0 text-rose-300" />}
+        {!tile.videoOn && !hasScreen && <IconCameraOff className="h-3 w-3 shrink-0 text-rose-300" />}
         {showQuality && tile.connectionQuality !== "UNKNOWN" && (
           <span className={`text-[10px] font-bold ${qualityColor(tile.connectionQuality)}`}>●</span>
         )}
@@ -522,8 +536,11 @@ export const DailyRoom = forwardRef<
         const hasCamera = Boolean(result?.devices?.some((d) => d.kind === "videoinput"));
         const hasMic = Boolean(result?.devices?.some((d) => d.kind === "audioinput"));
         const local = call.participants()?.local;
-        const videoDead = local?.tracks.video?.state === "interrupted" || local?.tracks.video?.state === "off";
-        const audioDead = local?.tracks.audio?.state === "interrupted" || local?.tracks.audio?.state === "off";
+        // Only re-acquire genuinely interrupted tracks. Cycling a merely
+        // "off" track (user's choice, or a brief bandwidth pause) produces
+        // exactly the black-then-back flicker we're avoiding.
+        const videoDead = local?.tracks.video?.state === "interrupted";
+        const audioDead = local?.tracks.audio?.state === "interrupted";
 
         if (hasCamera && videoDead) {
           call.setLocalVideo(false);
@@ -545,12 +562,12 @@ export const DailyRoom = forwardRef<
 
     window.addEventListener("focus", onVisibility);
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("online", onVisibility);
+    // Note: no "online" listener — a flapping network would cycle the camera
+    // and flash black; Daily's own reconnection handles that case.
 
     return () => {
       window.removeEventListener("focus", onVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("online", onVisibility);
     };
   }, []);
 

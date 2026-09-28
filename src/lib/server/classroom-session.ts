@@ -105,7 +105,8 @@ export async function recordJoin(
       userId,
       role,
       displayName,
-      admission: role === "STUDENT" && session.waitingRoomEnabled ? "PENDING" : "ADMITTED",
+      // Rooms are always open — every participant is admitted directly.
+      admission: "ADMITTED",
       firstJoinedAt: new Date(),
     },
     update: {

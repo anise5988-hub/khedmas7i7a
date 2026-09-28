@@ -801,22 +801,6 @@ export function ClassroomClient({
     await hostAction({ action: "ADMIT_ALL" }, "Tous les participants en attente ont été admis.");
   };
 
-  const toggleLock = async () => {
-    if (!session) return;
-    const next = !session.controls.locked;
-    if (await updateControls({ locked: next })) {
-      showToast(next ? "Classe verrouillée." : "Classe déverrouillée.", "success");
-    }
-  };
-
-  const toggleWaitingRoom = async () => {
-    if (!session) return;
-    const next = !session.controls.waitingRoomEnabled;
-    if (await updateControls({ waitingRoomEnabled: next })) {
-      showToast(next ? "Salle d'attente activée." : "Salle d'attente désactivée.", "success");
-    }
-  };
-
   const toggleStudentPermission = async (key: "studentScreenShareAllowed" | "studentWhiteboardAllowed" | "studentChatEnabled" | "studentReactionsEnabled" | "studentCameraAllowed" | "studentMicAllowed") => {
     if (!session) return;
     const next = !session.controls[key];
@@ -1821,14 +1805,6 @@ export function ClassroomClient({
                         <IconShield className="h-3.5 w-3.5 text-[#72d6bf]" /> Contrôles de la classe
                       </p>
                       <div className="space-y-2">
-                        <label className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-                          Verrouiller la classe
-                          <input type="checkbox" checked={session.controls.locked} onChange={() => void toggleLock()} className="accent-[#72d6bf]" />
-                        </label>
-                        <label className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-                          Salle d'attente
-                          <input type="checkbox" checked={session.controls.waitingRoomEnabled} onChange={() => void toggleWaitingRoom()} className="accent-[#72d6bf]" />
-                        </label>
                         <label className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
                           Partage d'écran élève
                           <input type="checkbox" checked={session.controls.studentScreenShareAllowed} onChange={() => void toggleStudentPermission("studentScreenShareAllowed")} className="accent-[#72d6bf]" />
