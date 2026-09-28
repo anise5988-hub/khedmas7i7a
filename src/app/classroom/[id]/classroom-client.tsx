@@ -921,16 +921,37 @@ export function ClassroomClient({
   const camDevices = devices.filter((d) => d.kind === "videoinput");
   const micDevices = devices.filter((d) => d.kind === "audioinput");
 
+  // Loading state while session data is being fetched
+  if (session === null && !sessionError) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[#0c1626] via-[#101b2d] to-[#0a0f1a] text-white flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl">
+          <div className="grid gap-4 rounded-3xl border border-white/10 bg-white/[.04] p-4 sm:p-6 shadow-2xl sm:grid-cols-[1.2fr_1fr]">
+            <div className="flex flex-col items-center justify-center aspect-video rounded-2xl border border-white/10 bg-[#0c1626]">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#72d6bf] border-t-transparent" />
+              <p className="mt-3 text-sm text-slate-300">Chargement de la séance…</p>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#72d6bf] border-t-transparent" />
+              <p className="text-sm text-slate-300">Préparation de la classe…</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   // Blocking access errors get a dedicated screen (never a raw message).
-  if (sessionError && sessionError.code !== "NETWORK") {
+  if (sessionError) {
     const titles: Record<string, { title: string; message: string }> = {
       UNAUTHORIZED: { title: "Accès refusé", message: "Vous ne faites pas partie de cette séance." },
       NOT_FOUND: { title: "Séance introuvable", message: "Cette réservation n'existe pas ou a été supprimée." },
       CANCELLED: { title: "Séance annulée", message: "Cette séance a été annulée. La classe n'est plus accessible." },
       PAYMENT_NOT_CONFIRMED: { title: "Paiement non confirmé", message: "La classe sera accessible dès que le paiement de la séance sera confirmé." },
       BOOKING_NOT_CONFIRMED: { title: "Réservation en attente", message: "Le professeur n'a pas encore confirmé cette séance." },
+      NETWORK: { title: "Connexion perdue", message: "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez." },
     };
-    const screen = titles[sessionError.code] ?? { title: "Accès refusé", message: sessionError.message };
+    const screen = titles[sessionError.code] ?? { title: "Erreur", message: sessionError.message };
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#101b2d] px-6 text-center text-white">
         <div className="max-w-md rounded-3xl border border-white/10 bg-white/5 p-8">
@@ -939,9 +960,9 @@ export function ClassroomClient({
           </div>
           <h1 className="text-xl font-bold">{screen.title}</h1>
           <p className="mt-2 text-sm text-slate-300">{screen.message}</p>
-          <Link href="/dashboard" className="mt-6 inline-flex rounded-2xl bg-[#0d8d78] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0b7866]">
-            Retour au tableau de bord
-          </Link>
+          <button onClick={() => window.location.reload()} className="mt-6 inline-flex rounded-2xl bg-[#0d8d78] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0b7866]">
+            Réessayer
+          </button>
         </div>
       </main>
     );

@@ -1,0 +1,34 @@
+fix(portfolio): creer la table TeacherPortfolioItem manquante en base
+
+Enregistrer une realisation depuis l'interface professeur repondait
+"Impossible d'enregistrer cette realisation." (HTTP 500) a chaque fois.
+
+La cause n'etait pas dans le code : le modele TeacherPortfolioItem existe
+dans prisma/schema.prisma, mais aucune migration ne le creait. Verifie sur
+les 19 migrations du dossier : aucun CREATE TABLE "TeacherPortfolioItem"
+n'y figurait, et la requete Prisma renvoyait directement
+
+  The table public.TeacherPortfolioItem does not exist in the current
+  database.
+
+Chaque prisma.teacherPortfolioItem.create() echouait donc systematiquement,
+le catch de la route renvoyant le message generique.
+
+La migration ajoute l'enum PortfolioItemType, la table avec ses colonnes,
+l'index (teacherId, isPublic, sortOrder) et la cle etrangere vers
+TeacherProfile avec ON DELETE CASCADE, conformement au schema.
+
+Appliquee a la base : prisma migrate deploy -> 1 migration applied.
+
+Verifie : POST /api/teacher/portfolio avec une session professeur reelle
+renvoie desormais 201 et cree la ligne (500 avant), la lecture des
+realisations fonctionne, et la page portfolio se charge sans erreur console
+ni requete echouee. tsc --noEmit, eslint (0 erreur), 127 tests.
+
+Note : le formulaire envoie un header x-user-id lu depuis localStorage, mais
+aucune route serveur ne le lit — getCurrentUser() ne se fie qu'aux cookies
+signes. Code mort non lie a ce bug, laisse en place.
+
+A VERIFIER : d'autres tables du schema peuvent manquer en base. Le controle
+effectue n'etait pas exhaustif ; tout ecran qui echoue silencieusement avec
+"Impossible de charger..." a probablement la meme cause.
