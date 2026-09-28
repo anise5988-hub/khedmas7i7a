@@ -473,10 +473,14 @@ export const DailyRoom = forwardRef<
           onStatusChange?.("connected");
           onJoined?.();
           refreshTiles();
-          // Stop the preview stream after Daily has successfully joined and taken over the devices
-          if (previewStream) {
-            previewStream.getTracks().forEach((t) => t.stop());
-          }
+          // previewStream's tracks are handed to Daily below as videoSource/
+          // audioSource — Daily uses those exact MediaStreamTrack objects as
+          // its live send tracks, it does not clone them. Calling .stop() on
+          // them here (as this used to) kills the camera/mic mid-call a
+          // moment after joining, since it's the same track Daily is
+          // actively sending. Daily releases them itself on leave()/
+          // destroy() or when a device is switched, so no manual stop is
+          // needed — or safe — here.
         });
 
         call.on("participant-joined", refreshTiles);

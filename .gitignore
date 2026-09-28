@@ -45,3 +45,6 @@ next-env.d.ts
 
 # scratch file for composing commit messages
 .commit-msg.txt
+
+.vercel
+.env*

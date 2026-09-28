@@ -565,7 +565,12 @@ export function ClassroomClient({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("kind", isPdf ? "pdf" : "image");
+      // "attachment" (not "pdf") — the upload route reserves the "pdf" kind
+      // for teacher-only course material and rejects it from students with a
+      // 403, which broke every student PDF attachment in this chat. "image"
+      // and "attachment" are the two kinds any authenticated user may upload,
+      // and "attachment" already accepts both PDFs and images server-side.
+      formData.append("kind", "attachment");
       const response = await fetch("/api/uploads/video", { method: "POST", body: formData });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Envoi impossible.");
