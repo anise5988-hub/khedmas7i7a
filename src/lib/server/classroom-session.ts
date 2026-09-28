@@ -39,9 +39,10 @@ export async function getOrCreateClassroomSession(bookingId: string, startsAt?: 
   const roomName = generateRoomName(bookingId);
 
   let roomUrl: string | null = null;
+  let roomExpiresAt: Date | null = null;
   if (isDailyConfigured()) {
-    const expiresAt = new Date(scheduledEnd!.getTime() + ROOM_EXPIRY_AFTER_MINUTES * 60_000);
-    const room = await createDailyRoom(roomName, expiresAt);
+    roomExpiresAt = new Date(scheduledEnd!.getTime() + ROOM_EXPIRY_AFTER_MINUTES * 60_000);
+    const room = await createDailyRoom(roomName, roomExpiresAt);
     roomUrl = room.url;
   }
 
@@ -51,6 +52,7 @@ export async function getOrCreateClassroomSession(bookingId: string, startsAt?: 
         bookingId,
         roomName,
         roomUrl,
+        roomExpiresAt,
         scheduledStart: startsAt!,
         scheduledEnd,
       },

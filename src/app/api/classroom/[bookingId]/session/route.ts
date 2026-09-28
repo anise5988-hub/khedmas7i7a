@@ -63,23 +63,38 @@ export async function GET(request: Request, { params }: { params: Promise<{ book
     });
   }
 
-  // Rooms are always open. A Daily room carries its own `exp` timestamp set
-  // to scheduledEnd + 90min — past that the provider rejects the join token
-  // even though our authorization still allows it, which looked like "can't
-  // join" with no visible reason. Recreate the room (and refresh the URL)
-  // whenever its lifetime has passed so re-entry always works.
+  // Rooms are always open. A Daily room carries its own `exp` timestamp —
+  // past that the provider rejects the join token even though our
+  // authorization still allows it, which looked like "can't join" with no
+  // visible reason. Recreate the room (and refresh the URL) whenever its
+  // lifetime has passed so re-entry always works.
+  //
+  // Checked against roomExpiresAt (the *current* room's actual exp), not the
+  // immutable scheduledEnd: scheduledEnd never becomes "not expired" again
+  // once passed, so keying off it recreated a brand new Daily room on every
+  // single request from then on, forever. Older rows predating this column
+  // fall back to the original scheduledEnd + 90min estimate once.
   const roomLifetimeMs = 90 * 60_000;
-  const roomExpired = Date.now() > new Date(session.scheduledEnd).getTime() + roomLifetimeMs;
+  const roomExpired = session.roomExpiresAt
+    ? Date.now() > session.roomExpiresAt.getTime()
+    : Date.now() > new Date(session.scheduledEnd).getTime() + roomLifetimeMs;
   let activeSession = session;
   if (roomExpired && isDailyConfigured()) {
     try {
+      const newExpiresAt = new Date(Date.now() + 2 * 60 * 60_000);
       const fresh = await createDailyRoom(
         `profyspace-${bookingId}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
-        new Date(Date.now() + 2 * 60 * 60_000),
+        newExpiresAt,
       );
+      // roomName must move with roomUrl — mintJoinToken() below mints a
+      // token scoped to roomName, but the client joins roomUrl. Updating
+      // only roomUrl left the two pointing at two different Daily rooms,
+      // so the freshly-minted token was rejected outright with "You are
+      // not allowed to join this meeting" on the very room this was
+      // supposed to fix re-entry into.
       activeSession = await prisma.classroomSession.update({
         where: { bookingId },
-        data: { roomUrl: fresh.url },
+        data: { roomUrl: fresh.url, roomName: fresh.name, roomExpiresAt: newExpiresAt },
       });
     } catch (error) {
       console.error("Daily room recreation failed", error);

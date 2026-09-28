@@ -272,6 +272,11 @@ model ClassroomSession {
   roomName        String                 @unique
   // The provider's own join URL for that room (returned when it's created).
   roomUrl         String?
+  // The Daily room's own `exp` — compared against on every join request to
+  // decide whether the room needs recreating, instead of the immutable
+  // scheduledEnd (which, once passed, stays "expired" forever and would
+  // recreate the room on every single request from then on).
+  roomExpiresAt   DateTime?
   status          ClassroomSessionStatus @default(SCHEDULED)
   phase           LessonPhase            @default(SCHEDULED)
   scheduledStart  DateTime

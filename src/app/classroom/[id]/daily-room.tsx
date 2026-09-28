@@ -283,6 +283,14 @@ export const DailyRoom = forwardRef<
   const mountedRef = useRef(true);
   const refreshTilesRef = useRef<(() => void) | null>(null);
   const appMessageHandlerRef = useRef<((data: unknown, fromId: string) => void) | null>(null);
+  // leave()/destroy() are async but the effect cleanup below can't await
+  // them, so a fast remount (React StrictMode's dev double-invoke, or any
+  // future rapid unmount/remount) could call createCallObject() again while
+  // the previous instance is still tearing down — Daily rejects that with
+  // "Duplicate DailyIframe instances are not allowed" and leaves the room in
+  // a broken audio/video state. Track the teardown so the next start() can
+  // wait for it instead of racing it.
+  const pendingTeardownRef = useRef<Promise<void> | null>(null);
 
   // Tiles are pushed to the parent via onTilesChange; the state is kept only
   // so this component re-renders when the meeting composition changes.
@@ -453,6 +461,11 @@ export const DailyRoom = forwardRef<
 
     async function start() {
       try {
+        if (pendingTeardownRef.current) {
+          await pendingTeardownRef.current;
+        }
+        if (!mounted) return;
+
         if (!roomUrl || !joinToken) {
           setError("Le service vidéo n'est pas encore configuré pour cette salle. Réessayez plus tard.");
           onStatusChange?.("error");
@@ -567,8 +580,18 @@ export const DailyRoom = forwardRef<
       window.removeEventListener("beforeunload", sendLeave);
       if (call) {
         sendLeave();
-        call.leave().catch(() => {});
-        call.destroy().catch(() => {});
+        const dying = call;
+        const teardownPromise: Promise<void> = dying
+          .leave()
+          .catch(() => {})
+          .then(() => dying.destroy())
+          .catch(() => {})
+          .then(() => {
+            // Only clear if a newer teardown hasn't already replaced this one
+            // (rapid unmount/remount/unmount in quick succession).
+            if (pendingTeardownRef.current === teardownPromise) pendingTeardownRef.current = null;
+          });
+        pendingTeardownRef.current = teardownPromise;
       }
       callRef.current = null;
     };
