@@ -58,8 +58,8 @@ type TeacherData = {
 type Review = {
   id: string;
   rating: number;
-  comment: string;
-  studentName: string;
+  text: string;
+  name: string;
   createdAt: string;
 };
 
@@ -517,7 +517,7 @@ export default function TeacherDashboardPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-start gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0d8d78]/10 text-[#0d8d78] font-bold text-sm">
-                            {b.student.firstName.charAt(0)}{b.student.lastName.charAt(0)}
+                            {(b.student?.firstName || "?").charAt(0)}{(b.student?.lastName || "").charAt(0)}
                           </div>
                           <div>
                             <h3 className="font-bold text-sm text-[#11233f]">
@@ -581,11 +581,11 @@ export default function TeacherDashboardPage() {
                     <div key={review.id} className="p-4 sm:p-5">
                       <div className="flex items-start gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 font-bold text-sm">
-                          {review.studentName.charAt(0)}
+                          {(review.name || "?").charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <h3 className="font-bold text-sm text-[#11233f] truncate">{review.studentName}</h3>
+                            <h3 className="font-bold text-sm text-[#11233f] truncate">{review.name}</h3>
                             <div className="flex items-center gap-0.5 shrink-0">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <IconStar
@@ -595,7 +595,7 @@ export default function TeacherDashboardPage() {
                               ))}
                             </div>
                           </div>
-                          <p className="text-xs text-slate-600 mt-1 line-clamp-2">{review.comment}</p>
+                          <p className="text-xs text-slate-600 mt-1 line-clamp-2">{review.text}</p>
                           <p className="text-[11px] text-slate-400 mt-1">
                             {new Date(review.createdAt).toLocaleDateString("fr-TN", { day: "numeric", month: "short", year: "numeric" })}
                           </p>
