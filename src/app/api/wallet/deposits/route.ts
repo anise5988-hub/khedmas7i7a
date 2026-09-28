@@ -4,6 +4,7 @@ import { prisma } from "@/lib/server/prisma";
 import { depositSchema } from "@/lib/validation/deposit";
 import { fallbackStore } from "@/lib/server/fallback-store";
 import { validateCoupon } from "@/lib/server/coupons";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -67,6 +68,24 @@ export async function POST(request: Request) {
         couponCode,
       },
     });
+
+    // Admins verify deposits manually (bank transfer / D17 reference check) —
+    // without an alert here, a request sat unnoticed until someone happened
+    // to open the payments page.
+    const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+    await Promise.all(
+      admins.map((admin) =>
+        notifyUser({
+          userId: admin.id,
+          type: "DEPOSIT_REQUESTED",
+          title: "Nouvelle demande de recharge",
+          message: `${user.firstName} ${user.lastName} a demandé une recharge de ${(parsed.data.amountMillimes / 1000).toFixed(1)} DT (${parsed.data.method}).`,
+          emailSubject: "Nouvelle demande de recharge à valider sur Profy",
+          link: "/admin/payments",
+          dedupeKey: `deposit_requested:${deposit.id}`,
+        }),
+      ),
+    );
 
     return NextResponse.json(
       {

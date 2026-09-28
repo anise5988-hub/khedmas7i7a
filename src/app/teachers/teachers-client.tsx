@@ -63,6 +63,7 @@ type Teacher = {
   online: boolean;
   inPerson: boolean;
   verificationStatus?: string;
+  hasFirstLessonBadge?: boolean;
 };
 
 
@@ -93,6 +94,18 @@ function VerifiedBadge() {
     <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
       <IconShield className="h-3 w-3" />
       Vérifié
+    </span>
+  );
+}
+
+function FirstLessonBadge() {
+  return (
+    <span
+      title="A déjà donné un cours sur ProfySpace"
+      className="inline-flex items-center gap-0.5 rounded-full bg-[#e5f7f2] border border-[#0d8d78]/20 px-2 py-0.5 text-[10px] font-bold text-[#0d8d78] dark:bg-[#72d6bf]/15 dark:border-[#72d6bf]/30 dark:text-[#72d6bf]"
+    >
+      <IconSparkles className="h-3 w-3" />
+      1er cours donné
     </span>
   );
 }
@@ -616,6 +629,7 @@ function FilterSidebar({
                               {t.verificationStatus === "APPROVED" && (
                                 <VerifiedBadge />
                               )}
+                              {t.hasFirstLessonBadge && <FirstLessonBadge />}
                             </div>
                             <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{t.title}</p>
                           </div>

@@ -40,13 +40,22 @@ const NOTIFICATION_CATEGORY: Record<string, NotificationCategory> = {
   SUPPORT_TICKET_REPLY: "INFO",
   PAYMENT_SUCCESS: "SUCCESS",
   PAYMENT_FAILED: "WARNING",
+  DEPOSIT_REQUESTED: "INFO",
+  WITHDRAWAL_REQUESTED: "INFO",
+  WITHDRAWAL_APPROVED: "SUCCESS",
+  WITHDRAWAL_REJECTED: "WARNING",
 };
 
 export function getNotificationCategory(type: string): NotificationCategory {
   return NOTIFICATION_CATEGORY[type] ?? "INFO";
 }
 
-export function NotificationCenter({ dark = false }: { dark?: boolean }) {
+export function NotificationCenter({ dark = false, role }: { dark?: boolean; role?: "STUDENT" | "TEACHER" | "ADMIN" }) {
+  // "Voir toutes les notifications" was hardcoded to the student dashboard —
+  // a teacher (or admin) opening it landed on /dashboard/notifications,
+  // a route their own middleware role-gate doesn't let them use.
+  const notificationsHref =
+    role === "TEACHER" ? "/teacher/dashboard/notifications" : role === "ADMIN" ? "/admin/notifications" : "/dashboard/notifications";
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -312,7 +321,7 @@ export function NotificationCenter({ dark = false }: { dark?: boolean }) {
           {/* Footer */}
           <div className="mt-3 border-t border-slate-100 pt-2.5 text-center">
             <Link
-              href="/dashboard/notifications"
+              href={notificationsHref}
               onClick={() => setOpen(false)}
               className="text-xs font-bold text-[#0d8d78] hover:underline"
             >

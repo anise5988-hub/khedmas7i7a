@@ -41,7 +41,9 @@ export async function POST(
     title: "Offre non acceptée",
     message: `${user.firstName} ${user.lastName} n'a pas retenu l'offre pour "${existingOffer.subject}". Vous pouvez lui proposer un autre créneau.`,
     emailSubject: `Mise à jour concernant votre offre pour "${existingOffer.subject}"`,
-    link: `/dashboard/messages?conversationId=${existingOffer.conversationId}`,
+    // This notifies the teacher (existingOffer.teacherId) — /dashboard is
+    // the student route and hits their role-gate, use the teacher one.
+    link: `/teacher/dashboard/messages?conversationId=${existingOffer.conversationId}`,
     dedupeKey: `offer_reject:${offerId}`,
   });
 

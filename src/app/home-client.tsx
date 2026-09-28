@@ -40,6 +40,7 @@ type ApprovedTeacher = {
   rate: number;
   city: string;
   verificationStatus?: string;
+  hasFirstLessonBadge?: boolean;
 };
 
 type RealReview = {
@@ -596,6 +597,14 @@ export function HomePageClient() {
                           {teacher.verificationStatus === "APPROVED" && (
                             <span className="rounded-full bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold">
                               ✓ Vérifié
+                            </span>
+                          )}
+                          {teacher.hasFirstLessonBadge && (
+                            <span
+                              title="A déjà donné un cours sur ProfySpace"
+                              className="rounded-full bg-[#72d6bf]/20 text-[#72d6bf] border border-[#72d6bf]/30 px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold"
+                            >
+                              1er cours donné
                             </span>
                           )}
                         </div>

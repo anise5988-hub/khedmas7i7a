@@ -42,7 +42,9 @@ export async function POST(request: Request) {
       title: "Sécurité : Mot de passe modifié ",
       message: "Le mot de passe de votre compte a été modifié avec succès. Si vous n'êtes pas à l'origine de cette modification, contactez le support.",
       emailSubject: "Votre mot de passe Profy a été modifié",
-      link: "/dashboard",
+      // Any role can change their password here — a teacher or admin
+      // landing on /dashboard (the student route) hits their role-gate.
+      link: user.role === "TEACHER" ? "/teacher/dashboard" : user.role === "ADMIN" ? "/admin" : "/dashboard",
       dedupeKey: `pwd_changed:${user.id}:${Date.now()}`,
     });
 

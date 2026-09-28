@@ -253,7 +253,7 @@ export function SiteNavbar({ dark = false }: { dark?: boolean }) {
           </div>
 
           {!loading && user && (
-            <NotificationCenter dark={isDark} />
+            <NotificationCenter dark={isDark} role={role} />
           )}
 
           {!loading && user ? (

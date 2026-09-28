@@ -32,7 +32,9 @@ export async function POST(request: Request) {
         title: "Mot de passe défini avec succès ",
         message: "Votre mot de passe a été défini. Vous pouvez désormais vous connecter directement avec votre adresse email.",
         emailSubject: "Votre mot de passe a été configuré sur Profy",
-        link: "/dashboard",
+        // Any role can set a password here (e.g. after an OAuth signup) — a
+        // teacher or admin landing on /dashboard hits their own role-gate.
+        link: user.role === "TEACHER" ? "/teacher/dashboard" : user.role === "ADMIN" ? "/admin" : "/dashboard",
         dedupeKey: `pwd_set:${user.id}:${Date.now()}`,
       });
       return NextResponse.json({ success: true, message: "Mot de passe configuré avec succès !" });

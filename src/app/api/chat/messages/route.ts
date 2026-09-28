@@ -109,6 +109,8 @@ export async function POST(request: Request) {
   }
 
   if (msg.offer) {
+    // The offer sender is always the teacher (see offerParams above), so the
+    // recipient here is always the student — /dashboard/messages is correct.
     await notifyUser({
       userId: conv.studentId,
       type: "NEW_MESSAGE",
@@ -120,6 +122,13 @@ export async function POST(request: Request) {
     });
   } else {
     const recipientId = user.id === conv.studentId ? conv.teacherId : conv.studentId;
+    // Unlike the offer branch above, this recipient can be either party —
+    // a teacher recipient linking to /dashboard/messages (the student route)
+    // hit their own role-gate and never reached the conversation.
+    const recipientHref =
+      recipientId === conv.teacherId
+        ? `/teacher/dashboard/messages?conversationId=${conv.id}`
+        : `/dashboard/messages?conversationId=${conv.id}`;
     const previewText = text.trim().length > 80 ? text.trim().substring(0, 80) + "..." : text.trim();
 
     await notifyUser({
@@ -129,7 +138,7 @@ export async function POST(request: Request) {
       message: `Vous avez un nouveau message de ${user.firstName} ${user.lastName}.`,
       emailMessage: `Message de ${user.firstName} ${user.lastName} : ${previewText}`,
       emailSubject: "Vous avez un nouveau message sur Profy",
-      link: `/dashboard/messages?conversationId=${conv.id}`,
+      link: recipientHref,
       dedupeKey: `message:${msg.id}`,
     });
   }

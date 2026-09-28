@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { calculateTeacherWithdrawal } from "@/lib/finance/withdrawal";
 import { withdrawalRequestSchema } from "@/lib/validation/withdrawal";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -100,6 +101,23 @@ export async function POST(request: Request) {
 
       return created;
     });
+
+    // Admins process withdrawals manually (bank transfer) — same alert gap
+    // as deposits: without this, a payout request went unnoticed.
+    const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+    await Promise.all(
+      admins.map((admin) =>
+        notifyUser({
+          userId: admin.id,
+          type: "WITHDRAWAL_REQUESTED",
+          title: "Nouvelle demande de retrait",
+          message: `${user.firstName} ${user.lastName} a demandé un retrait de ${(breakdown.requestedAmountInMillimes / 1000).toFixed(1)} DT (${parsed.data.method}).`,
+          emailSubject: "Nouvelle demande de retrait à valider sur Profy",
+          link: "/admin/withdrawals",
+          dedupeKey: `withdrawal_requested:${withdrawal.id}`,
+        }),
+      ),
+    );
 
     return NextResponse.json(
       {

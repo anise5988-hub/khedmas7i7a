@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
 import { WithdrawalStatus } from "@prisma/client";
 import { logAdminAction } from "@/lib/server/audit-log";
+import { notifyUser } from "@/lib/server/notification-service";
 
 export async function POST(
   request: Request,
@@ -68,6 +69,32 @@ export async function POST(
       targetId: withdrawal.id,
       metadata: { status, payoutMillimes: withdrawal.payoutMillimes, teacherEmail: withdrawal.teacher.user.email },
     });
+
+    const payoutTnd = (withdrawal.payoutMillimes / 1000).toFixed(1);
+    if (status === "REJECTED") {
+      await notifyUser({
+        userId: withdrawal.teacher.userId,
+        type: "WITHDRAWAL_REJECTED",
+        title: "Demande de retrait rejetée",
+        message: `Votre demande de retrait de ${payoutTnd} DT a été rejetée. Les fonds ont été recrédités à votre solde disponible.`,
+        emailSubject: "Mise à jour concernant votre demande de retrait",
+        link: "/teacher/dashboard/withdrawals",
+        dedupeKey: `withdrawal_verified:${withdrawal.id}:${status}`,
+      });
+    } else {
+      await notifyUser({
+        userId: withdrawal.teacher.userId,
+        type: "WITHDRAWAL_APPROVED",
+        title: status === "PAID" ? "Retrait payé ! " : "Retrait approuvé",
+        message:
+          status === "PAID"
+            ? `Votre retrait de ${payoutTnd} DT a été viré.`
+            : `Votre demande de retrait de ${payoutTnd} DT a été approuvée. Le virement est en cours.`,
+        emailSubject: status === "PAID" ? `Votre retrait de ${payoutTnd} DT a été payé` : `Votre retrait de ${payoutTnd} DT a été approuvé`,
+        link: "/teacher/dashboard/withdrawals",
+        dedupeKey: `withdrawal_verified:${withdrawal.id}:${status}`,
+      });
+    }
 
     return NextResponse.json({
       success: true,

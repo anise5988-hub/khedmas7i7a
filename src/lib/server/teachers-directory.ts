@@ -24,6 +24,7 @@ export type DirectoryTeacher = {
   inPerson: boolean;
   availabilities: { id: string; dayOfWeek: number; startTime: string; endTime: string }[];
   verificationStatus?: string;
+  hasFirstLessonBadge: boolean;
 };
 
 /**
@@ -44,12 +45,18 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
         levels: { select: { levelSlug: true } },
         reviews: { select: { rating: true } },
         availabilities: true,
+        bookings: { where: { status: "COMPLETED" }, select: { id: true }, take: 1 },
       },
       orderBy: { id: "desc" },
     });
 
     if (profiles && profiles.length > 0) {
-      return profiles.map((profile) => {
+      // Teachers who have actually completed a lesson (the same signal the
+      // "Premier cours donné" achievement badge uses) are shown first —
+      // a real track record beats profile-creation order. Everyone else
+      // keeps the existing newest-first ordering as a stable tiebreaker.
+      const sorted = [...profiles].sort((a, b) => Number(b.bookings.length > 0) - Number(a.bookings.length > 0));
+      return sorted.map((profile) => {
         const initials = `${profile.user?.firstName?.[0] ?? "P"}${profile.user?.lastName?.[0] ?? "R"}`.toUpperCase();
         const name = `${profile.user?.firstName || "Enseignant"} ${profile.user?.lastName || "Profy"}`.trim();
         const avgRating =
@@ -84,6 +91,7 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
           inPerson: profile.inPerson,
           availabilities: profile.availabilities,
           verificationStatus: profile.verificationStatus,
+          hasFirstLessonBadge: profile.bookings.length > 0,
         };
       });
     }
@@ -123,6 +131,7 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
         inPerson: t.inPerson,
         availabilities: t.availabilities,
         verificationStatus: t.verificationStatus,
+        hasFirstLessonBadge: false,
       };
     });
 }
