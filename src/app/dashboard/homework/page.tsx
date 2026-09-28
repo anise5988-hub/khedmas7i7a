@@ -59,7 +59,10 @@ export default function StudentHomeworkPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("kind", "pdf");
+      // Not "pdf" - that kind routes to the private course-videos bucket,
+      // whose "public" URL 403s for the very teacher meant to open it.
+      // "attachment" accepts the same PDF/image types and is public.
+      formData.append("kind", "attachment");
       const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
       const res = await fetch("/api/uploads/video", {
         method: "POST",

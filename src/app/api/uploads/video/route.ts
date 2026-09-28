@@ -35,9 +35,16 @@ export async function POST(request: Request) {
   // getPublicUrl() output 404s for anonymous visitors. Message attachments
   // (homework photos, small PDFs) are public too but get their own folder,
   // both to keep the avatars bucket tidy and to make them easy to purge.
+  // Portfolio videos are the same case as avatars, not paid course videos —
+  // a portfolio exists to be shown to visitors deciding whether to book, so
+  // it went through "video" (the private bucket) and 403'd for every
+  // visitor who clicked one, portfolio owner included. They get their own
+  // public bucket rather than "avatars", which is capped at images only.
   const bucket =
     kind === "image" || kind === "attachment"
       ? process.env.SUPABASE_AVATAR_BUCKET || "avatars"
+      : kind === "portfolio-video"
+      ? process.env.SUPABASE_PORTFOLIO_VIDEO_BUCKET || "portfolio-videos"
       : process.env.SUPABASE_VIDEO_BUCKET || "course-videos";
   const allowed =
     kind === "pdf" || kind === "attachment"
@@ -60,10 +67,15 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  // 50MB is the actual Supabase project cap on both video buckets (checked
+  // directly against the storage API) - the videos here were previously
+  // sized against a 500MB limit that doesn't exist on this plan, so an
+  // upload between 50 and 500MB passed this check and then failed at
+  // Supabase with a generic, confusing error.
   const maxSize =
-    kind === "video" ? 500 * 1024 * 1024 : kind === "pdf" ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
+    kind === "video" || kind === "portfolio-video" ? 50 * 1024 * 1024 : kind === "pdf" ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
   if (file.size > maxSize) {
-    return NextResponse.json({ error: `Le fichier ne doit pas dépasser ${kind === "video" ? "500" : kind === "pdf" ? "25" : "10"} MB.` }, { status: 413 });
+    return NextResponse.json({ error: `Le fichier ne doit pas dépasser ${kind === "video" || kind === "portfolio-video" ? "50" : kind === "pdf" ? "25" : "10"} MB.` }, { status: 413 });
   }
 
   const extension = file.name.split(".").pop()?.toLowerCase() || (kind === "pdf" ? "pdf" : kind === "image" ? "jpg" : "mp4");

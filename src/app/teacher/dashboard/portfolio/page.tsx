@@ -123,10 +123,13 @@ export default function TeacherPortfolioPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      // Le bucket dépend du type : les images et PDF de portfolio doivent
-      // être publics pour s'afficher sur la fiche, donc "image"/"pdf" et non
-      // "video" (bucket privé des cours payants).
-      formData.append("kind", type === "VIDEO" ? "video" : type === "DOCUMENT" ? "pdf" : "image");
+      // Le bucket dépend du type : les images, PDF et vidéos de portfolio
+      // doivent être publics pour s'afficher sur la fiche. "video" et "pdf"
+      // routent vers le bucket privé des cours payants — son URL "publique"
+      // renvoie une erreur 403 pour n'importe quel visiteur, y compris le
+      // professeur lui-même en cliquant dessus. "portfolio-video" et
+      // "attachment" pointent tous les deux vers le bucket public.
+      formData.append("kind", type === "VIDEO" ? "portfolio-video" : type === "DOCUMENT" ? "attachment" : "image");
       if (type === "VIDEO" || type === "DOCUMENT") {
         if (!file.type.startsWith("video/") && file.type !== "application/pdf") {
           setMessage({ type: "error", text: "Fichier non compatible avec ce type de réalisation." });
