@@ -85,6 +85,7 @@ export async function GET(request: Request) {
         status: b.status,
         createdAt: b.createdAt,
         studentName: `${user.firstName} ${user.lastName}`,
+        teacherId: b.teacher.id,
         teacherName: `${b.teacher.user.firstName} ${b.teacher.user.lastName}`,
         teacherSlug: b.teacher.slug,
         subject: b.teacher.subjects[0]?.subject ?? "Cours particulier",

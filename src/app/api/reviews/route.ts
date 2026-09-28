@@ -11,7 +11,28 @@ const createReviewSchema = z.object({
   photoUrl: z.string().trim().url().optional().or(z.literal("")),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+
+  // "mine=true" powers the "Laisser un avis" prompt on the student's booking
+  // history: it needs to know which of their completed-lesson teachers
+  // already have a review, without exposing every student's identity the
+  // way the public feed below does.
+  if (searchParams.get("mine") === "true") {
+    const user = await getCurrentUser(request);
+    if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
+    try {
+      const mine = await prisma.review.findMany({
+        where: { studentId: user.id },
+        select: { id: true, teacherId: true, rating: true, comment: true },
+      });
+      return NextResponse.json({ reviews: mine });
+    } catch (error) {
+      console.warn("My reviews fetch failed", error);
+      return NextResponse.json({ reviews: [] });
+    }
+  }
+
   try {
     const reviews = await prisma.review.findMany({
       include: {
