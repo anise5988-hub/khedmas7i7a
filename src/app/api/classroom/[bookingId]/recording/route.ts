@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { getBookingAccess } from "@/lib/server/classroom-access";
-import { setRecordingStatus, logEvent } from "@/lib/server/classroom-session";
+import { setRecordingStatus, logEvent, promoteRecordingIfReady } from "@/lib/server/classroom-session";
 import { prisma } from "@/lib/server/prisma";
 import { isDailyConfigured } from "@/lib/server/daily";
 
@@ -81,14 +81,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ book
 
   // If a recording is in PROCESSING after the lesson ended, poll Daily once
   // for the finished asset and promote it to AVAILABLE.
-  if (session.recordingStatus === "PROCESSING" && session.roomName && session.endedAt && isDailyConfigured()) {
-    const { fetchDailyRecordingAssets } = await import("@/lib/server/daily");
-    const asset = await fetchDailyRecordingAssets(session.roomName);
-    if (asset?.download_link) {
-      const updated = await setRecordingStatus(bookingId, "AVAILABLE", asset.download_link);
-      return NextResponse.json({ recordingStatus: updated.recordingStatus, recordingUrl: updated.recordingUrl });
-    }
-  }
+  const promoted = await promoteRecordingIfReady(session);
+  if (promoted) return NextResponse.json(promoted);
 
   return NextResponse.json({
     recordingStatus: session.recordingStatus,

@@ -1,6 +1,13 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/server/prisma";
-import { createDailyRoom, createDailyMeetingToken, isDailyConfigured } from "@/lib/server/daily";
+import {
+  createDailyRoom,
+  createDailyMeetingToken,
+  isDailyConfigured,
+  startDailyRecording,
+  stopDailyRecording,
+  fetchDailyRecordingAssets,
+} from "@/lib/server/daily";
 import { maybeAwardReferralBonus } from "@/lib/server/referral";
 
 const ROOM_EXPIRY_AFTER_MINUTES = 90; // buffer past the scheduled end
@@ -130,6 +137,25 @@ export async function recordJoin(
     await prisma.classroomSession.update({ where: { bookingId }, data });
   }
 
+  // Recording is not optional: every lesson must end up in the student's
+  // replays space without a teacher having to remember to press "record".
+  // Auto-start it the moment both sides are actually present for the first
+  // time (not on the very first join, which could just be one side waiting
+  // alone) — guarded on recordingStatus still being the untouched default so
+  // a reconnect, or a session someone already started/stopped manually,
+  // never re-triggers this.
+  const teacherPresent = Boolean(session.teacherJoinedAt) || field === "teacherJoinedAt";
+  const studentPresent = Boolean(session.studentJoinedAt) || field === "studentJoinedAt";
+  if (teacherPresent && studentPresent && session.recordingStatus === "NOT_AVAILABLE" && isDailyConfigured()) {
+    try {
+      await startDailyRecording(session.roomName);
+      await prisma.classroomSession.update({ where: { bookingId }, data: { recordingStatus: "RECORDING" } });
+      await logEvent(session.id, null, null, "RECORDING_STARTED", "Enregistrement démarré automatiquement");
+    } catch (error) {
+      console.error("Auto-start recording failed", error);
+    }
+  }
+
   if (isReconnect) {
     await prisma.classroomAttendance.updateMany({
       where: { sessionId: session.id, userId, leftAt: null },
@@ -226,6 +252,14 @@ export async function recordLeave(
     } catch (error) {
       console.error("Referral bonus award failed", error);
     }
+    if (completed.recordingStatus === "RECORDING") {
+      try {
+        await stopDailyRecording(completed.roomName);
+        await prisma.classroomSession.update({ where: { bookingId }, data: { recordingStatus: "PROCESSING" } });
+      } catch (error) {
+        console.error("Auto-stop recording failed", error);
+      }
+    }
     return completed;
   }
 
@@ -278,6 +312,14 @@ export async function endSessionForAll(bookingId: string, endedById: string, end
   } catch (error) {
     console.error("Referral bonus award failed", error);
   }
+  if (session.recordingStatus === "RECORDING") {
+    try {
+      await stopDailyRecording(session.roomName);
+      await prisma.classroomSession.update({ where: { bookingId }, data: { recordingStatus: "PROCESSING" } });
+    } catch (error) {
+      console.error("Auto-stop recording failed", error);
+    }
+  }
   return updated;
 }
 
@@ -296,6 +338,37 @@ export async function logEvent(
   } catch (error) {
     // Event log failures must never break the classroom action itself.
     console.error("classroom event log failed", error);
+  }
+}
+
+/**
+ * A stopped recording isn't an instantly-downloadable file — Daily needs a
+ * little time to process it. Rather than make that promotion depend on
+ * someone happening to reopen the classroom page (the only place that
+ * checked before), any list that shows a student their recordings calls
+ * this first, so "PROCESSING" turns into a real link on its own the moment
+ * the asset is ready, without extra action.
+ */
+export async function promoteRecordingIfReady(session: {
+  bookingId: string;
+  recordingStatus: string;
+  roomName: string | null;
+  endedAt: Date | null;
+}): Promise<{ recordingStatus: string; recordingUrl: string | null } | null> {
+  if (session.recordingStatus !== "PROCESSING" || !session.roomName || !session.endedAt || !isDailyConfigured()) {
+    return null;
+  }
+  try {
+    const asset = await fetchDailyRecordingAssets(session.roomName);
+    if (!asset?.download_link) return null;
+    const updated = await prisma.classroomSession.update({
+      where: { bookingId: session.bookingId },
+      data: { recordingStatus: "AVAILABLE", recordingUrl: asset.download_link },
+    });
+    return { recordingStatus: updated.recordingStatus, recordingUrl: updated.recordingUrl };
+  } catch (error) {
+    console.error("Recording promotion failed", error);
+    return null;
   }
 }
 

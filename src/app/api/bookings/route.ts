@@ -4,6 +4,7 @@ import { prisma } from "@/lib/server/prisma";
 import { bookingRequestSchema } from "@/lib/validation/booking";
 import { notifyUser } from "@/lib/server/notification-service";
 import { creditTeacherEarning } from "@/lib/server/earnings";
+import { promoteRecordingIfReady } from "@/lib/server/classroom-session";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -57,10 +58,22 @@ export async function GET(request: Request) {
           },
         },
         payment: true,
-        classroomSession: { select: { status: true, recordingStatus: true, recordingUrl: true } },
+        classroomSession: { select: { bookingId: true, status: true, recordingStatus: true, recordingUrl: true, roomName: true, endedAt: true } },
       },
       orderBy: { startsAt: "desc" },
     });
+
+    // A recording that finished processing since the student's last visit
+    // shouldn't require them to reopen the classroom just to unstick it —
+    // their bookings/replays list promotes it to AVAILABLE on its own.
+    const promotions = new Map<string, { recordingStatus: string; recordingUrl: string | null }>();
+    await Promise.all(
+      bookings.map(async (b) => {
+        if (!b.classroomSession) return;
+        const promoted = await promoteRecordingIfReady(b.classroomSession);
+        if (promoted) promotions.set(b.id, promoted);
+      }),
+    );
 
     return NextResponse.json({
       bookings: bookings.map((b) => ({
@@ -76,8 +89,8 @@ export async function GET(request: Request) {
         teacherSlug: b.teacher.slug,
         subject: b.teacher.subjects[0]?.subject ?? "Cours particulier",
         classroomStatus: b.classroomSession?.status ?? null,
-        recordingStatus: b.classroomSession?.recordingStatus ?? "NOT_AVAILABLE",
-        recordingUrl: b.classroomSession?.recordingUrl ?? null,
+        recordingStatus: promotions.get(b.id)?.recordingStatus ?? b.classroomSession?.recordingStatus ?? "NOT_AVAILABLE",
+        recordingUrl: promotions.get(b.id)?.recordingUrl ?? b.classroomSession?.recordingUrl ?? null,
       })),
     });
   } catch (error) {
