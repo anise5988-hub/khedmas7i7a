@@ -455,12 +455,20 @@ export function ClassroomClient({
     return () => {
       cancelled = true;
       window.clearTimeout(timeout);
+      // Preview stream is now stopped in DailyRoom after "joined-meeting" to avoid camera flash
+      // Don't stop it here when transitioning to hasEnteredRoom=true
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasEnteredRoom]);
+
+  // Cleanup preview stream on unmount (if user leaves without joining)
+  useEffect(() => {
+    return () => {
       previewStreamRef.current?.getTracks().forEach((t) => t.stop());
       previewStreamRef.current = null;
       setPreviewStream(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasEnteredRoom]);
+  }, []);
 
   const togglePreviewMic = () => {
     const track = previewStreamRef.current?.getAudioTracks()[0];
@@ -504,10 +512,7 @@ export function ClassroomClient({
     if (!session?.joinToken || !session?.roomUrl) return;
     setJoinInfo({ roomUrl: session.roomUrl, token: session.joinToken });
     setHasEnteredRoom(true);
-    // The preview stream must be released before Daily captures the devices.
-    previewStreamRef.current?.getTracks().forEach((t) => t.stop());
-    previewStreamRef.current = null;
-    setPreviewStream(null);
+    // Preview stream is now stopped in DailyRoom after "joined-meeting" to avoid camera flash
   };
 
   const openDrawer = (tab: "chat" | "participants" | "notes" | "resources" | "settings") => {
@@ -1213,6 +1218,7 @@ export function ClassroomClient({
             roomUrl={joinInfo?.roomUrl ?? null}
             initialAudioOn={micEnabled}
             initialVideoOn={camEnabled}
+            previewStream={previewStream}
             onJoined={() => {
               void fetch(`/api/classroom/${bookingId}/session/join`, { method: "POST" }).catch(() => {});
             }}

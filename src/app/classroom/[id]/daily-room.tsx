@@ -248,6 +248,7 @@ export const DailyRoom = forwardRef<
     roomUrl: string | null;
     initialAudioOn?: boolean;
     initialVideoOn?: boolean;
+    previewStream?: MediaStream | null;
     onJoined?: () => void;
     onStatusChange?: (status: "connecting" | "connected" | "error" | "reconnecting") => void;
     onTilesChange?: (tiles: DailyTile[]) => void;
@@ -266,6 +267,7 @@ export const DailyRoom = forwardRef<
     roomUrl,
     initialAudioOn = true,
     initialVideoOn = true,
+    previewStream = null,
     onJoined,
     onStatusChange,
     onTilesChange,
@@ -471,6 +473,10 @@ export const DailyRoom = forwardRef<
           onStatusChange?.("connected");
           onJoined?.();
           refreshTiles();
+          // Stop the preview stream after Daily has successfully joined and taken over the devices
+          if (previewStream) {
+            previewStream.getTracks().forEach((t) => t.stop());
+          }
         });
 
         call.on("participant-joined", refreshTiles);
@@ -528,7 +534,16 @@ export const DailyRoom = forwardRef<
 
         call.on("active-speaker-change", () => refreshTilesRef.current?.());
 
-        await call.join({ url: roomUrl, token: joinToken, userName: currentUserName });
+        const videoTrack = previewStream?.getVideoTracks()[0] ?? null;
+        const audioTrack = previewStream?.getAudioTracks()[0] ?? null;
+
+        await call.join({
+          url: roomUrl,
+          token: joinToken,
+          userName: currentUserName,
+          ...(videoTrack ? { videoSource: videoTrack } : {}),
+          ...(audioTrack ? { audioSource: audioTrack } : {}),
+        });
         window.addEventListener("beforeunload", sendLeave);
       } catch (err) {
         if (mounted) {
