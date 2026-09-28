@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { getBookingAccess, computePhase } from "@/lib/server/classroom-access";
 import { getOrCreateClassroomSession, getJoinWindow, mintJoinToken } from "@/lib/server/classroom-session";
-import { isDailyConfigured } from "@/lib/server/daily";
+import { isDailyConfigured, createDailyRoom } from "@/lib/server/daily";
 import { prisma } from "@/lib/server/prisma";
 
 export const runtime = "nodejs";
@@ -44,7 +44,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ book
   const session = await getOrCreateClassroomSession(bookingId, booking.startsAt, booking.durationMinutes);
   if (!session) return NextResponse.json({ error: "Séance introuvable." }, { status: 404 });
 
-  const window = getJoinWindow(session);
+  // Rooms are always open. A Daily room carries its own `exp` timestamp set
+  // to scheduledEnd + 90min — past that the provider rejects the join token
+  // even though our authorization still allows it, which looked like "can't
+  // join" with no visible reason. Recreate the room (and refresh the URL)
+  // whenever its lifetime has passed so re-entry always works.
+  const roomLifetimeMs = 90 * 60_000;
+  const roomExpired = Date.now() > new Date(session.scheduledEnd).getTime() + roomLifetimeMs;
+  let activeSession = session;
+  if (roomExpired && isDailyConfigured()) {
+    try {
+      const fresh = await createDailyRoom(
+        `profyspace-${bookingId}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
+        new Date(Date.now() + 2 * 60 * 60_000),
+      );
+      activeSession = await prisma.classroomSession.update({
+        where: { bookingId },
+        data: { roomUrl: fresh.url },
+      });
+    } catch (error) {
+      console.error("Daily room recreation failed", error);
+    }
+  }
+
+  const window = getJoinWindow(activeSession);
   const phase = computePhase(session);
   const { party } = access;
 

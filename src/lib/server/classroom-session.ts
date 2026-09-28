@@ -65,17 +65,14 @@ export async function mintJoinToken(
 }
 
 export function getJoinWindow(session: { scheduledStart: Date; scheduledEnd: Date }) {
-  const now = Date.now();
-  const opensAt = new Date(session.scheduledStart.getTime() - ROOM_EXPIRY_BEFORE_MINUTES * 60_000);
-  const closesAt = new Date(session.scheduledEnd.getTime() + ROOM_EXPIRY_AFTER_MINUTES * 60_000);
-  const isTooEarly = now < opensAt.getTime();
-  const isTooLate = now > closesAt.getTime();
+  // Rooms are always open (product decision): no time window blocks a join.
+  // The booking's membership check is what protects a private session.
   return {
-    opensAt,
-    closesAt,
-    canJoinNow: !isTooEarly && !isTooLate,
-    isTooEarly,
-    isTooLate,
+    opensAt: session.scheduledStart,
+    closesAt: session.scheduledEnd,
+    canJoinNow: true,
+    isTooEarly: false,
+    isTooLate: false,
   };
 }
 

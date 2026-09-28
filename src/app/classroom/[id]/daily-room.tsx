@@ -120,40 +120,72 @@ function VideoTile({
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const screenRef = useRef<HTMLVideoElement>(null);
+  // Daily drops the track object for a moment on every re-negotiation
+  // (bandwidth adaptation, camera re-acquisition). Unmounting the <video>
+  // for that instant is what flashed black. Keep the last track rendered
+  // for a grace period before ever falling back to the avatar.
+  const [renderedVideoTrack, setRenderedVideoTrack] = useState<MediaStreamTrack | null>(tile.videoTrack ?? null);
+  const [renderedScreenTrack, setRenderedScreenTrack] = useState<MediaStreamTrack | null>(tile.screenTrack ?? null);
+  const [renderedAudioTrack, setRenderedAudioTrack] = useState<MediaStreamTrack | null>(tile.audioTrack ?? null);
 
   useEffect(() => {
-    if (!videoRef.current) return;
-    videoRef.current.srcObject = tile.videoTrack ? new MediaStream([tile.videoTrack]) : null;
+    if (tile.videoTrack) {
+      const timeout = window.setTimeout(() => setRenderedVideoTrack(tile.videoTrack), 0);
+      return () => window.clearTimeout(timeout);
+    }
+    const timeout = window.setTimeout(() => setRenderedVideoTrack(null), 2500);
+    return () => window.clearTimeout(timeout);
   }, [tile.videoTrack]);
 
   useEffect(() => {
-    if (!screenRef.current) return;
-    screenRef.current.srcObject = tile.screenTrack ? new MediaStream([tile.screenTrack]) : null;
+    if (tile.screenTrack) {
+      const timeout = window.setTimeout(() => setRenderedScreenTrack(tile.screenTrack), 0);
+      return () => window.clearTimeout(timeout);
+    }
+    const timeout = window.setTimeout(() => setRenderedScreenTrack(null), 2500);
+    return () => window.clearTimeout(timeout);
   }, [tile.screenTrack]);
 
   useEffect(() => {
-    if (!audioRef.current || tile.local) return;
-    audioRef.current.srcObject = tile.audioTrack ? new MediaStream([tile.audioTrack]) : null;
-  }, [tile.audioTrack, tile.local]);
+    if (!videoRef.current) return;
+    videoRef.current.srcObject = renderedVideoTrack ? new MediaStream([renderedVideoTrack]) : null;
+  }, [renderedVideoTrack]);
 
-  // The video element stays mounted whenever a track exists (even briefly
-  // "interrupted" ones) — the avatar is an overlay, not a replacement, so a
-  // bandwidth blip can no longer flash the tile black.
-  const hasScreen = Boolean(tile.screenTrack);
-  const showAvatar = !hasScreen && !tile.videoOn;
+  useEffect(() => {
+    if (tile.audioTrack) {
+      const timeout = window.setTimeout(() => setRenderedAudioTrack(tile.audioTrack), 0);
+      return () => window.clearTimeout(timeout);
+    }
+    const timeout = window.setTimeout(() => setRenderedAudioTrack(null), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [tile.audioTrack]);
+
+  useEffect(() => {
+    if (!screenRef.current) return;
+    screenRef.current.srcObject = renderedScreenTrack ? new MediaStream([renderedScreenTrack]) : null;
+  }, [renderedScreenTrack]);
+
+  useEffect(() => {
+    if (!audioRef.current || tile.local) return;
+    audioRef.current.srcObject = renderedAudioTrack ? new MediaStream([renderedAudioTrack]) : null;
+  }, [renderedAudioTrack, tile.local]);
+
+  // The video element stays mounted as long as a track exists (the avatar is
+  // an overlay, not a replacement) so a re-negotiation can't flash black.
+  const hasScreen = Boolean(renderedScreenTrack);
+  const showAvatar = !hasScreen && !renderedVideoTrack;
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden rounded-2xl bg-[#0c1626] ${
         isSpeaking ? "ring-2 ring-[#72d6bf]" : ""
       } ${className || ""}`}
     >
-      {/* Screen share layer — object-contain so the full slide stays visible */}
       {hasScreen && (
         <video ref={screenRef} autoPlay playsInline muted={tile.local} className="absolute inset-0 h-full w-full object-contain" />
       )}
 
-      {/* Camera layer — hidden while sharing a screen */}
-      {tile.videoTrack && !hasScreen ? (
+      {/* Camera layer — persists across brief track drops */}
+      {renderedVideoTrack && !hasScreen ? (
         <video
           ref={videoRef}
           autoPlay
@@ -173,7 +205,7 @@ function VideoTile({
         </div>
       )}
 
-      {!tile.local && !hasScreen && <audio ref={audioRef} autoPlay />}
+      {!tile.local && !hasScreen && renderedAudioTrack != null && <audio ref={audioRef} autoPlay />}
 
       <div className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-lg bg-black/60 px-2 py-1 backdrop-blur-sm">
         <span className="truncate text-[11px] font-semibold text-white">{tile.local ? `${tile.userName} (Vous)` : tile.userName}</span>
