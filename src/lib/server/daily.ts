@@ -21,9 +21,9 @@ export async function createDailyRoom(roomName: string, expiresAt: Date): Promis
       name: roomName,
       privacy: "private",
       properties: {
-        enable_chat: false,
+        enable_chat: false, // chat lives in ProfySpace, not Daily's UI
         enable_screenshare: true,
-        enable_knocking: false,
+        enable_knocking: false, // waiting room is ProfySpace's, not Daily's
         start_video_off: false,
         start_audio_off: false,
         exp: Math.floor(expiresAt.getTime() / 1000),
@@ -40,11 +40,23 @@ export async function createDailyRoom(roomName: string, expiresAt: Date): Promis
   return { name: data.name, url: data.url };
 }
 
+export async function deleteDailyRoom(roomName: string): Promise<void> {
+  const res = await fetch(`${DAILY_API_BASE}/rooms/${roomName}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${apiKey()}` },
+  });
+  if (!res.ok && res.status !== 404) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Daily room deletion failed (${res.status}): ${body}`);
+  }
+}
+
 export async function createDailyMeetingToken(
   roomName: string,
   userName: string,
   isOwner: boolean,
   userId?: string,
+  opts?: { canScreenShare?: boolean },
 ): Promise<string> {
   const res = await fetch(`${DAILY_API_BASE}/meeting-tokens`, {
     method: "POST",
@@ -66,12 +78,11 @@ export async function createDailyMeetingToken(
         // nothing.
         enable_screenshare: true,
         // `permissions.canSend` is the switch that actually authorises which
-        // media a participant may publish. Leaving it unset relies on domain
-        // defaults, which can silently exclude screenVideo — the symptom being
-        // a share that starts then immediately fails. Being explicit removes
-        // the dependency on account-level configuration.
+        // media a participant may publish. Explicit, so no account-level
+        // default can silently drop a capability.
         permissions: {
-          canSend: ["video", "audio", "screenVideo", "screenAudio"],
+          canSend: ["video", "audio", ...(opts?.canScreenShare === false ? [] : ["screenVideo", "screenAudio"])],
+          canAdmin: isOwner ? ["participants", "recording"] : [],
         },
         // Short-lived — minted fresh on every join request rather than
         // reused, so it can't be captured once and replayed long after.
@@ -87,4 +98,93 @@ export async function createDailyMeetingToken(
 
   const data = await res.json();
   return data.token;
+}
+
+/**
+ * Mints a short-lived token that may start/stop cloud recording in `roomName`.
+ * Daily exposes recording through an owner-level participant token rather
+ * than a bare API key, so this helper is what the host recording route uses.
+ */
+export async function createDailyRecordingToken(roomName: string): Promise<string> {
+  const res = await fetch(`${DAILY_API_BASE}/meeting-tokens`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      properties: {
+        room_name: roomName,
+        is_owner: true,
+        permissions: { canAdmin: ["recording"] },
+        exp: Math.floor(Date.now() / 1000) + 60 * 30,
+      },
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Daily recording token creation failed (${res.status}): ${body}`);
+  }
+  const data = await res.json();
+  return data.token;
+}
+
+/**
+ * Fetches the newest recording asset for a room, used after a lesson to turn
+ * the transient `RECORDING` status into an `AVAILABLE` download the replays
+ * page can serve.
+ */
+export async function fetchDailyRecordingAssets(
+  roomName: string,
+): Promise<{ download_link: string | null; recording_id: string | null } | null> {
+  const res = await fetch(
+    `${DAILY_API_BASE}/recordings?room=${encodeURIComponent(roomName)}&limit=1`,
+    { headers: { Authorization: `Bearer ${apiKey()}` } },
+  );
+  if (!res.ok) return null;
+  const data = await res.json().catch(() => null);
+  const first = data?.recordings?.[0];
+  if (!first) return null;
+  return { download_link: first.download_link ?? null, recording_id: first.id ?? null };
+}
+
+/**
+ * Starts a cloud recording in `roomName`. Daily requires an owner-level
+ * participant token with canAdmin: ["recording"]; the token is minted
+ * short-lived, used once and never stored.
+ */
+export async function startDailyRecording(roomName: string): Promise<{ meetingId: string | null }> {
+  const token = await createDailyRecordingToken(roomName);
+  const res = await fetch(`${DAILY_API_BASE}/rooms/${encodeURIComponent(roomName)}/recording/start`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey()}` },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Daily start-recording failed (${res.status}): ${body}`);
+  }
+  const data = await res.json().catch(() => ({}));
+  return { meetingId: data?.meetingId ?? null };
+}
+
+/**
+ * Stops the active cloud recording in `roomName`. Uses the same owner-level
+ * token mechanism; stopping when nothing is recording returns a Daily error,
+ * which the caller surfaces as "already stopped".
+ */
+export async function stopDailyRecording(roomName: string): Promise<void> {
+  const token = await createDailyRecordingToken(roomName);
+  const res = await fetch(`${DAILY_API_BASE}/rooms/${encodeURIComponent(roomName)}/recording/stop`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey()}` },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    // Already-stopped / no-active-recording are benign on stop.
+    if (!/not.*recording|no.*active/i.test(body)) {
+      throw new Error(`Daily stop-recording failed (${res.status}): ${body}`);
+    }
+  }
 }

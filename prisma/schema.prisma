@@ -71,85 +71,85 @@ enum DepositMethod {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  firstName String
-  lastName  String
-  phone     String?
-  avatarUrl String?
-  passwordHash String
-  role      Role     @default(STUDENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  student   StudentProfile?
-  teacher   TeacherProfile?
-  wallet    Wallet?
-  bookingsAsStudent Booking[] @relation("studentBookings")
-  reviews   Review[]
-  favorites Favorite[]
-  notifications Notification[]
-  courseAccesses CourseAccess[]
-  courseProgress CourseProgress[]
-  couponRedemptions CouponRedemption[]
-  auditLogs      AuditLog[]
-  supportTickets SupportTicket[]
-  conversationsAsStudent Conversation[] @relation("ConversationsAsStudent")
-  conversationsAsTeacher Conversation[] @relation("ConversationsAsTeacher")
+  id                     String             @id @default(cuid())
+  email                  String             @unique
+  firstName              String
+  lastName               String
+  phone                  String?
+  avatarUrl              String?
+  passwordHash           String
+  role                   Role               @default(STUDENT)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  student                StudentProfile?
+  teacher                TeacherProfile?
+  wallet                 Wallet?
+  bookingsAsStudent      Booking[]          @relation("studentBookings")
+  reviews                Review[]
+  favorites              Favorite[]
+  notifications          Notification[]
+  courseAccesses         CourseAccess[]
+  courseProgress         CourseProgress[]
+  couponRedemptions      CouponRedemption[]
+  auditLogs              AuditLog[]
+  supportTickets         SupportTicket[]
+  conversationsAsStudent Conversation[]     @relation("ConversationsAsStudent")
+  conversationsAsTeacher Conversation[]     @relation("ConversationsAsTeacher")
   homeworkAsStudent      Homework[]
   quizAttempts           QuizAttempt[]
   referredById           String?
-  referredBy             User?      @relation("UserReferrals", fields: [referredById], references: [id])
-  referrals              User[]     @relation("UserReferrals")
+  referredBy             User?              @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals              User[]             @relation("UserReferrals")
   referralBonusAwardedAt DateTime?
 }
 
 model StudentProfile {
-  id          String @id @default(cuid())
-  userId      String @unique
+  id          String  @id @default(cuid())
+  userId      String  @unique
   governorate String?
   city        String?
   levelSlug   String?
   section     String?
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model TeacherProfile {
-  id                 String @id @default(cuid())
-  userId             String @unique
-  slug               String @unique
-  avatarUrl          String?
-  title              String?
-  bio                String?
-  experienceYears    Int @default(0)
-  hourlyRateMillimes Int
-  governorate        String?
-  city               String?
-  online             Boolean @default(true)
-  inPerson           Boolean @default(false)
-  verificationStatus VerificationStatus @default(PENDING)
-  user               User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subjects           TeacherSubject[]
-  levels             TeacherLevel[]
-  availabilities     Availability[]
-  bookings           Booking[] @relation("teacherBookings")
-  withdrawals        WithdrawalRequest[]
-  reviews            Review[]
-  favorites          Favorite[]
-  courses             Course[]
+  id                    String                        @id @default(cuid())
+  userId                String                        @unique
+  slug                  String                        @unique
+  avatarUrl             String?
+  title                 String?
+  bio                   String?
+  experienceYears       Int                           @default(0)
+  hourlyRateMillimes    Int
+  governorate           String?
+  city                  String?
+  online                Boolean                       @default(true)
+  inPerson              Boolean                       @default(false)
+  verificationStatus    VerificationStatus            @default(PENDING)
+  user                  User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects              TeacherSubject[]
+  levels                TeacherLevel[]
+  availabilities        Availability[]
+  bookings              Booking[]                     @relation("teacherBookings")
+  withdrawals           WithdrawalRequest[]
+  reviews               Review[]
+  favorites             Favorite[]
+  courses               Course[]
   verificationDocuments TeacherVerificationDocument[]
-  homework            Homework[]
-  portfolioItems      TeacherPortfolioItem[]
+  homework              Homework[]
+  portfolioItems        TeacherPortfolioItem[]
 }
 
 model TeacherVerificationDocument {
-  id          String @id @default(cuid())
+  id          String                   @id @default(cuid())
   teacherId   String
   type        VerificationDocumentType
   storagePath String
   fileName    String
   mimeType    String
-  createdAt   DateTime @default(now())
-  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt   DateTime                 @default(now())
+  teacher     TeacherProfile           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@index([teacherId])
 }
@@ -188,6 +188,7 @@ model TeacherSubject {
   teacherId String
   subject   String
   teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
   @@id([teacherId, subject])
 }
 
@@ -195,43 +196,48 @@ model TeacherLevel {
   teacherId String
   levelSlug String
   teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
   @@id([teacherId, levelSlug])
 }
 
 model Availability {
-  id        String @id @default(cuid())
+  id        String         @id @default(cuid())
   teacherId String
   dayOfWeek Int
   startTime String
   endTime   String
   teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
   @@index([teacherId, dayOfWeek])
 }
 
 model Booking {
-  id              String @id @default(cuid())
-  studentId       String
-  teacherId       String
-  startsAt        DateTime
-  durationMinutes Int
-  amountMillimes  Int
-  status          BookingStatus @default(PENDING)
-  student         User @relation("studentBookings", fields: [studentId], references: [id])
-  teacher         TeacherProfile @relation("teacherBookings", fields: [teacherId], references: [id])
-  payment         Payment?
+  id                String             @id @default(cuid())
+  studentId         String
+  teacherId         String
+  startsAt          DateTime
+  durationMinutes   Int
+  amountMillimes    Int
+  status            BookingStatus      @default(PENDING)
+  student           User               @relation("studentBookings", fields: [studentId], references: [id])
+  teacher           TeacherProfile     @relation("teacherBookings", fields: [teacherId], references: [id])
+  payment           Payment?
   classroomMessages ClassroomMessage[]
   classroomNotes    ClassroomNote[]
   homework          Homework[]
   classroomSession  ClassroomSession?
-  createdAt       DateTime @default(now())
+  createdAt         DateTime           @default(now())
+
   @@index([teacherId, startsAt])
   @@index([studentId, startsAt])
 }
 
 enum ClassroomSessionStatus {
   SCHEDULED
+  WAITING
   IN_PROGRESS
   COMPLETED
+  CANCELLED
 }
 
 enum RecordingStatus {
@@ -242,44 +248,227 @@ enum RecordingStatus {
   FAILED
 }
 
+/// The classroom's own state machine, derived on the server from the booking
+/// slot, the session status and the teacher's controls. SCHEDULED -> WAITING ->
+/// STARTING -> LIVE -> ENDING_SOON -> COMPLETED (CANCELLED is terminal).
+/// Stored (not just computed) so that admins and both participants agree on
+/// the phase even when their clocks or network differ.
+enum LessonPhase {
+  SCHEDULED
+  WAITING
+  STARTING
+  LIVE
+  ENDING_SOON
+  COMPLETED
+  CANCELLED
+}
+
 model ClassroomSession {
-  id                String   @id @default(cuid())
-  bookingId         String   @unique
-  provider          String   @default("DAILY")
+  id              String                 @id @default(cuid())
+  bookingId       String                 @unique
+  provider        String                 @default("DAILY")
   // Never the raw booking id alone — a random suffix keeps the room name
   // unguessable even though bookingId itself isn't secret.
-  roomName          String   @unique
+  roomName        String                 @unique
   // The provider's own join URL for that room (returned when it's created).
-  roomUrl           String?
-  status            ClassroomSessionStatus @default(SCHEDULED)
-  scheduledStart    DateTime
-  scheduledEnd      DateTime
-  actualStart       DateTime?
-  actualEnd         DateTime?
-  teacherJoinedAt   DateTime?
-  teacherLeftAt     DateTime?
-  studentJoinedAt   DateTime?
-  studentLeftAt     DateTime?
-  recordingStatus   RecordingStatus @default(NOT_AVAILABLE)
-  recordingUrl      String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  roomUrl         String?
+  status          ClassroomSessionStatus @default(SCHEDULED)
+  phase           LessonPhase            @default(SCHEDULED)
+  scheduledStart  DateTime
+  scheduledEnd    DateTime
+  actualStart     DateTime?
+  actualEnd       DateTime?
+  teacherJoinedAt DateTime?
+  teacherLeftAt   DateTime?
+  studentJoinedAt DateTime?
+  studentLeftAt   DateTime?
+  recordingStatus RecordingStatus        @default(NOT_AVAILABLE)
+  recordingUrl    String?
+
+  // ── Host controls ──────────────────────
+  /// A locked classroom rejects new joins (and dismisses everyone from the
+  /// waiting room) until the teacher unlocks it. Existing participants stay.
+  locked                    Boolean @default(false)
+  /// When true, a student joining for the first time lands in the waiting
+  /// room and must be admitted by the teacher.
+  waitingRoomEnabled        Boolean @default(false)
+  /// Teacher switch: may students publish screen share / camera / microphone?
+  studentScreenShareAllowed Boolean @default(false)
+  studentCameraAllowed      Boolean @default(true)
+  studentMicAllowed         Boolean @default(true)
+  /// Teacher switch: may students draw on the shared whiteboard?
+  studentWhiteboardAllowed  Boolean @default(true)
+  /// Teacher switch: may students send public chat messages?
+  studentChatEnabled        Boolean @default(true)
+  /// Teacher switch: may students send emoji reactions?
+  studentReactionsEnabled   Boolean @default(true)
+
+  // ── Lesson notes ───────────────────────
+  /// Free-form lesson summary written by the teacher after the session.
+  lessonSummary String?
+  /// Set once the teacher explicitly ends the lesson, so a late rejoin can be
+  /// refused rather than silently reopening a finished session.
+  endedById     String?
+  endedAt       DateTime?
+  cancelledAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  participants    ClassroomParticipant[]
+  attendances     ClassroomAttendance[]
+  messages        ClassroomMessage[]
+  resources       ClassroomResource[]
+  whiteboardPages ClassroomWhiteboardPage[]
+  events          ClassroomEvent[]
 
   @@index([status, scheduledStart])
+  @@index([phase, scheduledStart])
+}
+
+/// One row per (session, user) pair. Holds the live presence and the
+/// permission state that the host controls flip. Distinct from
+/// ClassroomAttendance, which is the immutable join/leave ledger.
+model ClassroomParticipant {
+  id               String                @id @default(cuid())
+  sessionId        String
+  userId           String
+  role             String // "TEACHER" | "STUDENT" | "ADMIN"
+  displayName      String
+  avatarUrl        String?
+  /// PENDING = waiting room, ADMITTED = allowed in, REMOVED = kicked by the
+  /// teacher (cannot rejoin until the session is unlocked/re-admitted).
+  admission        String                @default("ADMITTED")
+  firstJoinedAt    DateTime?
+  lastSeenAt       DateTime?
+  leftAt           DateTime?
+  /// Teacher-applied overrides, independent from the session-wide defaults.
+  micBlocked       Boolean               @default(false)
+  cameraBlocked    Boolean               @default(false)
+  reactionsBlocked Boolean               @default(false)
+  /// Student-initiated raise-hand; also mirrors what the provider reports.
+  handRaisedAt     DateTime?
+  removedAt        DateTime?
+  removedById      String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  session          ClassroomSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  attendances      ClassroomAttendance[]
+
+  @@unique([sessionId, userId])
+  @@index([sessionId, admission])
+  @@index([userId, createdAt])
+}
+
+/// Append-only attendance ledger. Every join creates a row; leaving closes
+/// it. A rejoin opens a new row, which is how "rejoin time" and "total
+/// attendance duration" are reconstructed without losing history.
+model ClassroomAttendance {
+  id              String    @id @default(cuid())
+  sessionId       String
+  participantId   String?
+  userId          String
+  role            String // "TEACHER" | "STUDENT"
+  displayName     String
+  joinedAt        DateTime  @default(now())
+  leftAt          DateTime?
+  /// Seconds between joinedAt and leftAt, denormalised so admin queries and
+  /// exports don't have to compute it row by row.
+  durationSeconds Int?
+  /// How many times this participant has reconnected within the session.
+  reconnectCount  Int       @default(0)
+  /// Reason the row was closed: "LEFT" | "ENDED" | "REMOVED" | "DISCONNECTED".
+  leaveReason     String?
+
+  session     ClassroomSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participant ClassroomParticipant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, joinedAt])
+  @@index([userId, joinedAt])
+}
+
+/// Teacher-shared lesson material (PDF, image, document). The binary lives in
+/// Supabase Storage; this row is the presentation state so a student joining
+/// late sees the same slide and page as everyone else.
+model ClassroomResource {
+  id           String    @id @default(cuid())
+  sessionId    String
+  uploadedById String
+  fileName     String
+  mimeType     String
+  kind         String // "PDF" | "IMAGE"
+  url          String
+  sizeBytes    Int
+  /// Presentation state — a resource is "presented" when presentedAt is set
+  /// and isPresenting is still true.
+  isPresenting Boolean   @default(false)
+  presentedAt  DateTime?
+  page         Int       @default(1)
+  pageCount    Int       @default(1)
+  createdAt    DateTime  @default(now())
+
+  session ClassroomSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+/// One row per whiteboard page. `strokes` is the vector scene (array of
+/// stroke objects) so undo/redo and remote sync are exact rather than
+/// lossy bitmap snapshots; `previewUrl` is an optional rasterised thumbnail
+/// for the page strip.
+model ClassroomWhiteboardPage {
+  id          String   @id @default(cuid())
+  sessionId   String
+  pageIndex   Int
+  title       String?
+  strokes     Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  session ClassroomSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, pageIndex])
+  @@index([sessionId, pageIndex])
+}
+
+/// Durable log of classroom-level events (host actions, admissions, hands,
+/// recording state, permission changes). Doubles as the moderation audit
+/// trail the admin console reads and as the system-message source for chat.
+model ClassroomEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  actorId   String?
+  actorName String?
+  type      String
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  session ClassroomSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([type, createdAt])
 }
 
 model ClassroomMessage {
-  id             String   @id @default(cuid())
+  id             String            @id @default(cuid())
   bookingId      String
+  sessionId      String?
   senderId       String
   senderName     String
+  /// "USER" for a real participant, "SYSTEM" for join/leave/host notices.
+  kind           String            @default("USER")
   text           String?
   attachmentUrl  String?
   attachmentName String?
-  createdAt      DateTime @default(now())
-  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  createdAt      DateTime          @default(now())
+  booking        Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  session        ClassroomSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   @@index([bookingId, createdAt])
+  @@index([sessionId, createdAt])
 }
 
 model ClassroomNote {
@@ -290,32 +479,33 @@ model ClassroomNote {
   text       String
   createdAt  DateTime @default(now())
   booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
   @@index([bookingId, createdAt])
 }
 
 model Payment {
-  id             String @id @default(cuid())
-  bookingId      String @unique
+  id             String        @id @default(cuid())
+  bookingId      String        @unique
   amountMillimes Int
   status         PaymentStatus @default(PENDING)
   providerRef    String?
-  idempotencyKey String @unique
-  booking        Booking @relation(fields: [bookingId], references: [id])
-  createdAt      DateTime @default(now())
+  idempotencyKey String        @unique
+  booking        Booking       @relation(fields: [bookingId], references: [id])
+  createdAt      DateTime      @default(now())
 }
 
 model Wallet {
-  id                String @id @default(cuid())
-  userId            String @unique
-  availableMillimes Int @default(0)
-  pendingMillimes   Int @default(0)
-  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  availableMillimes Int                 @default(0)
+  pendingMillimes   Int                 @default(0)
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions      WalletTransaction[]
   deposits          WalletDeposit[]
 }
 
 model WalletDeposit {
-  id             String @id @default(cuid())
+  id             String        @id @default(cuid())
   walletId       String
   method         DepositMethod
   amountMillimes Int
@@ -323,10 +513,11 @@ model WalletDeposit {
   proofUrl       String?
   status         PaymentStatus @default(PENDING)
   couponCode     String?
-  bonusMillimes  Int @default(0)
-  wallet         Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  bonusMillimes  Int           @default(0)
+  wallet         Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
   @@unique([method, reference])
   @@index([walletId, status, createdAt])
 }
@@ -337,17 +528,17 @@ enum CouponDiscountType {
 }
 
 model Coupon {
-  id                String   @id @default(cuid())
-  code              String   @unique
+  id                String             @id @default(cuid())
+  code              String             @unique
   discountType      CouponDiscountType
   discountValue     Int
   maxUses           Int?
-  usedCount         Int      @default(0)
+  usedCount         Int                @default(0)
   minAmountMillimes Int?
   expiresAt         DateTime?
-  active            Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  active            Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   redemptions       CouponRedemption[]
 }
 
@@ -360,6 +551,7 @@ model CouponRedemption {
   createdAt         DateTime @default(now())
   coupon            Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([couponId, userId, context])
   @@index([couponId])
   @@index([userId])
@@ -376,6 +568,7 @@ model AuditLog {
   metadata   Json?
   createdAt  DateTime @default(now())
   actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
   @@index([createdAt])
   @@index([actorId, createdAt])
   @@index([targetType, targetId])
@@ -396,65 +589,69 @@ enum TicketPriority {
 }
 
 model SupportTicket {
-  id         String         @id @default(cuid())
+  id         String           @id @default(cuid())
   userId     String?
   guestName  String?
   guestEmail String?
   subject    String
-  status     TicketStatus   @default(OPEN)
-  priority   TicketPriority @default(NORMAL)
+  status     TicketStatus     @default(OPEN)
+  priority   TicketPriority   @default(NORMAL)
   category   String?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  user       User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  user       User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages   SupportMessage[]
+
   @@index([status, createdAt])
   @@index([userId, createdAt])
 }
 
 model SupportMessage {
-  id             String   @id @default(cuid())
-  ticketId       String
-  senderId       String
-  senderName     String
-  senderRole     String
+  id              String        @id @default(cuid())
+  ticketId        String
+  senderId        String
+  senderName      String
+  senderRole      String
   senderAvatarUrl String?
-  text           String
-  attachmentUrl  String?
-  attachmentName String?
-  createdAt      DateTime @default(now())
-  ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  text            String
+  attachmentUrl   String?
+  attachmentName  String?
+  createdAt       DateTime      @default(now())
+  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
   @@index([ticketId, createdAt])
 }
 
 model WalletTransaction {
-  id             String @id @default(cuid())
+  id             String          @id @default(cuid())
   walletId       String
   type           TransactionType
   amountMillimes Int
-  reference      String? @unique
-  wallet         Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
+  reference      String?         @unique
+  wallet         Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  createdAt      DateTime        @default(now())
+
   @@index([walletId, createdAt])
 }
 
 model WithdrawalRequest {
-  id                   String @id @default(cuid())
-  teacherId            String
-  requestedMillimes    Int
-  feeMillimes          Int
-  payoutMillimes       Int
-  method               String
-  accountDetails       String
-  status               WithdrawalStatus @default(PENDING)
-  teacher              TeacherProfile @relation(fields: [teacherId], references: [id])
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                String           @id @default(cuid())
+  teacherId         String
+  requestedMillimes Int
+  feeMillimes       Int
+  payoutMillimes    Int
+  method            String
+  accountDetails    String
+  status            WithdrawalStatus @default(PENDING)
+  teacher           TeacherProfile   @relation(fields: [teacherId], references: [id])
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
   @@index([status, createdAt])
 }
 
 model Review {
-  id           String @id @default(cuid())
+  id           String         @id @default(cuid())
   studentId    String
   teacherId    String
   rating       Int
@@ -462,17 +659,19 @@ model Review {
   photoUrl     String?
   teacherReply String?
   repliedAt    DateTime?
-  createdAt    DateTime @default(now())
-  student      User @relation(fields: [studentId], references: [id])
+  createdAt    DateTime       @default(now())
+  student      User           @relation(fields: [studentId], references: [id])
   teacher      TeacherProfile @relation(fields: [teacherId], references: [id])
+
   @@index([teacherId, createdAt])
 }
 
 model Favorite {
   studentId String
   teacherId String
-  student   User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
   @@id([studentId, teacherId])
 }
 
@@ -487,56 +686,60 @@ model Notification {
   dedupeKey String   @unique
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, read, createdAt])
 }
 
 model Course {
-  id              String   @id @default(cuid())
-  teacherId       String
-  title           String
-  description     String
-  subject         String
-  level           String
-  language        String   @default("Français")
-  priceTnd        Float    @default(0)
-  amountMillimes  Int      @default(0)
-  visibility      String   @default("DRAFT")
-  thumbnailUrl    String?
-  sections        Json
-  rating          Float    @default(0)
-  reviewCount     Int      @default(0)
-  studentCount    Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  teacher         TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  accesses        CourseAccess[]
-  progress        CourseProgress[]
-  quizzes         Quiz[]
+  id             String           @id @default(cuid())
+  teacherId      String
+  title          String
+  description    String
+  subject        String
+  level          String
+  language       String           @default("Français")
+  priceTnd       Float            @default(0)
+  amountMillimes Int              @default(0)
+  visibility     String           @default("DRAFT")
+  thumbnailUrl   String?
+  sections       Json
+  rating         Float            @default(0)
+  reviewCount    Int              @default(0)
+  studentCount   Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  teacher        TeacherProfile   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  accesses       CourseAccess[]
+  progress       CourseProgress[]
+  quizzes        Quiz[]
+
   @@index([teacherId, visibility, createdAt])
   @@index([subject, level, visibility])
 }
 
 model CourseAccess {
-  id             String   @id @default(cuid())
-  courseId       String
-  studentId      String
-  purchasedAt    DateTime @default(now())
-  amountPaidTnd  Float    @default(0)
-  course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  student        User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  courseId      String
+  studentId     String
+  purchasedAt   DateTime @default(now())
+  amountPaidTnd Float    @default(0)
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@unique([courseId, studentId])
   @@index([studentId, purchasedAt])
 }
 
 model CourseProgress {
-  id                  String   @id @default(cuid())
-  courseId            String
-  studentId           String
-  completedLessonIds  Json
-  lastLessonId        String?
-  percentage          Int      @default(0)
-  course              Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  student             User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id                 String  @id @default(cuid())
+  courseId           String
+  studentId          String
+  completedLessonIds Json
+  lastLessonId       String?
+  percentage         Int     @default(0)
+  course             Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student            User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@unique([courseId, studentId])
 }
 
@@ -550,6 +753,7 @@ model News {
   authorId         String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
   @@index([published, createdAt])
 }
 
@@ -573,22 +777,23 @@ model FaqItem {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([active, sortOrder])
 }
 
 model PlatformSettings {
-  id                String   @id @default(cuid())
-  commissionRate    Float    @default(10)
-  minWithdrawalTnd  Float    @default(10)
-  d17Enabled        Boolean  @default(true)
-  flouciEnabled     Boolean  @default(true)
-  bankTransferEnabled Boolean @default(true)
-  supportEmail      String   @default("profyspace@gmail.com")
-  supportPhone      String   @default("+216 58 249 938")
-  d17Recipient      String?
-  flouciRecipient   String?
-  bankRib           String?
-  updatedAt         DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  commissionRate      Float    @default(10)
+  minWithdrawalTnd    Float    @default(10)
+  d17Enabled          Boolean  @default(true)
+  flouciEnabled       Boolean  @default(true)
+  bankTransferEnabled Boolean  @default(true)
+  supportEmail        String   @default("profyspace@gmail.com")
+  supportPhone        String   @default("+216 58 249 938")
+  d17Recipient        String?
+  flouciRecipient     String?
+  bankRib             String?
+  updatedAt           DateTime @updatedAt
 }
 
 model Subject {
@@ -599,6 +804,7 @@ model Subject {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([cycle, active])
 }
 
@@ -611,6 +817,7 @@ model EducationLevel {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([cycle, active, sortOrder])
 }
 
@@ -621,6 +828,7 @@ model BacSection {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([active])
 }
 
@@ -631,11 +839,11 @@ enum ChatOfferStatus {
 }
 
 model Conversation {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   studentId     String
   teacherId     String
-  lastMessageAt DateTime @default(now())
-  createdAt     DateTime @default(now())
+  lastMessageAt DateTime      @default(now())
+  createdAt     DateTime      @default(now())
   student       User          @relation("ConversationsAsStudent", fields: [studentId], references: [id], onDelete: Cascade)
   teacherUser   User          @relation("ConversationsAsTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
   messages      ChatMessage[]
@@ -647,12 +855,12 @@ model Conversation {
 }
 
 model ChatMessage {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   conversationId String
   senderId       String
   text           String
-  offerId        String?  @unique
-  createdAt      DateTime @default(now())
+  offerId        String?      @unique
+  createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   offer          ChatOffer?   @relation(fields: [offerId], references: [id])
 
@@ -660,7 +868,7 @@ model ChatMessage {
 }
 
 model ChatOffer {
-  id              String   @id @default(cuid())
+  id              String          @id @default(cuid())
   conversationId  String
   teacherId       String
   studentId       String
@@ -669,15 +877,15 @@ model ChatOffer {
   durationMinutes Int
   amountMillimes  Int
   status          ChatOfferStatus @default(PENDING)
-  createdAt       DateTime @default(now())
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime        @default(now())
+  conversation    Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   message         ChatMessage?
 
   @@index([conversationId])
 }
 
 model Homework {
-  id          String    @id @default(cuid())
+  id          String              @id @default(cuid())
   teacherId   String
   studentId   String
   bookingId   String?
@@ -686,7 +894,7 @@ model Homework {
   fileUrl     String?
   fileName    String?
   deadline    DateTime?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime            @default(now())
   teacher     TeacherProfile      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   student     User                @relation(fields: [studentId], references: [id], onDelete: Cascade)
   booking     Booking?            @relation(fields: [bookingId], references: [id], onDelete: SetNull)
@@ -709,10 +917,10 @@ model HomeworkSubmission {
 }
 
 model Quiz {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   courseId  String
   title     String
-  createdAt DateTime @default(now())
+  createdAt DateTime       @default(now())
   course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   questions QuizQuestion[]
   attempts  QuizAttempt[]
@@ -740,8 +948,8 @@ model QuizAttempt {
   score          Int
   totalQuestions Int
   submittedAt    DateTime @default(now())
-  quiz           Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  student        User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quiz           Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student        User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([quizId, studentId, submittedAt])
 }

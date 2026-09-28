@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { authorizeBookingParticipant } from "@/lib/server/classroom-auth";
+import { getBookingAccess } from "@/lib/server/classroom-access";
 import { prisma } from "@/lib/server/prisma";
 
 export async function GET(request: Request, { params }: { params: Promise<{ bookingId: string }> }) {
   const user = await getCurrentUser(request);
   const { bookingId } = await params;
-  const authorized = await authorizeBookingParticipant(bookingId, user);
-  if (!authorized) {
+  const authorized = await getBookingAccess(bookingId, user);
+  if (!authorized.ok) {
     return NextResponse.json({ error: "Vous ne faites pas partie de cette séance." }, { status: 403 });
   }
 
@@ -23,8 +23,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ book
 export async function POST(request: Request, { params }: { params: Promise<{ bookingId: string }> }) {
   const user = await getCurrentUser(request);
   const { bookingId } = await params;
-  const authorized = await authorizeBookingParticipant(bookingId, user);
-  if (!authorized || !user) {
+  const authorized = await getBookingAccess(bookingId, user);
+  if (!authorized.ok || !user) {
     return NextResponse.json({ error: "Vous ne faites pas partie de cette séance." }, { status: 403 });
   }
 

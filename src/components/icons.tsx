@@ -577,3 +577,47 @@ export function IconMonitor(props: IconProps) {
     </svg>
   );
 }
+export function IconHand(props: IconProps) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M18 11V6a2 2 0 0 0-4 0v5" />
+      <path d="M14 10V4a2 2 0 0 0-4 0v6" />
+      <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+    </svg>
+  );
+}
+
+export function IconUpload(props: IconProps) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+export function IconWifi(props: IconProps) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M5 13a10 10 0 0 1 14 0" />
+      <path d="M8.5 16.5a5 5 0 0 1 7 0" />
+      <path d="M2 8.82a15 15 0 0 1 20 0" />
+      <line x1="12" y1="20" x2="12.01" y2="20" />
+    </svg>
+  );
+}
+
+export function IconPresentation(props: IconProps) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M2 3h20" />
+      <path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" />
+      <path d="M12 16v5" />
+      <path d="m7 21 5-3 5 3" />
+      <path d="M7 8h10" />
+      <path d="M7 11h6" />
+    </svg>
+  );
+}
