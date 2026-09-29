@@ -1,6 +1,14 @@
 type EmailPayload = { to: string; name?: string; subject: string; title: string; message: string; link?: string };
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// NEXT_PUBLIC_APP_URL/SITE_URL missing in production silently sent every
+// "Accéder à mon espace" email link to localhost:3000 — nobody caught it
+// because the email itself still sent fine, only the link was dead. Vercel
+// always sets VERCEL_URL on every deployment, so it's a far safer fallback
+// than localhost even if the explicit env var is ever unset again.
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 const senderEmail = process.env.PROFY_EMAIL_FROM || process.env.BREVO_SENDER_EMAIL;
 
 function escapeHtml(value: string) {
