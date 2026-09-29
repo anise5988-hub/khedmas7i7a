@@ -75,6 +75,7 @@ const links = [
   ["Mes cours & packs", "/dashboard/classes"],
   ["Calendrier & planning", "/dashboard/calendar"],
   ["Portefeuille (Wallet)", "/dashboard/wallet"],
+  ["Replays & vidéos", "/dashboard/replays"],
   ["Mes favoris", "/dashboard/favorites"],
   ["Notifications", "/dashboard/notifications"],
   ["Paramètres du compte", "/dashboard/settings"],

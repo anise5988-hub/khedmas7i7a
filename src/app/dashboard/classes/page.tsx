@@ -167,6 +167,12 @@ export default function StudentClassesPage() {
             >
                Packs & Cours ({purchasedCourses.length})
             </button>
+            <Link
+              href="/dashboard/replays"
+              className="rounded-xl border border-[#0d8d78] bg-white px-4 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#e5f7f2] dark:bg-white/10 dark:border-[#72d6bf]/40 dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/10"
+            >
+               🎬 Mes Replays
+            </Link>
           </div>
         </div>
 
