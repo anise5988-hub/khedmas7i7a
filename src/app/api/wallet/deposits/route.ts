@@ -50,6 +50,16 @@ export async function POST(request: Request) {
     }
   }
 
+  // The client sends the PaymentMethod's id (from GET /api/deposit-methods) —
+  // re-verify it's real and still enabled server-side rather than trusting
+  // whatever string arrives, and store its name (not the id) so the
+  // historical record stays readable even if the method is later renamed
+  // or removed.
+  const paymentMethod = await prisma.paymentMethod.findUnique({ where: { id: parsed.data.method } });
+  if (!paymentMethod || !paymentMethod.enabled) {
+    return NextResponse.json({ error: "Cette méthode de paiement n'est plus disponible." }, { status: 400 });
+  }
+
   try {
     let wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
     if (!wallet) {
@@ -61,7 +71,7 @@ export async function POST(request: Request) {
     const deposit = await prisma.walletDeposit.create({
       data: {
         walletId: wallet.id,
-        method: parsed.data.method,
+        method: paymentMethod.name,
         amountMillimes: parsed.data.amountMillimes,
         reference: parsed.data.reference,
         status: "PENDING",
@@ -101,7 +111,7 @@ export async function POST(request: Request) {
     const fallbackDeposit = {
       id: `dep_${Date.now()}`,
       userId: user.id,
-      method: parsed.data.method,
+      method: paymentMethod.name,
       amountMillimes: parsed.data.amountMillimes,
       amountTnd: parsed.data.amountMillimes / 1000,
       reference: parsed.data.reference,

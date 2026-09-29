@@ -63,13 +63,6 @@ enum TransactionType {
   REFERRAL_BONUS
 }
 
-enum DepositMethod {
-  D17
-  BANK_TRANSFER
-  FLOUCI
-  ZITOUNA
-}
-
 model User {
   id                     String             @id @default(cuid())
   email                  String             @unique
@@ -512,7 +505,11 @@ model Wallet {
 model WalletDeposit {
   id             String        @id @default(cuid())
   walletId       String
-  method         DepositMethod
+  // A plain, free-form label (the PaymentMethod's name at the time of
+  // deposit) rather than a foreign key or enum — an admin renaming or
+  // deleting a payment method later must never change or orphan the
+  // historical record of what a past deposit actually used.
+  method         String
   amountMillimes Int
   reference      String
   proofUrl       String?
@@ -525,6 +522,24 @@ model WalletDeposit {
 
   @@unique([method, reference])
   @@index([walletId, status, createdAt])
+}
+
+/// Admin-managed deposit payment methods (student wallet recharges). Replaces
+/// the old fixed D17/Flouci/Bank-transfer trio hardcoded in PlatformSettings
+/// — an admin can now add, edit, reorder, enable/disable or remove any
+/// method without a code change.
+model PaymentMethod {
+  id             String   @id @default(cuid())
+  name           String
+  recipientTitle String
+  recipientValue String?
+  instructions   String
+  enabled        Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([enabled, sortOrder])
 }
 
 enum CouponDiscountType {
@@ -787,18 +802,12 @@ model FaqItem {
 }
 
 model PlatformSettings {
-  id                  String   @id @default(cuid())
-  commissionRate      Float    @default(10)
-  minWithdrawalTnd    Float    @default(10)
-  d17Enabled          Boolean  @default(true)
-  flouciEnabled       Boolean  @default(true)
-  bankTransferEnabled Boolean  @default(true)
-  supportEmail        String   @default("profyspace@gmail.com")
-  supportPhone        String   @default("+216 58 249 938")
-  d17Recipient        String?
-  flouciRecipient     String?
-  bankRib             String?
-  updatedAt           DateTime @updatedAt
+  id               String   @id @default(cuid())
+  commissionRate   Float    @default(10)
+  minWithdrawalTnd Float    @default(10)
+  supportEmail     String   @default("profyspace@gmail.com")
+  supportPhone     String   @default("+216 58 249 938")
+  updatedAt        DateTime @updatedAt
 }
 
 model Subject {

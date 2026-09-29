@@ -14,14 +14,8 @@ import {
 type Settings = {
   commissionRate: number;
   minWithdrawalTnd: number;
-  d17Enabled: boolean;
-  flouciEnabled: boolean;
-  bankTransferEnabled: boolean;
   supportEmail: string;
   supportPhone: string;
-  d17Recipient: string | null;
-  flouciRecipient: string | null;
-  bankRib: string | null;
 };
 
 export default function AdminSettingsPage() {
@@ -331,92 +325,20 @@ export default function AdminSettingsPage() {
               </div>
               <div>
                 <h2 className="text-lg font-bold">2. Moyens de Paiement Actifs en Tunisie</h2>
-                <p className="text-xs text-slate-400">Canaux acceptés pour les recharges de solde et les retraits</p>
+                <p className="text-xs text-slate-400">Canaux acceptés pour les recharges de solde</p>
               </div>
             </div>
 
-            <div className="space-y-3 pt-2">
-              <div className="rounded-2xl border border-white/10 bg-white/[.02] p-4 space-y-3">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <div>
-                    <p className="font-bold text-sm">D17 (La Poste Tunisienne)</p>
-                    <p className="text-xs text-slate-400">Recharge par mandat carte D17 ou transfert mobile</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={settings.d17Enabled}
-                    onChange={(e) => update("d17Enabled", e.target.checked)}
-                    className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
-                  />
-                </label>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    Numéro D17 à afficher aux élèves
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.d17Recipient || ""}
-                    onChange={(e) => update("d17Recipient", e.target.value)}
-                    placeholder="Ex: 20 123 456"
-                    className="w-full rounded-xl border border-white/20 bg-white/5 p-2.5 text-sm text-white outline-none focus:border-[#72d6bf]"
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/[.02] p-4 space-y-3">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <div>
-                    <p className="font-bold text-sm">Flouci Wallet (Banque & Carte)</p>
-                    <p className="text-xs text-slate-400">Recharge instantanée par QR code et portefeuille Flouci</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={settings.flouciEnabled}
-                    onChange={(e) => update("flouciEnabled", e.target.checked)}
-                    className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
-                  />
-                </label>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    Numéro Flouci à afficher aux élèves
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.flouciRecipient || ""}
-                    onChange={(e) => update("flouciRecipient", e.target.value)}
-                    placeholder="Ex: 21000319"
-                    className="w-full rounded-xl border border-white/20 bg-white/5 p-2.5 text-sm text-white outline-none focus:border-[#72d6bf]"
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/[.02] p-4 space-y-3">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <div>
-                    <p className="font-bold text-sm">Virement Bancaire / Banque Zitouna & Autres</p>
-                    <p className="text-xs text-slate-400">Virement avec preuve de paiement transmise par l'élève</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={settings.bankTransferEnabled}
-                    onChange={(e) => update("bankTransferEnabled", e.target.checked)}
-                    className="h-5 w-5 rounded border-white/20 text-[#0d8d78]"
-                  />
-                </label>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    RIB bancaire à afficher aux élèves
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.bankRib || ""}
-                    onChange={(e) => update("bankRib", e.target.value)}
-                    placeholder="Ex: TN59 1000 6035 0000 0012 3456"
-                    className="w-full rounded-xl border border-white/20 bg-white/5 p-2.5 text-sm text-white outline-none focus:border-[#72d6bf]"
-                  />
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-slate-300">
+              La gestion des méthodes de paiement (D17, Flouci, virement bancaire, ou toute autre méthode) a sa propre
+              page dédiée, où vous pouvez en ajouter, modifier ou supprimer librement.
+            </p>
+            <a
+              href="/admin/payment-methods"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#72d6bf] px-5 py-2.5 text-sm font-bold text-[#101b2d] transition hover:bg-[#5ec4ad]"
+            >
+              Gérer les méthodes de paiement →
+            </a>
           </div>
 
           {/* Section 3: Contact & Support */}

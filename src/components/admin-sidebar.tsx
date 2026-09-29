@@ -81,6 +81,7 @@ const navGroups: NavGroup[] = [
       { label: "Retraits", href: "/admin/withdrawals", icon: IconDollarSign },
       { label: "Transactions", href: "/admin/transactions", icon: IconBarChart },
       { label: "Paiements", href: "/admin/payments", icon: IconCreditCard },
+      { label: "Méthodes de paiement", href: "/admin/payment-methods", icon: IconCreditCard },
       { label: "Coupons", href: "/admin/coupons", icon: IconTarget },
     ],
   },
