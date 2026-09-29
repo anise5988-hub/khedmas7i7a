@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconStar } from "@/components/icons";
+import { IconStar, IconTrash } from "@/components/icons";
 
 type ReviewItem = {
   id: string;
@@ -16,6 +16,9 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     fetch("/api/reviews")
@@ -26,6 +29,25 @@ export default function AdminReviewsPage() {
       .catch(() => setFetchError("Impossible de charger les avis."))
       .finally(() => setLoading(false));
   }, []);
+
+  async function deleteReview(id: string) {
+    setDeletingId(id);
+    setActionError("");
+    try {
+      const res = await fetch(`/api/reviews/${id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setActionError(data.error || "Suppression impossible.");
+        return;
+      }
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      setActionError("Erreur de connexion au serveur.");
+    } finally {
+      setDeletingId(null);
+      setConfirmId(null);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#101b2d] px-4 py-8 sm:px-6 sm:py-10 text-white">
@@ -40,6 +62,11 @@ export default function AdminReviewsPage() {
         {fetchError && !loading && (
           <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">
             {fetchError}
+          </div>
+        )}
+        {actionError && (
+          <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">
+            {actionError}
           </div>
         )}
 
@@ -69,8 +96,38 @@ export default function AdminReviewsPage() {
                   <p className="mt-3 text-xs text-slate-300 leading-relaxed italic">"{r.text}"</p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-white/10 text-right text-[11px] text-slate-400">
-                  {new Date(r.createdAt).toLocaleDateString("fr-TN")}
+                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+                  {confirmId === r.id ? (
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="text-rose-300 font-bold">Supprimer définitivement ?</span>
+                      <button
+                        onClick={() => deleteReview(r.id)}
+                        disabled={deletingId === r.id}
+                        className="rounded-lg bg-rose-500/20 px-2 py-1 font-bold text-rose-300 hover:bg-rose-500/30 disabled:opacity-50"
+                      >
+                        {deletingId === r.id ? "..." : "Oui"}
+                      </button>
+                      <button
+                        onClick={() => setConfirmId(null)}
+                        className="rounded-lg bg-white/10 px-2 py-1 font-bold text-slate-300 hover:bg-white/20"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmId(r.id)}
+                      title="Supprimer cet avis"
+                      aria-label="Supprimer cet avis"
+                      className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-500 hover:bg-rose-500/10 hover:text-rose-300 transition"
+                    >
+                      <IconTrash className="h-3.5 w-3.5" />
+                      Supprimer
+                    </button>
+                  )}
+                  <span className="text-[11px] text-slate-400">
+                    {new Date(r.createdAt).toLocaleDateString("fr-TN")}
+                  </span>
                 </div>
               </div>
             ))}

@@ -36,3 +36,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   return NextResponse.json({ success: true, teacherReply: updated.teacherReply, repliedAt: updated.repliedAt });
 }
+
+/**
+ * DELETE /api/reviews/[id] — admin only.
+ *
+ * Reviews have no soft-delete flag, so this is a hard delete — used for
+ * moderation (abusive/fake content), not something a teacher or student can
+ * trigger on their own.
+ */
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser(request);
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Réservé aux administrateurs." }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
+  if (!review) {
+    return NextResponse.json({ error: "Avis introuvable." }, { status: 404 });
+  }
+
+  await prisma.review.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}
