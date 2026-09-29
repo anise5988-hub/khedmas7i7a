@@ -281,6 +281,10 @@ model ClassroomSession {
   studentJoinedAt DateTime?
   studentLeftAt   DateTime?
   recordingStatus RecordingStatus        @default(NOT_AVAILABLE)
+  // Daily's download link is a signed, expiring URL (S3 presigned, a few
+  // hours) — recordingUrl is a best-effort cache, always refreshed from
+  // this stable recording id at read time rather than trusted long-term.
+  recordingId     String?
   recordingUrl    String?
 
   // ── Host controls ──────────────────────

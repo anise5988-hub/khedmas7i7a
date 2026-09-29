@@ -7,6 +7,7 @@ import {
   startDailyRecording,
   stopDailyRecording,
   fetchDailyRecordingAssets,
+  getDailyRecordingAccessLink,
 } from "@/lib/server/daily";
 import { maybeAwardReferralBonus } from "@/lib/server/referral";
 
@@ -350,22 +351,60 @@ export async function logEvent(
  * checked before), any list that shows a student their recordings calls
  * this first, so "PROCESSING" turns into a real link on its own the moment
  * the asset is ready, without extra action.
+ *
+ * Also re-runs once a recording is already AVAILABLE: Daily's download link
+ * is a signed S3 URL that expires after a few hours, so a link generated
+ * once and stored forever would quietly go dead — this mints a fresh one
+ * from the stable recordingId on every call instead of trusting the cache.
  */
 export async function promoteRecordingIfReady(session: {
   bookingId: string;
   recordingStatus: string;
+  recordingId?: string | null;
   roomName: string | null;
   endedAt: Date | null;
 }): Promise<{ recordingStatus: string; recordingUrl: string | null } | null> {
-  if (session.recordingStatus !== "PROCESSING" || !session.roomName || !session.endedAt || !isDailyConfigured()) {
+  if (!isDailyConfigured()) return null;
+
+  if (session.recordingStatus === "AVAILABLE") {
+    try {
+      // Prefer the stored recordingId; but older/omitted callers may not have
+      // loaded it — recover it from Daily (list is newest-first, so the first
+      // result for this room is the session's recording).
+      let recordingId = session.recordingId;
+      if (!recordingId && session.roomName) {
+        const found = await fetchDailyRecordingAssets(session.roomName);
+        recordingId = found?.recordingId ?? null;
+      }
+      if (!recordingId) return null;
+      const freshUrl = await getDailyRecordingAccessLink(recordingId);
+      if (!freshUrl) return null;
+      const updated = await prisma.classroomSession.update({
+        where: { bookingId: session.bookingId },
+        data: {
+          recordingUrl: freshUrl,
+          // Backfill the id too, so we don't have to look it up again next time.
+          ...(session.recordingId ? {} : { recordingId }),
+        },
+      });
+      return { recordingStatus: updated.recordingStatus, recordingUrl: updated.recordingUrl };
+    } catch (error) {
+      console.error("Recording link refresh failed", error);
+      return null;
+    }
+  }
+
+  if (session.recordingStatus !== "PROCESSING" || !session.roomName || !session.endedAt) {
     return null;
   }
   try {
     const asset = await fetchDailyRecordingAssets(session.roomName);
-    if (!asset?.download_link) return null;
+    if (!asset || asset.status !== "finished") return null;
+    const url = await getDailyRecordingAccessLink(asset.recordingId);
+    if (!url) return null;
     const updated = await prisma.classroomSession.update({
       where: { bookingId: session.bookingId },
-      data: { recordingStatus: "AVAILABLE", recordingUrl: asset.download_link },
+      data: { recordingStatus: "AVAILABLE", recordingId: asset.recordingId, recordingUrl: url },
     });
     return { recordingStatus: updated.recordingStatus, recordingUrl: updated.recordingUrl };
   } catch (error) {

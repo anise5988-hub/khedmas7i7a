@@ -64,6 +64,28 @@ export default function ReplaysPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // While any past session's recording is still processing, re-fetch every
+  // 30s so the replay flips to "Disponible" on its own once Daily finishes
+  // encoding — no manual reload needed. Polling stops once nothing is pending.
+  const anyProcessing = pastBookings.some((b) => b.recordingStatus === "PROCESSING");
+  useEffect(() => {
+    if (!anyProcessing) return;
+    const interval = setInterval(() => {
+      fetch("/api/bookings", { headers: getAuthHeaders() })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((bookingsData) => {
+          if (bookingsData?.bookings) {
+            const past = bookingsData.bookings.filter(
+              (b: BookingReplay) => new Date(b.startsAt) < new Date() || b.status === "COMPLETED"
+            );
+            setPastBookings(past);
+          }
+        })
+        .catch(() => {});
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [anyProcessing]);
+
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
       <SiteNavbar dark={false} />

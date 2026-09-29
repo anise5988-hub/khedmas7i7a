@@ -108,87 +108,82 @@ export async function createDailyMeetingToken(
 }
 
 /**
- * Mints a short-lived token that may start/stop cloud recording in `roomName`.
- * Daily exposes recording through an owner-level participant token rather
- * than a bare API key, so this helper is what the host recording route uses.
- */
-export async function createDailyRecordingToken(roomName: string): Promise<string> {
-  const res = await fetch(`${DAILY_API_BASE}/meeting-tokens`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      properties: {
-        room_name: roomName,
-        is_owner: true,
-        // Daily renamed/folded the old "recording" canAdmin value into
-        // "streaming" — the literal string "recording" is now rejected with
-        // a 400 (see createDailyMeetingToken above for the same fix).
-        permissions: { canAdmin: ["streaming"] },
-        exp: Math.floor(Date.now() / 1000) + 60 * 30,
-      },
-    }),
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Daily recording token creation failed (${res.status}): ${body}`);
-  }
-  const data = await res.json();
-  return data.token;
-}
-
-/**
- * Fetches the newest recording asset for a room, used after a lesson to turn
- * the transient `RECORDING` status into an `AVAILABLE` download the replays
- * page can serve.
+ * Finds the newest recording for a room, used after a lesson to turn the
+ * transient `RECORDING` status into an `AVAILABLE` download the replays page
+ * can serve.
+ *
+ * Every part of this was verified directly against the live API and fixed
+ * from what was there before: the filter param is `room_name`, not `room`
+ * (that one was silently rejected with a 400, so this always returned no
+ * assets); the list is under `data`, not `recordings`; and a listed
+ * recording has no `download_link` of its own at all — that only exists
+ * behind the separate access-link call below, because it's a signed,
+ * expiring S3 URL, not a stable property of the recording.
  */
 export async function fetchDailyRecordingAssets(
   roomName: string,
-): Promise<{ download_link: string | null; recording_id: string | null } | null> {
+): Promise<{ recordingId: string; status: string } | null> {
   const res = await fetch(
-    `${DAILY_API_BASE}/recordings?room=${encodeURIComponent(roomName)}&limit=1`,
+    `${DAILY_API_BASE}/recordings?room_name=${encodeURIComponent(roomName)}&limit=1`,
     { headers: { Authorization: `Bearer ${apiKey()}` } },
   );
   if (!res.ok) return null;
   const data = await res.json().catch(() => null);
-  const first = data?.recordings?.[0];
-  if (!first) return null;
-  return { download_link: first.download_link ?? null, recording_id: first.id ?? null };
+  const first = data?.data?.[0];
+  if (!first?.id) return null;
+  return { recordingId: first.id, status: first.status ?? "unknown" };
 }
 
 /**
- * Starts a cloud recording in `roomName`. Daily requires an owner-level
- * participant token with canAdmin: ["recording"]; the token is minted
- * short-lived, used once and never stored.
+ * Mints a fresh, short-lived download URL for an already-finished recording.
+ * Daily's link expires (a signed S3 URL, good for a few hours) — callers
+ * must not cache this beyond the current request, and should call this
+ * again on the next visit rather than trust a URL stored from before.
+ */
+export async function getDailyRecordingAccessLink(recordingId: string): Promise<string | null> {
+  const res = await fetch(`${DAILY_API_BASE}/recordings/${encodeURIComponent(recordingId)}/access-link`, {
+    headers: { Authorization: `Bearer ${apiKey()}` },
+  });
+  if (!res.ok) return null;
+  const data = await res.json().catch(() => null);
+  return data?.download_link ?? null;
+}
+
+/**
+ * Starts a cloud recording in `roomName`.
+ *
+ * Verified directly against the live API before landing this: the previous
+ * singular "recording/start" path doesn't exist at all (404 "api endpoint
+ * does not exist" on every single call, silently failing every auto/manual
+ * recording attempt this app ever made). The real path is plural
+ * ("recordings/start"), takes no body — a "token" field is flatly rejected
+ * with a 400 — and authenticates with the plain API key already used
+ * everywhere else in this file, no separate per-call token needed.
  */
 export async function startDailyRecording(roomName: string): Promise<{ meetingId: string | null }> {
-  const token = await createDailyRecordingToken(roomName);
-  const res = await fetch(`${DAILY_API_BASE}/rooms/${encodeURIComponent(roomName)}/recording/start`, {
+  const res = await fetch(`${DAILY_API_BASE}/rooms/${encodeURIComponent(roomName)}/recordings/start`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey()}` },
-    body: JSON.stringify({ token }),
+    headers: { Authorization: `Bearer ${apiKey()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({}),
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Daily start-recording failed (${res.status}): ${body}`);
   }
   const data = await res.json().catch(() => ({}));
-  return { meetingId: data?.meetingId ?? null };
+  return { meetingId: data?.recordingId ?? null };
 }
 
 /**
- * Stops the active cloud recording in `roomName`. Uses the same owner-level
- * token mechanism; stopping when nothing is recording returns a Daily error,
- * which the caller surfaces as "already stopped".
+ * Stops the active cloud recording in `roomName`. Stopping when nothing is
+ * recording returns a Daily error, which the caller surfaces as "already
+ * stopped".
  */
 export async function stopDailyRecording(roomName: string): Promise<void> {
-  const token = await createDailyRecordingToken(roomName);
-  const res = await fetch(`${DAILY_API_BASE}/rooms/${encodeURIComponent(roomName)}/recording/stop`, {
+  const res = await fetch(`${DAILY_API_BASE}/rooms/${encodeURIComponent(roomName)}/recordings/stop`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey()}` },
-    body: JSON.stringify({ token }),
+    headers: { Authorization: `Bearer ${apiKey()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({}),
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
