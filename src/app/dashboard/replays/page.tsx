@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
+import { RecordingPlayerModal } from "@/components/recording-player-modal";
 import { Course } from "@/lib/server/courses-store";
 
 type BookingReplay = {
@@ -36,6 +37,9 @@ export default function ReplaysPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [pastBookings, setPastBookings] = useState<BookingReplay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [playerUrl, setPlayerUrl] = useState<string | null>(null);
+  const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
+  const [playError, setPlayError] = useState("");
 
   function getAuthHeaders(): Record<string, string> {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
@@ -86,6 +90,28 @@ export default function ReplaysPage() {
     return () => clearInterval(interval);
   }, [anyProcessing]);
 
+  // The stored link is a signed, expiring Daily URL — re-fetch a fresh one
+  // right before playing rather than trust whatever the list loaded with,
+  // otherwise a replay opened hours after the page loaded could silently
+  // fail with an expired-link error.
+  async function openReplay(bookingId: string) {
+    setPlayError("");
+    setLoadingPlayerId(bookingId);
+    try {
+      const res = await fetch(`/api/classroom/${bookingId}/recording`, { headers: getAuthHeaders() });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.recordingUrl) {
+        setPlayerUrl(data.recordingUrl);
+      } else {
+        setPlayError("Impossible de charger l'enregistrement pour le moment. Réessayez dans un instant.");
+      }
+    } catch {
+      setPlayError("Erreur de connexion au serveur.");
+    } finally {
+      setLoadingPlayerId(null);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#11233f]">
       <SiteNavbar dark={false} />
@@ -99,6 +125,11 @@ export default function ReplaysPage() {
           <p className="mt-1 text-sm text-slate-500">
             Retrouvez tous vos cours vidéo accessibles à tout moment pour vos révisions.
           </p>
+          {playError && (
+            <p className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs font-bold text-rose-700">
+              {playError}
+            </p>
+          )}
         </div>
 
         {loading ? (
@@ -167,14 +198,13 @@ export default function ReplaysPage() {
                           {RECORDING_LABELS[b.recordingStatus]}
                         </span>
                         {b.recordingStatus === "AVAILABLE" && b.recordingUrl ? (
-                          <a
-                            href={b.recordingUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-xl bg-[#0d8d78] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#0b7866]"
+                          <button
+                            onClick={() => openReplay(b.id)}
+                            disabled={loadingPlayerId === b.id}
+                            className="rounded-xl bg-[#0d8d78] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#0b7866] disabled:opacity-50"
                           >
-                            Voir l&apos;enregistrement →
-                          </a>
+                            {loadingPlayerId === b.id ? "Chargement..." : "▶ Voir l'enregistrement"}
+                          </button>
                         ) : (
                           <Link
                             href={`/classroom/${b.id}`}
@@ -192,6 +222,8 @@ export default function ReplaysPage() {
           </div>
         )}
       </div>
+
+      {playerUrl && <RecordingPlayerModal url={playerUrl} onClose={() => setPlayerUrl(null)} />}
     </main>
   );
 }

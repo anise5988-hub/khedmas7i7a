@@ -22,10 +22,25 @@ export async function GET(request: Request) {
             },
           },
           payment: true,
-          classroomSession: { select: { status: true, recordingStatus: true, recordingUrl: true } },
+          classroomSession: {
+            select: { bookingId: true, status: true, recordingStatus: true, recordingUrl: true, recordingId: true, roomName: true, actualEnd: true },
+          },
         },
         orderBy: { startsAt: "desc" },
       });
+
+      // Same as the student branch below — a recording stuck in PROCESSING,
+      // or an AVAILABLE one whose signed download link has since expired,
+      // never got refreshed here, so a teacher could open this list and find
+      // their own recording "missing" even though it was actually ready.
+      const teacherPromotions = new Map<string, { recordingStatus: string; recordingUrl: string | null }>();
+      await Promise.all(
+        bookings.map(async (b) => {
+          if (!b.classroomSession) return;
+          const promoted = await promoteRecordingIfReady(b.classroomSession);
+          if (promoted) teacherPromotions.set(b.id, promoted);
+        }),
+      );
 
       return NextResponse.json({
         bookings: bookings.map((b) => ({
@@ -41,8 +56,8 @@ export async function GET(request: Request) {
           teacherSlug: b.teacher.slug,
           subject: b.teacher.subjects[0]?.subject ?? "Cours particulier",
           classroomStatus: b.classroomSession?.status ?? null,
-          recordingStatus: b.classroomSession?.recordingStatus ?? "NOT_AVAILABLE",
-          recordingUrl: b.classroomSession?.recordingUrl ?? null,
+          recordingStatus: teacherPromotions.get(b.id)?.recordingStatus ?? b.classroomSession?.recordingStatus ?? "NOT_AVAILABLE",
+          recordingUrl: teacherPromotions.get(b.id)?.recordingUrl ?? b.classroomSession?.recordingUrl ?? null,
         })),
       });
     }

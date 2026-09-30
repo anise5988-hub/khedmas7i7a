@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { SiteNavbar } from "@/components/site-navbar";
 import { IconCalendar } from "@/components/icons";
 import { SessionCommunication } from "@/components/session-communication";
+import { RecordingPlayerModal } from "@/components/recording-player-modal";
 
 
 type Booking = {
@@ -56,6 +57,8 @@ export default function TeacherBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
+  const [playerUrl, setPlayerUrl] = useState<string | null>(null);
+  const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/bookings")
@@ -89,6 +92,26 @@ export default function TeacherBookingsPage() {
       setActionError("Erreur de connexion au serveur.");
     } finally {
       setDecidingId(null);
+    }
+  }
+
+  // Fresh fetch before playing — the stored link is a signed, expiring Daily
+  // URL, so trusting whatever the list loaded with could fail hours later.
+  async function openReplay(bookingId: string) {
+    setActionError("");
+    setLoadingPlayerId(bookingId);
+    try {
+      const res = await fetch(`/api/classroom/${bookingId}/recording`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.recordingUrl) {
+        setPlayerUrl(data.recordingUrl);
+      } else {
+        setActionError("Impossible de charger l'enregistrement pour le moment. Réessayez dans un instant.");
+      }
+    } catch {
+      setActionError("Erreur de connexion au serveur.");
+    } finally {
+      setLoadingPlayerId(null);
     }
   }
 
@@ -170,14 +193,13 @@ export default function TeacherBookingsPage() {
                       </button>
                     </div>
                   ) : b.recordingStatus === "AVAILABLE" && b.recordingUrl ? (
-                    <a
-                      href={b.recordingUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866]"
+                    <button
+                      onClick={() => openReplay(b.id)}
+                      disabled={loadingPlayerId === b.id}
+                      className="rounded-xl bg-[#0d8d78] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50"
                     >
-                      Voir l&apos;enregistrement →
-                    </a>
+                      {loadingPlayerId === b.id ? "Chargement..." : "▶ Voir l'enregistrement"}
+                    </button>
                   ) : (
                     <a
                       href={`/classroom/${b.id}`}
@@ -199,6 +221,8 @@ export default function TeacherBookingsPage() {
           </div>
         )}
       </div>
+
+      {playerUrl && <RecordingPlayerModal url={playerUrl} onClose={() => setPlayerUrl(null)} />}
     </main>
   );
 }
