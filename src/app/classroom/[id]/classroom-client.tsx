@@ -546,8 +546,22 @@ export function ClassroomClient({
       raf = window.requestAnimationFrame(tick);
     };
     raf = window.requestAnimationFrame(tick);
+
+    // Chrome (and other browsers') autoplay policy starts a freshly created
+    // AudioContext "suspended" unless it's made as the direct result of a
+    // user gesture — this one is created from an effect reacting to the
+    // camera/mic preview loading on page open, not a click, so without this
+    // it silently never processes any audio and the meter would sit at zero
+    // forever regardless of real mic volume. resume() is a safe no-op once
+    // already running; the click listener is a fallback for browsers that
+    // still refuse the first resume() call before any interaction at all.
+    void audioCtx.resume();
+    const resumeOnInteraction = () => void audioCtx.resume();
+    document.addEventListener("click", resumeOnInteraction);
+
     return () => {
       window.cancelAnimationFrame(raf);
+      document.removeEventListener("click", resumeOnInteraction);
       source.disconnect();
       analyser.disconnect();
       void audioCtx.close();
