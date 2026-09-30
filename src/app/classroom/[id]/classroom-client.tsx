@@ -180,6 +180,15 @@ export function ClassroomClient({
   const mainStageRef = useRef<HTMLDivElement>(null);
   const whiteboardRef = useRef<WhiteboardHandle>(null);
   const channelRef = useRef<ReturnType<NonNullable<typeof supabase>["channel"]> | null>(null);
+  // Supabase's channel.send() silently falls back to a slow REST call for
+  // any broadcast sent before the WebSocket finishes subscribing (logged as
+  // "Realtime send() is automatically falling back to REST API" — a
+  // deprecated behavior Supabase warns will be removed outright). Every
+  // chat message, reaction, raised hand and whiteboard stroke goes through
+  // this one function, so queuing sends until the socket is actually ready
+  // is what makes the whole live classroom feel instant instead of laggy.
+  const channelReadyRef = useRef(false);
+  const pendingBroadcastsRef = useRef<unknown[]>([]);
   const dailyRef = useRef<DailyRoomHandle>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const drawerOpenRef = useRef(false);
@@ -293,14 +302,32 @@ export function ClassroomClient({
       }
     });
 
-    room.subscribe();
+    channelReadyRef.current = false;
+    room.subscribe((status) => {
+      if (status !== "SUBSCRIBED") return;
+      channelReadyRef.current = true;
+      const queued = pendingBroadcastsRef.current;
+      pendingBroadcastsRef.current = [];
+      for (const payload of queued) {
+        room.send({ type: "broadcast", event: "classroom", payload });
+      }
+    });
     return () => {
+      channelReadyRef.current = false;
+      pendingBroadcastsRef.current = [];
       void room.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
   const broadcast = useCallback((payload: unknown) => {
+    if (!channelReadyRef.current) {
+      // Almost always just the first second after joining (presence, or a
+      // very fast first chat message) — hold it rather than let Supabase's
+      // deprecated auto-fallback send it slowly over REST.
+      pendingBroadcastsRef.current.push(payload);
+      return;
+    }
     channelRef.current?.send({ type: "broadcast", event: "classroom", payload });
   }, []);
 
