@@ -127,6 +127,13 @@ function VideoTile({
   const [renderedVideoTrack, setRenderedVideoTrack] = useState<MediaStreamTrack | null>(tile.videoTrack ?? null);
   const [renderedScreenTrack, setRenderedScreenTrack] = useState<MediaStreamTrack | null>(tile.screenTrack ?? null);
   const [renderedAudioTrack, setRenderedAudioTrack] = useState<MediaStreamTrack | null>(tile.audioTrack ?? null);
+  // autoPlay alone is not enough for an unmuted <audio> element: the browser
+  // can silently refuse to actually start playback (autoplay-with-sound
+  // policy) with no visible error — the classic "the other person's mic
+  // isn't working" report that's really "their audio never started playing
+  // on MY end". Track the failure so the UI can offer an explicit tap to
+  // start it, which a real click always satisfies.
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   useEffect(() => {
     if (tile.videoTrack) {
@@ -168,7 +175,28 @@ function VideoTile({
   useEffect(() => {
     if (!audioRef.current || tile.local) return;
     audioRef.current.srcObject = renderedAudioTrack ? new MediaStream([renderedAudioTrack]) : null;
+    if (!renderedAudioTrack) return;
+    const playResult = audioRef.current.play();
+    if (playResult && typeof playResult.then === "function") {
+      playResult.then(() => setAudioBlocked(false)).catch(() => setAudioBlocked(true));
+    }
   }, [renderedAudioTrack, tile.local]);
+
+  const retryAudioPlayback = () => {
+    audioRef.current
+      ?.play()
+      .then(() => setAudioBlocked(false))
+      .catch(() => setAudioBlocked(true));
+  };
+
+  // The very first click anywhere in the app always satisfies the browser's
+  // autoplay-with-sound gesture requirement — catch that instead of relying
+  // on someone spotting and tapping the small banner above.
+  useEffect(() => {
+    if (!audioBlocked) return;
+    document.addEventListener("click", retryAudioPlayback, { once: true });
+    return () => document.removeEventListener("click", retryAudioPlayback);
+  }, [audioBlocked]);
 
   // The video element stays mounted as long as a track exists (the avatar is
   // an overlay, not a replacement) so a re-negotiation can't flash black.
@@ -206,6 +234,16 @@ function VideoTile({
       )}
 
       {!tile.local && !hasScreen && renderedAudioTrack != null && <audio ref={audioRef} autoPlay />}
+
+      {!tile.local && audioBlocked && (
+        <button
+          type="button"
+          onClick={retryAudioPlayback}
+          className="absolute inset-x-2 top-2 z-10 flex items-center justify-center gap-1.5 rounded-lg bg-amber-500/90 px-2 py-1.5 text-[11px] font-bold text-white shadow-lg"
+        >
+          <IconMicrophone className="h-3.5 w-3.5" /> Cliquez pour activer le son
+        </button>
+      )}
 
       <div className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-lg bg-black/60 px-2 py-1 backdrop-blur-sm">
         <span className="truncate text-[11px] font-semibold text-white">{tile.local ? `${tile.userName} (Vous)` : tile.userName}</span>
