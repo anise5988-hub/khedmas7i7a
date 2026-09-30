@@ -578,7 +578,10 @@ export function ClassroomClient({
   const quitClassroom = async () => {
     dailyRef.current?.leave();
     await leaveRoom("LEFT");
-    router.push("/dashboard");
+    // Hardcoded to the student dashboard regardless of role — a teacher
+    // clicking "Quitter" landed on a route their own middleware role-gate
+    // rejects, which reads exactly like "the button doesn't work".
+    router.push(isHost ? "/teacher/dashboard" : "/dashboard");
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1216,13 +1219,14 @@ export function ClassroomClient({
       {/* ── Top information bar ── */}
       <header className="z-20 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 bg-[#0c1626]/95 px-3 py-2 backdrop-blur sm:px-5">
         <div className="flex min-w-0 items-center gap-2.5">
-          <Link
-            href="/dashboard"
+          <button
+            type="button"
+            onClick={() => void quitClassroom()}
             className="flex shrink-0 items-center gap-1.5 rounded-xl bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
             title="Quitter la classe"
           >
             ← <span className="hidden md:inline">Quitter</span>
-          </Link>
+          </button>
           <div className="min-w-0">
             <p className="hidden text-[10px] font-extrabold uppercase tracking-[0.25em] text-[#72d6bf] lg:block">ProfySpace</p>
             <p className="truncate text-sm font-bold">{headerTitle}</p>

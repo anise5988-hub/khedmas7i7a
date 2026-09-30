@@ -195,24 +195,33 @@ export async function recordJoin(
     });
   }
 
-  const openRow = await prisma.classroomAttendance.findFirst({
-    where: { sessionId: session.id, userId, leftAt: null },
-    orderBy: { joinedAt: "desc" },
-  });
-  if (!openRow) {
-    await prisma.classroomAttendance.create({
-      data: {
-        sessionId: session.id,
-        participantId: participant.id,
-        userId,
-        role,
-        displayName,
-      },
+  // The attendance check/create must stay sequential with the isReconnect
+  // block above it (it specifically looks for the row that block just
+  // closed), but has no dependency on the participant/event writes below —
+  // same round-trip-batching reasoning as recordLeave().
+  const attendanceWork = (async () => {
+    const openRow = await prisma.classroomAttendance.findFirst({
+      where: { sessionId: session.id, userId, leftAt: null },
+      orderBy: { joinedAt: "desc" },
     });
-  }
+    if (!openRow) {
+      await prisma.classroomAttendance.create({
+        data: {
+          sessionId: session.id,
+          participantId: participant.id,
+          userId,
+          role,
+          displayName,
+        },
+      });
+    }
+  })();
 
-  await prisma.classroomParticipant.update({ where: { id: participant.id }, data: { lastSeenAt: new Date() } });
-  await logEvent(session.id, userId, displayName, "PARTICIPANT_JOINED", `${displayName} a rejoint la classe`, { role, isReconnect });
+  await Promise.all([
+    attendanceWork,
+    prisma.classroomParticipant.update({ where: { id: participant.id }, data: { lastSeenAt: new Date() } }),
+    logEvent(session.id, userId, displayName, "PARTICIPANT_JOINED", `${displayName} a rejoint la classe`, { role, isReconnect }),
+  ]);
 
   return prisma.classroomSession.findUnique({ where: { bookingId } });
 }
@@ -235,24 +244,32 @@ export async function recordLeave(
 
   const field = role === "TEACHER" ? "teacherLeftAt" : role === "STUDENT" ? "studentLeftAt" : null;
 
-  const openRow = await prisma.classroomAttendance.findFirst({
-    where: { sessionId: session.id, userId, leftAt: null },
-    orderBy: { joinedAt: "desc" },
-  });
-  if (openRow) {
-    const durationSeconds = Math.max(0, Math.floor((Date.now() - openRow.joinedAt.getTime()) / 1000));
-    await prisma.classroomAttendance.update({
-      where: { id: openRow.id },
-      data: { leftAt: new Date(), durationSeconds, leaveReason: reason },
-    });
-  }
-
-  await prisma.classroomParticipant.updateMany({
-    where: { sessionId: session.id, userId, leftAt: null },
-    data: { leftAt: new Date() },
-  });
-
-  await logEvent(session.id, userId, displayName, "PARTICIPANT_LEFT", `${displayName} a quitté la classe`, { role, reason });
+  // These three don't depend on each other's results — only on session.id —
+  // so they don't need to run as separate sequential round trips. On a
+  // remote DB each round trip is real latency (confirmed elsewhere this
+  // session: ~150-300ms even after fixing the Vercel/DB region mismatch),
+  // and this function used to pay that cost 5+ times in a row just to
+  // record someone leaving, which is exactly why "Quitter" could feel like
+  // it hung or did nothing.
+  await Promise.all([
+    (async () => {
+      const openRow = await prisma.classroomAttendance.findFirst({
+        where: { sessionId: session.id, userId, leftAt: null },
+        orderBy: { joinedAt: "desc" },
+      });
+      if (!openRow) return;
+      const durationSeconds = Math.max(0, Math.floor((Date.now() - openRow.joinedAt.getTime()) / 1000));
+      await prisma.classroomAttendance.update({
+        where: { id: openRow.id },
+        data: { leftAt: new Date(), durationSeconds, leaveReason: reason },
+      });
+    })(),
+    prisma.classroomParticipant.updateMany({
+      where: { sessionId: session.id, userId, leftAt: null },
+      data: { leftAt: new Date() },
+    }),
+    logEvent(session.id, userId, displayName, "PARTICIPANT_LEFT", `${displayName} a quitté la classe`, { role, reason }),
+  ]);
 
   if (role === "ADMIN") {
     // An admin observer leaving never touches lesson state.
