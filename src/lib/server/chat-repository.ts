@@ -280,7 +280,17 @@ export async function sendMessage(params: {
     amountMillimes: number;
   } | null;
 }): Promise<ChatMessage | null> {
-  const messageId = await prisma.$transaction(async (tx) => {
+  // Sending a message used to end with getConversationById() — an unbounded
+  // fetch of every message the conversation has ever had — just to pick the
+  // one row this call itself just created. That query grows with the
+  // conversation's whole history, so it got slower forever, on every single
+  // send, as a conversation aged: the direct cause of a message taking
+  // several seconds to "send" even though the insert itself is instant.
+  // hydrateMessages() below already exists for exactly this — turning raw
+  // rows into ChatMessage[] with a single lookup scoped to their senders —
+  // so this fetches only the one row and the conversation's studentId
+  // (needed to resolve sender role), never the message history.
+  const { messageRow, studentId } = await prisma.$transaction(async (tx) => {
     let offerId: string | null = null;
     if (params.offer) {
       const createdOffer = await tx.chatOffer.create({
@@ -299,15 +309,20 @@ export async function sendMessage(params: {
 
     const message = await tx.chatMessage.create({
       data: { conversationId: params.conversationId, senderId: params.senderId, text: params.text, offerId },
+      include: { offer: true },
     });
 
-    await tx.conversation.update({ where: { id: params.conversationId }, data: { lastMessageAt: new Date() } });
+    const conv = await tx.conversation.update({
+      where: { id: params.conversationId },
+      data: { lastMessageAt: new Date() },
+      select: { studentId: true },
+    });
 
-    return message.id;
+    return { messageRow: message, studentId: conv.studentId };
   });
 
-  const conv = await getConversationById(params.conversationId);
-  return conv?.messages.find((m) => m.id === messageId) || null;
+  const [hydrated] = await hydrateMessages(studentId, [messageRow]);
+  return hydrated ?? null;
 }
 
 export async function getOfferById(offerId: string): Promise<CustomOffer | null> {

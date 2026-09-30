@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { getConversationById, getConversationMessages, sendMessage } from "@/lib/server/chat-repository";
 import { notifyUser } from "@/lib/server/notification-service";
@@ -108,18 +108,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Impossible d'envoyer le message." }, { status: 500 });
   }
 
+  // Sending a message must feel instant — the recipient's in-app
+  // notification and email are useful, but neither one is why the SENDER is
+  // waiting, and notifyUser() awaits a real Brevo API call that can easily
+  // take a few seconds. Scheduling it with after() returns this response
+  // immediately while Vercel keeps the function alive to actually finish
+  // sending it in the background (verified: this is exactly what after()
+  // is for on this platform, not a fire-and-forget that might get killed).
   if (msg.offer) {
     // The offer sender is always the teacher (see offerParams above), so the
     // recipient here is always the student — /dashboard/messages is correct.
-    await notifyUser({
-      userId: conv.studentId,
-      type: "NEW_MESSAGE",
-      title: "Nouvelle offre de cours reçue",
-      message: `${user.firstName} ${user.lastName} vous a envoyé une offre de cours pour ${offerAmountTnd} DT.`,
-      link: `/dashboard/messages?conversationId=${conv.id}`,
-      emailSubject: "Vous avez reçu une nouvelle offre sur Profy",
-      dedupeKey: `offer:${msg.offer.id}`,
-    });
+    after(() =>
+      notifyUser({
+        userId: conv.studentId,
+        type: "NEW_MESSAGE",
+        title: "Nouvelle offre de cours reçue",
+        message: `${user.firstName} ${user.lastName} vous a envoyé une offre de cours pour ${offerAmountTnd} DT.`,
+        link: `/dashboard/messages?conversationId=${conv.id}`,
+        emailSubject: "Vous avez reçu une nouvelle offre sur Profy",
+        dedupeKey: `offer:${msg.offer!.id}`,
+      }),
+    );
   } else {
     const recipientId = user.id === conv.studentId ? conv.teacherId : conv.studentId;
     // Unlike the offer branch above, this recipient can be either party —
@@ -131,16 +140,18 @@ export async function POST(request: Request) {
         : `/dashboard/messages?conversationId=${conv.id}`;
     const previewText = text.trim().length > 80 ? text.trim().substring(0, 80) + "..." : text.trim();
 
-    await notifyUser({
-      userId: recipientId,
-      type: "NEW_MESSAGE",
-      title: "Nouveau message",
-      message: `Vous avez un nouveau message de ${user.firstName} ${user.lastName}.`,
-      emailMessage: `Message de ${user.firstName} ${user.lastName} : ${previewText}`,
-      emailSubject: "Vous avez un nouveau message sur Profy",
-      link: recipientHref,
-      dedupeKey: `message:${msg.id}`,
-    });
+    after(() =>
+      notifyUser({
+        userId: recipientId,
+        type: "NEW_MESSAGE",
+        title: "Nouveau message",
+        message: `Vous avez un nouveau message de ${user.firstName} ${user.lastName}.`,
+        emailMessage: `Message de ${user.firstName} ${user.lastName} : ${previewText}`,
+        emailSubject: "Vous avez un nouveau message sur Profy",
+        link: recipientHref,
+        dedupeKey: `message:${msg.id}`,
+      }),
+    );
   }
 
   return NextResponse.json({ success: true, message: msg });

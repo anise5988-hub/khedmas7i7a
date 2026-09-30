@@ -51,11 +51,18 @@ export default function MessagesPage() {
   const router = useRouter();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
+  // Purely visual — the conversation list and the open thread both render
+  // full-width and stacked on a phone (grid-cols-1), so opening a thread
+  // used to leave the whole conversation list sitting above it: you had to
+  // scroll past every conversation just to reach the messages and compose
+  // box. This never touches activeConv/activeConvId, which the polling
+  // loop depends on to keep syncing the open thread even while this shows
+  // the list.
+  const [mobileShowThread, setMobileShowThread] = useState(false);
   const [text, setText] = useState("");
   const [attachedFile, setAttachedFile] = useState<{ url: string; name: string } | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sending, setPending] = useState(false);
   /** Fil ouvert, pour l'affichage. `activeIdRef` sert au sondage. */
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   /** Séance ouverte depuis « Discuter de cette séance » (bouton des réservations). */
@@ -125,6 +132,7 @@ export default function MessagesPage() {
     async (summary: ConversationSummary) => {
       activeIdRef.current = summary.id;
       setActiveConvId(summary.id);
+      setMobileShowThread(true);
       shouldAutoScrollRef.current = true;
 
       // Affichage immédiat de l'en-tête (nom, rôle) sans attendre le réseau :
@@ -363,7 +371,6 @@ export default function MessagesPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
     shouldAutoScrollRef.current = true;
     setActiveConv((prev) => (prev ? { ...prev, messages: [...prev.messages, optimistic] } : null));
-    setPending(true);
 
     try {
       const res = await fetch("/api/chat/messages", {
@@ -399,8 +406,6 @@ export default function MessagesPage() {
           : prev,
       );
       setText(messageText);
-    } finally {
-      setPending(false);
     }
   }
 
@@ -514,7 +519,9 @@ export default function MessagesPage() {
       {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[550px]">
         {/* Conversations List */}
-        <div className="md:col-span-4 rounded-3xl bg-white border border-slate-200 p-4 space-y-3 shadow-sm">
+        <div
+          className={`${mobileShowThread ? "hidden md:block" : "block"} md:col-span-4 rounded-3xl bg-white border border-slate-200 p-4 space-y-3 shadow-sm`}
+        >
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-2">
             Vos Conversations
           </h2>
@@ -580,20 +587,32 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Thread */}
-        <div className="md:col-span-8 rounded-3xl bg-white border border-slate-200 p-5 flex flex-col justify-between shadow-sm">
+        <div
+          className={`${mobileShowThread ? "flex" : "hidden md:flex"} md:col-span-8 rounded-3xl bg-white border border-slate-200 p-5 flex-col justify-between shadow-sm`}
+        >
           {activeConv ? (
             <>
               {/* Chat Header */}
               <div className="border-b border-slate-100 pb-3">
                 <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-[#11233f]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setMobileShowThread(false)}
+                    className="shrink-0 rounded-xl p-1.5 text-slate-500 hover:bg-slate-100 md:hidden"
+                    aria-label="Retour aux conversations"
+                  >
+                    ←
+                  </button>
+                  <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-[#11233f] truncate">
                     {userRole === "TEACHER" ? activeConv.studentName : activeConv.teacherName}
                   </h3>
                   <span className="text-[11px] font-semibold flex items-center gap-1.5 mt-0.5 text-emerald-600">
                     <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     En ligne • Discussion sécurisée ProfySpace
                   </span>
+                  </div>
                 </div>
 
                 {userRole === "TEACHER" && (
@@ -705,7 +724,7 @@ export default function MessagesPage() {
                 )}
                 <button
                   type="submit"
-                  disabled={sending || !text.trim()}
+                  disabled={!text.trim()}
                   className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50 shrink-0"
                 >
                   Envoyer →

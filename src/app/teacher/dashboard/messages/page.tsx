@@ -50,6 +50,10 @@ const SESSION_STATUS_LABELS: Record<string, string> = {
 export default function TeacherMessagesPage() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
+  // Purely visual, same fix as the student messages page — the list and the
+  // open thread both render stacked full-width on a phone, so opening a
+  // thread used to leave the whole conversation list sitting above it.
+  const [mobileShowThread, setMobileShowThread] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [text, setText] = useState("");
   const [attachedFile, setAttachedFile] = useState<{ url: string; name: string } | null>(null);
@@ -58,7 +62,6 @@ export default function TeacherMessagesPage() {
   /** Séance ouverte depuis « Discuter de cette séance » (bouton des réservations). */
   const [sessionContext, setSessionContext] = useState<SessionContext | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sending, setPending] = useState(false);
   /** Fil ouvert, pour l'affichage. `activeIdRef` sert à la boucle de sondage. */
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [currentUserId] = useState<string>(() => {
@@ -110,6 +113,7 @@ export default function TeacherMessagesPage() {
     async (summary: ConversationSummary) => {
       activeIdRef.current = summary.id;
       setActiveConvId(summary.id);
+      setMobileShowThread(true);
       shouldAutoScrollRef.current = true;
       setActiveConv({
         id: summary.id,
@@ -271,7 +275,6 @@ export default function TeacherMessagesPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
     shouldAutoScrollRef.current = true;
     setActiveConv((prev) => (prev ? { ...prev, messages: [...prev.messages, optimistic] } : null));
-    setPending(true);
 
     try {
       const res = await fetch("/api/chat/messages", {
@@ -307,8 +310,6 @@ export default function TeacherMessagesPage() {
           : prev,
       );
       setText(messageText);
-    } finally {
-      setPending(false);
     }
   }
 
@@ -413,7 +414,9 @@ export default function TeacherMessagesPage() {
         {/* Dual Pane Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[580px]">
           {/* Left: Conversations List */}
-          <div className="md:col-span-4 rounded-3xl bg-white border border-slate-200 p-4 space-y-3 shadow-sm flex flex-col dark:bg-white/[.05] dark:border-white/10 dark:shadow-xl">
+          <div
+            className={`${mobileShowThread ? "hidden md:flex" : "flex"} md:col-span-4 rounded-3xl bg-white border border-slate-200 p-4 space-y-3 shadow-sm flex-col dark:bg-white/[.05] dark:border-white/10 dark:shadow-xl`}
+          >
             <div className="relative">
               <IconSearch className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <input
@@ -482,18 +485,28 @@ export default function TeacherMessagesPage() {
           </div>
 
           {/* Right: Active Chat Area */}
-          <div className="md:col-span-8 rounded-3xl bg-white border border-slate-200 p-5 flex flex-col justify-between shadow-sm dark:bg-white/[.05] dark:border-white/10 dark:shadow-xl">
+          <div
+            className={`${mobileShowThread ? "flex" : "hidden md:flex"} md:col-span-8 rounded-3xl bg-white border border-slate-200 p-5 flex-col justify-between shadow-sm dark:bg-white/[.05] dark:border-white/10 dark:shadow-xl`}
+          >
             {activeConv ? (
               <>
                 {/* Chat Header */}
                 <div className="border-b border-slate-100 pb-3 dark:border-white/10">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold dark:bg-[#72d6bf]/15 dark:text-[#72d6bf]">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setMobileShowThread(false)}
+                        className="shrink-0 rounded-xl p-1.5 text-slate-500 hover:bg-slate-100 md:hidden dark:text-slate-400 dark:hover:bg-white/10"
+                        aria-label="Retour aux conversations"
+                      >
+                        ←
+                      </button>
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#e5f7f2] text-[#0d8d78] font-bold dark:bg-[#72d6bf]/15 dark:text-[#72d6bf]">
                         {activeConv.studentName.charAt(0)}
                       </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-[#11233f] dark:text-white">{activeConv.studentName}</h3>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-[#11233f] dark:text-white truncate">{activeConv.studentName}</h3>
                         <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5 mt-0.5 dark:text-emerald-400">
                           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                           Élève en ligne · Discussion sécurisée
@@ -598,7 +611,7 @@ export default function TeacherMessagesPage() {
                   />
                   <button
                     type="submit"
-                    disabled={sending || (!text.trim() && !attachedFile)}
+                    disabled={!text.trim() && !attachedFile}
                     className="rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#0b7866] disabled:opacity-50 shrink-0"
                   >
                     Envoyer →
