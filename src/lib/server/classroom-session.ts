@@ -127,7 +127,15 @@ export async function recordJoin(
 
   const data: Record<string, unknown> = {};
   const field = role === "TEACHER" ? "teacherJoinedAt" : role === "STUDENT" ? "studentJoinedAt" : null;
+  const leftField = role === "TEACHER" ? "teacherLeftAt" : role === "STUDENT" ? "studentLeftAt" : null;
   if (field && !session[field]) data[field] = new Date();
+  // A join always means "no longer left" — without this, a leave event that
+  // fires before the real join settles (a client reconnect, a dev-mode
+  // double-mount, or a genuine rejoin after dropping off) permanently stamps
+  // *LeftAt from that one blip, which recordLeave() below never clears, so
+  // the session could look "left" by someone who is still actively in the
+  // call and never actually complete when they really do leave.
+  if (leftField && session[leftField]) data[leftField] = null;
   if (session.status === "SCHEDULED") {
     data.status = "IN_PROGRESS";
     data.phase = "LIVE";
@@ -144,18 +152,39 @@ export async function recordJoin(
   // replays space without a teacher having to remember to press "record".
   // Auto-start it the moment both sides are actually present for the first
   // time (not on the very first join, which could just be one side waiting
-  // alone) — guarded on recordingStatus still being the untouched default so
-  // a reconnect, or a session someone already started/stopped manually,
-  // never re-triggers this.
-  const teacherPresent = Boolean(session.teacherJoinedAt) || field === "teacherJoinedAt";
-  const studentPresent = Boolean(session.studentJoinedAt) || field === "studentJoinedAt";
-  if (teacherPresent && studentPresent && session.recordingStatus === "NOT_AVAILABLE" && isDailyConfigured()) {
-    try {
-      await startDailyRecording(session.roomName);
-      await prisma.classroomSession.update({ where: { bookingId }, data: { recordingStatus: "RECORDING" } });
-      await logEvent(session.id, null, null, "RECORDING_STARTED", "Enregistrement démarré automatiquement");
-    } catch (error) {
-      console.error("Auto-start recording failed", error);
+  // alone).
+  //
+  // Two near-simultaneous joins (teacher and student connecting within the
+  // same second — the common case) each run this whole function concurrently,
+  // so checking presence off any *read* (even a fresh one) can still race:
+  // both could read "alone" before the other's write lands, and neither
+  // retries. The updateMany below is the actual guard — its WHERE clause
+  // only matches when the *other* role's joinedAt is already committed and
+  // recordingStatus is still untouched, so exactly one of the two calls can
+  // ever flip it, atomically, regardless of read timing.
+  const otherField = role === "TEACHER" ? "studentJoinedAt" : role === "STUDENT" ? "teacherJoinedAt" : null;
+  if (otherField && isDailyConfigured()) {
+    const claimed = await prisma.classroomSession.updateMany({
+      where: { bookingId, recordingStatus: "NOT_AVAILABLE", [otherField]: { not: null } },
+      data: { recordingStatus: "RECORDING" },
+    });
+    if (claimed.count === 1) {
+      try {
+        const started = await startDailyRecording(session.roomName);
+        if (started.meetingId) {
+          await prisma.classroomSession.update({ where: { bookingId }, data: { recordingId: started.meetingId } });
+        }
+        await logEvent(session.id, null, null, "RECORDING_STARTED", "Enregistrement démarré automatiquement");
+      } catch (error) {
+        console.error("Auto-start recording failed", error);
+        // Release the claim so a future reconnect can retry, rather than
+        // leaving the session stuck showing "RECORDING" when Daily never
+        // actually started one.
+        await prisma.classroomSession.updateMany({
+          where: { bookingId, recordingStatus: "RECORDING" },
+          data: { recordingStatus: "NOT_AVAILABLE" },
+        });
+      }
     }
   }
 
@@ -235,17 +264,27 @@ export async function recordLeave(
   if (Object.keys(data).length === 0) return session;
   const updated = await prisma.classroomSession.update({ where: { bookingId }, data });
 
-  if (
-    updated.teacherJoinedAt &&
-    updated.studentJoinedAt &&
-    updated.teacherLeftAt &&
-    updated.studentLeftAt &&
-    updated.status !== "COMPLETED"
-  ) {
-    const completed = await prisma.classroomSession.update({
-      where: { bookingId },
-      data: { status: "COMPLETED", phase: "COMPLETED", actualEnd: new Date() },
-    });
+  // Same race as the recording auto-start in recordJoin(): if the teacher and
+  // student both leave within the same instant, each call's own `updated`
+  // read can miss the other's not-yet-committed *LeftAt, and neither would
+  // ever mark the session COMPLETED (which also means the recording, if
+  // running, would never auto-stop). The updateMany's WHERE clause is the
+  // real guard — it only matches once the *other* role's leftAt is already
+  // committed, so exactly one of the two concurrent calls can win it.
+  const otherLeftField = role === "TEACHER" ? "studentLeftAt" : "teacherLeftAt";
+  const completedClaim = await prisma.classroomSession.updateMany({
+    where: {
+      bookingId,
+      status: { not: "COMPLETED" },
+      teacherJoinedAt: { not: null },
+      studentJoinedAt: { not: null },
+      [otherLeftField]: { not: null },
+    },
+    data: { status: "COMPLETED", phase: "COMPLETED", actualEnd: new Date() },
+  });
+
+  if (completedClaim.count === 1) {
+    const completed = await prisma.classroomSession.findUniqueOrThrow({ where: { bookingId } });
     await prisma.booking.updateMany({
       where: { id: bookingId, status: { in: ["CONFIRMED", "PENDING"] } },
       data: { status: "COMPLETED" },
@@ -362,7 +401,7 @@ export async function promoteRecordingIfReady(session: {
   recordingStatus: string;
   recordingId?: string | null;
   roomName: string | null;
-  endedAt: Date | null;
+  actualEnd: Date | null;
 }): Promise<{ recordingStatus: string; recordingUrl: string | null } | null> {
   if (!isDailyConfigured()) return null;
 
@@ -394,7 +433,7 @@ export async function promoteRecordingIfReady(session: {
     }
   }
 
-  if (session.recordingStatus !== "PROCESSING" || !session.roomName || !session.endedAt) {
+  if (session.recordingStatus !== "PROCESSING" || !session.roomName || !session.actualEnd) {
     return null;
   }
   try {

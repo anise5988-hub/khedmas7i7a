@@ -187,8 +187,15 @@ export async function stopDailyRecording(roomName: string): Promise<void> {
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    // Already-stopped / no-active-recording are benign on stop.
-    if (!/not.*recording|no.*active/i.test(body)) {
+    // Benign on stop: nothing was recording, or (seen in practice — a
+    // participant's own leave request racing Daily's own room-teardown,
+    // which happens fast once everyone's gone) the room already isn't
+    // hosting a call at all by the time this reaches Daily. Either way
+    // there's nothing left to stop, and the asset Daily already captured is
+    // unaffected — fetchDailyRecordingAssets() picks it up on its own. Any
+    // 404 here means the same thing: no active call/recording found.
+    const benign = res.status === 404 || /not.*recording|no.*active/i.test(body);
+    if (!benign) {
       throw new Error(`Daily stop-recording failed (${res.status}): ${body}`);
     }
   }

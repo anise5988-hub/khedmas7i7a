@@ -57,7 +57,7 @@ export async function GET(request: Request) {
           },
         },
         payment: true,
-        classroomSession: { select: { bookingId: true, status: true, recordingStatus: true, recordingUrl: true, recordingId: true, roomName: true, endedAt: true } },
+        classroomSession: { select: { bookingId: true, status: true, recordingStatus: true, recordingUrl: true, recordingId: true, roomName: true, actualEnd: true } },
       },
       orderBy: { startsAt: "desc" },
     });

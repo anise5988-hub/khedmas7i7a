@@ -376,7 +376,12 @@ export function ClassroomClient({
   const phase: LessonPhase = session?.phase ?? "SCHEDULED";
   const controls: HostControls | null = session?.controls ?? null;
 
-  const elapsedSeconds = Math.max(0, Math.floor((serverNow - scheduledStartMs) / 1000));
+  // Elapsed time in the actual call, not "how far past the booked slot are
+  // we" — using scheduledStartMs here made the timer jump straight to a
+  // large value (e.g. 00:12:34) the instant anyone joined a few minutes
+  // late, instead of counting up from 0 like a normal call timer.
+  const actualStartMs = session?.actualStart ? new Date(session.actualStart).getTime() : null;
+  const elapsedSeconds = Math.max(0, Math.floor((serverNow - (actualStartMs ?? scheduledStartMs)) / 1000));
   const remainingSeconds = Math.floor((scheduledEndMs - serverNow) / 1000);
   const secondsUntilStart = Math.floor((scheduledStartMs - serverNow) / 1000);
   const timerDisplay = phase === "LIVE" || phase === "ENDING_SOON" ? formatTimer(elapsedSeconds) : secondsUntilStart > 0 ? formatTimer(secondsUntilStart) : "00:00:00";
