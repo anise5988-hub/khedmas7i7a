@@ -550,6 +550,12 @@ export function ClassroomClient({
   // ── Join: freeze the token and enter the room ──
   const enterRoom = () => {
     if (!session?.joinToken || !session?.roomUrl) return;
+    // isMuted/isVideoOff drive the in-call control bar's icons and were stuck
+    // at their hardcoded false default — so joining with the mic or camera
+    // left off in the lobby showed "on" icons for a call that was actually
+    // off, and nothing prompted the user to click and actually turn it on.
+    setIsMuted(!micEnabled);
+    setIsVideoOff(!camEnabled);
     setJoinInfo({ roomUrl: session.roomUrl, token: session.joinToken });
     setHasEnteredRoom(true);
     // Preview stream is now stopped in DailyRoom after "joined-meeting" to avoid camera flash
@@ -1318,6 +1324,15 @@ export function ClassroomClient({
                     </div>
                   )}
                   {screenTile && localTile && !localScreenTile && (
+                    <div className="absolute bottom-3 right-3 h-24 w-32 shadow-2xl sm:h-28 sm:w-40">
+                      <VideoTile tile={localTile} className="h-full w-full ring-2 ring-white/10" />
+                    </div>
+                  )}
+                  {/* Own camera PiP for the plain 1-on-1 case (no screen
+                      share, 2 participants) — without this, the stage only
+                      ever shows the other party's tile and neither person
+                      ever sees their own camera window. */}
+                  {!screenTile && localTile && remoteTiles.length <= 1 && (
                     <div className="absolute bottom-3 right-3 h-24 w-32 shadow-2xl sm:h-28 sm:w-40">
                       <VideoTile tile={localTile} className="h-full w-full ring-2 ring-white/10" />
                     </div>
