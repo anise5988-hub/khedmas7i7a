@@ -283,6 +283,18 @@ export const DailyRoom = forwardRef<
   const mountedRef = useRef(true);
   const refreshTilesRef = useRef<(() => void) | null>(null);
   const appMessageHandlerRef = useRef<((data: unknown, fromId: string) => void) | null>(null);
+  // Always-current refs for the local-state callbacks so the mount-once
+  // device-recovery effect below can report a recovery without needing
+  // onLocalAudioChange/onLocalVideoChange in its dependency array (that
+  // would tear down and reattach the focus/visibilitychange listeners on
+  // every parent render, since those props are new inline functions each
+  // time).
+  const onLocalAudioChangeRef = useRef(onLocalAudioChange);
+  const onLocalVideoChangeRef = useRef(onLocalVideoChange);
+  useEffect(() => {
+    onLocalAudioChangeRef.current = onLocalAudioChange;
+    onLocalVideoChangeRef.current = onLocalVideoChange;
+  }, [onLocalAudioChange, onLocalVideoChange]);
   // leave()/destroy() are async but the effect cleanup below can't await
   // them, so a fast remount (React StrictMode's dev double-invoke, or any
   // future rapid unmount/remount) could call createCallObject() again while
@@ -619,10 +631,19 @@ export const DailyRoom = forwardRef<
         if (hasCamera && videoDead) {
           call.setLocalVideo(false);
           call.setLocalVideo(true);
+          // The control bar's icon is separate React state (localVideoOn),
+          // never touched by the two calls above — without this it could
+          // keep showing "on" or "off" independent of what actually
+          // happened here, the exact kind of silent desync that leaves
+          // someone unknowingly cut off after a real reconnect.
+          setLocalVideoOn(true);
+          onLocalVideoChangeRef.current?.(true);
         }
         if (hasMic && audioDead) {
           call.setLocalAudio(false);
           call.setLocalAudio(true);
+          setLocalAudioOn(true);
+          onLocalAudioChangeRef.current?.(true);
         }
         refreshTilesRef.current?.();
       } finally {

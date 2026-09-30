@@ -131,6 +131,11 @@ export function ClassroomClient({
   const [selectedMicId, setSelectedMicId] = useState<string | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const previewStreamRef = useRef<MediaStream | null>(null);
+  // Live mic input level (0-1) for the lobby VU meter — the only way a user
+  // can tell their mic is actually capturing sound before joining, instead
+  // of trusting an "unmuted" icon that stays lit even when the OS/driver is
+  // silently dropping the input (a real, otherwise invisible failure mode).
+  const [micLevel, setMicLevel] = useState(0);
 
   // ── In-meeting state ──
   const [messages, setMessages] = useState<ClassroomMessageRow[]>([]);
@@ -509,6 +514,45 @@ export function ClassroomClient({
       setPreviewStream(null);
     };
   }, []);
+
+  // Lobby mic VU meter: reads the real audio signal off previewStream so a
+  // dead mic (wrong OS input, blocked driver, disconnected headset) is
+  // visible before joining instead of surfacing mid-lesson as "my mic
+  // doesn't work" with no clue why — the "unmuted" icon alone can't tell
+  // anyone whether sound is actually coming through.
+  useEffect(() => {
+    const audioTrack = previewStream?.getAudioTracks()[0];
+    if (!previewStream || !audioTrack) {
+      const timeout = window.setTimeout(() => setMicLevel(0), 0);
+      return () => window.clearTimeout(timeout);
+    }
+    const AudioContextCtor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) return;
+    const audioCtx = new AudioContextCtor();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    const source = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    let raf = 0;
+    const tick = () => {
+      analyser.getByteTimeDomainData(data);
+      let sumSquares = 0;
+      for (let i = 0; i < data.length; i++) {
+        const centered = (data[i] - 128) / 128;
+        sumSquares += centered * centered;
+      }
+      setMicLevel(Math.min(1, Math.sqrt(sumSquares / data.length) * 4));
+      raf = window.requestAnimationFrame(tick);
+    };
+    raf = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      source.disconnect();
+      analyser.disconnect();
+      void audioCtx.close();
+    };
+  }, [previewStream]);
 
   const togglePreviewMic = () => {
     const track = previewStreamRef.current?.getAudioTracks()[0];
@@ -1095,6 +1139,24 @@ export function ClassroomClient({
                   {camEnabled ? <IconCamera className="h-5 w-5" /> : <IconCameraOff className="h-5 w-5" />}
                 </button>
               </div>
+              {previewStream && (
+                <div className="flex items-center gap-2 px-1">
+                  <IconMicrophone className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  <div className="flex h-2 flex-1 gap-0.5 overflow-hidden rounded-full bg-white/10">
+                    {Array.from({ length: 20 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`flex-1 rounded-full transition-colors ${
+                          micEnabled && micLevel * 20 > i ? (i > 15 ? "bg-amber-400" : "bg-emerald-400") : "bg-transparent"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  {micEnabled && micLevel < 0.03 && (
+                    <span className="shrink-0 text-[10px] font-semibold text-slate-500">Silence</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Session info + devices + join */}
