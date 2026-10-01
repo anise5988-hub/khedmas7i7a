@@ -150,6 +150,37 @@ export async function getDailyRecordingAccessLink(recordingId: string): Promise<
 }
 
 /**
+ * Checks whether `userId` currently has a live WebRTC connection in
+ * `roomName`, verified directly against the live API (`GET /v1/presence`
+ * returns an object keyed by room name, each value an array of connected
+ * participants carrying the `user_id` passed at token creation).
+ *
+ * This is the ground truth for "is this person actually still in the call
+ * right now" — unlike our own `teacherLeftAt`/`studentLeftAt` timestamps,
+ * which a leave request delayed or reordered by the network (a
+ * `sendBeacon` from a stale tab, a slow request racing a fast rejoin) can
+ * leave stuck at "left" even though the person reconnected moments later.
+ * Used to avoid completing a lesson out from under someone who's still
+ * genuinely present.
+ */
+export async function isUserPresentInDailyRoom(roomName: string, userId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${DAILY_API_BASE}/presence`, {
+      headers: { Authorization: `Bearer ${apiKey()}` },
+    });
+    if (!res.ok) return false;
+    const data = await res.json().catch(() => null);
+    const participants = data?.[roomName];
+    if (!Array.isArray(participants)) return false;
+    return participants.some((p: { userId?: string }) => p.userId === userId);
+  } catch {
+    // Treat a presence-check failure as "can't confirm they're gone" so a
+    // Daily API hiccup can never itself cause a premature completion.
+    return true;
+  }
+}
+
+/**
  * Starts a cloud recording in `roomName`.
  *
  * Verified directly against the live API before landing this: the previous

@@ -8,6 +8,7 @@ import {
   stopDailyRecording,
   fetchDailyRecordingAssets,
   getDailyRecordingAccessLink,
+  isUserPresentInDailyRoom,
 } from "@/lib/server/daily";
 import { maybeAwardReferralBonus } from "@/lib/server/referral";
 
@@ -289,6 +290,32 @@ export async function recordLeave(
   // real guard — it only matches once the *other* role's leftAt is already
   // committed, so exactly one of the two concurrent calls can win it.
   const otherLeftField = role === "TEACHER" ? "studentLeftAt" : "teacherLeftAt";
+
+  // *LeftAt can go stale: a delayed sendBeacon from a dropped connection can
+  // land at the server AFTER that same person already rejoined, which
+  // recordJoin() resets to null on receipt — but if the stale leave arrives
+  // later still, it stamps *LeftAt right back in, with nothing left to ever
+  // clear it again. A student leaving normally would then find the
+  // teacher's leftAt "set" and end the whole lesson out from under a
+  // teacher who's actually still on the call. Before trusting that
+  // timestamp to finalize anything, confirm against Daily's own live room
+  // presence — the one source that can't go stale like this.
+  const wouldComplete =
+    updated.status !== "COMPLETED" &&
+    updated.teacherJoinedAt != null &&
+    updated.studentJoinedAt != null &&
+    Boolean((updated as unknown as Record<string, unknown>)[otherLeftField]);
+  if (wouldComplete && isDailyConfigured()) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: { studentId: true, teacher: { select: { userId: true } } },
+    });
+    const otherUserId = role === "TEACHER" ? booking?.studentId : booking?.teacher.userId;
+    if (otherUserId && (await isUserPresentInDailyRoom(updated.roomName, otherUserId))) {
+      return updated;
+    }
+  }
+
   const completedClaim = await prisma.classroomSession.updateMany({
     where: {
       bookingId,

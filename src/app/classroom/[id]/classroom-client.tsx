@@ -136,6 +136,9 @@ export function ClassroomClient({
   // of trusting an "unmuted" icon that stays lit even when the OS/driver is
   // silently dropping the input (a real, otherwise invisible failure mode).
   const [micLevel, setMicLevel] = useState(0);
+  const [micTestActive, setMicTestActive] = useState(false);
+  const micMeterAudioCtxRef = useRef<AudioContext | null>(null);
+  const micMeterRafRef = useRef(0);
 
   // ── In-meeting state ──
   const [messages, setMessages] = useState<ClassroomMessageRow[]>([]);
@@ -520,21 +523,39 @@ export function ClassroomClient({
   // visible before joining instead of surfacing mid-lesson as "my mic
   // doesn't work" with no clue why — the "unmuted" icon alone can't tell
   // anyone whether sound is actually coming through.
-  useEffect(() => {
-    const audioTrack = previewStream?.getAudioTracks()[0];
-    if (!previewStream || !audioTrack) {
-      const timeout = window.setTimeout(() => setMicLevel(0), 0);
-      return () => window.clearTimeout(timeout);
+  //
+  // This used to auto-start from an effect reacting to previewStream, with
+  // a resume()-on-next-click fallback for the browser's autoplay policy
+  // (a freshly created AudioContext starts "suspended" unless resumed as
+  // the direct, synchronous result of a user gesture). That fallback still
+  // left the meter permanently flat for anyone who never happened to click
+  // anything in the lobby before speaking — a real, reported case. Making
+  // it an explicit "Tester le micro" action instead guarantees the
+  // AudioContext is created and resumed synchronously inside the click
+  // itself, the one case the policy always allows.
+  const stopMicTest = useCallback(() => {
+    window.cancelAnimationFrame(micMeterRafRef.current);
+    if (micMeterAudioCtxRef.current) {
+      void micMeterAudioCtxRef.current.close().catch(() => {});
+      micMeterAudioCtxRef.current = null;
     }
+    setMicTestActive(false);
+    setMicLevel(0);
+  }, []);
+
+  const startMicTest = () => {
+    const audioTrack = previewStreamRef.current?.getAudioTracks()[0];
+    if (!audioTrack) return;
     const AudioContextCtor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextCtor) return;
     const audioCtx = new AudioContextCtor();
+    void audioCtx.resume();
+    micMeterAudioCtxRef.current = audioCtx;
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
     const source = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
     source.connect(analyser);
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    let raf = 0;
+    const data = new Uint8Array(analyser.fftSize);
     const tick = () => {
       analyser.getByteTimeDomainData(data);
       let sumSquares = 0;
@@ -543,30 +564,17 @@ export function ClassroomClient({
         sumSquares += centered * centered;
       }
       setMicLevel(Math.min(1, Math.sqrt(sumSquares / data.length) * 4));
-      raf = window.requestAnimationFrame(tick);
+      micMeterRafRef.current = window.requestAnimationFrame(tick);
     };
-    raf = window.requestAnimationFrame(tick);
+    micMeterRafRef.current = window.requestAnimationFrame(tick);
+    setMicTestActive(true);
+  };
 
-    // Chrome (and other browsers') autoplay policy starts a freshly created
-    // AudioContext "suspended" unless it's made as the direct result of a
-    // user gesture — this one is created from an effect reacting to the
-    // camera/mic preview loading on page open, not a click, so without this
-    // it silently never processes any audio and the meter would sit at zero
-    // forever regardless of real mic volume. resume() is a safe no-op once
-    // already running; the click listener is a fallback for browsers that
-    // still refuse the first resume() call before any interaction at all.
-    void audioCtx.resume();
-    const resumeOnInteraction = () => void audioCtx.resume();
-    document.addEventListener("click", resumeOnInteraction);
-
-    return () => {
-      window.cancelAnimationFrame(raf);
-      document.removeEventListener("click", resumeOnInteraction);
-      source.disconnect();
-      analyser.disconnect();
-      void audioCtx.close();
-    };
-  }, [previewStream]);
+  // Stop the meter if the preview stream goes away (device switch, unmount)
+  // so it never keeps analysing a dead/replaced track.
+  useEffect(() => {
+    return () => stopMicTest();
+  }, [previewStream, stopMicTest]);
 
   const togglePreviewMic = () => {
     const track = previewStreamRef.current?.getAudioTracks()[0];
@@ -1153,7 +1161,16 @@ export function ClassroomClient({
                   {camEnabled ? <IconCamera className="h-5 w-5" /> : <IconCameraOff className="h-5 w-5" />}
                 </button>
               </div>
-              {previewStream && (
+              {previewStream && !micTestActive && (
+                <button
+                  type="button"
+                  onClick={startMicTest}
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-white/5 px-3 py-2 text-[11px] font-bold text-slate-300 hover:bg-white/10"
+                >
+                  <IconMicrophone className="h-3.5 w-3.5 text-[#72d6bf]" /> Tester le micro
+                </button>
+              )}
+              {previewStream && micTestActive && (
                 <div className="flex items-center gap-2 px-1">
                   <IconMicrophone className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                   <div className="flex h-2 flex-1 gap-0.5 overflow-hidden rounded-full bg-white/10">
