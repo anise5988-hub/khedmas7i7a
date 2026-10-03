@@ -333,6 +333,10 @@ export const DailyRoom = forwardRef<
     onLocalAudioChangeRef.current = onLocalAudioChange;
     onLocalVideoChangeRef.current = onLocalVideoChange;
   }, [onLocalAudioChange, onLocalVideoChange]);
+  // The mic state the user last chose, kept outside React state so the
+  // mount-once call handlers can re-assert it after a screen share changes
+  // the capture pipeline underneath.
+  const desiredAudioRef = useRef(initialAudioOn);
   // leave()/destroy() are async but the effect cleanup below can't await
   // them, so a fast remount (React StrictMode's dev double-invoke, or any
   // future rapid unmount/remount) could call createCallObject() again while
@@ -368,6 +372,7 @@ export const DailyRoom = forwardRef<
         const call = callRef.current;
         if (!call) return;
         const next = !localAudioOn;
+        desiredAudioRef.current = next;
         call.setLocalAudio(next);
         setLocalAudioOn(next);
         onLocalAudioChange?.(next);
@@ -388,7 +393,10 @@ export const DailyRoom = forwardRef<
           call.stopScreenShare();
           return;
         }
-        call.startScreenShare();
+        // Screen capture without audio: asking the browser for tab/system audio
+        // alongside the screen makes Chrome reconfigure the capture pipeline,
+        // which was cutting the teacher's microphone mid-share.
+        call.startScreenShare({ displayMediaOptions: { audio: false, systemAudio: "exclude" } });
       },
       setAudioDevice: async (deviceId) => {
         const call = callRef.current;
@@ -550,8 +558,24 @@ export const DailyRoom = forwardRef<
         call.on("participant-updated", refreshTiles);
         call.on("participant-left", refreshTiles);
 
-        call.on("local-screen-share-started", syncScreenShareState);
-        call.on("local-screen-share-stopped", syncScreenShareState);
+        // Starting or stopping a share re-negotiates the send pipeline, and
+        // the microphone can come back muted (or never re-publish) afterwards
+        // with no event saying so. Re-assert the mic state the user actually
+        // chose, immediately and again once the renegotiation has settled.
+        const reassertMic = () => {
+          if (!mounted || !callRef.current) return;
+          callRef.current.setLocalAudio(desiredAudioRef.current);
+        };
+        call.on("local-screen-share-started", () => {
+          syncScreenShareState();
+          reassertMic();
+          window.setTimeout(reassertMic, 1000);
+        });
+        call.on("local-screen-share-stopped", () => {
+          syncScreenShareState();
+          reassertMic();
+          window.setTimeout(reassertMic, 1000);
+        });
         call.on("local-screen-share-canceled", () => {
           if (!mounted) return;
           syncScreenShareState();

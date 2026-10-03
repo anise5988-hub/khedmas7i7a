@@ -91,12 +91,13 @@ export default function TeacherMessagesPage() {
   const [offerPending, setOfferPending] = useState(false);
   const [offerError, setOfferError] = useState("");
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   // Dépendances stables pour la boucle de sondage, état le plus récent lu via refs.
   const activeIdRef = useRef<string | null>(null);
   const lastSyncRef = useRef<string | null>(null);
   const inFlightRef = useRef(false);
   const shouldAutoScrollRef = useRef(true);
+  const instantScrollRef = useRef(true);
+  const feedRef = useRef<HTMLDivElement>(null);
 
   const getAuthHeaders = useCallback((): Record<string, string> => {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
@@ -115,6 +116,7 @@ export default function TeacherMessagesPage() {
       setActiveConvId(summary.id);
       setMobileShowThread(true);
       shouldAutoScrollRef.current = true;
+      instantScrollRef.current = true;
       setActiveConv({
         id: summary.id,
         studentId: summary.studentId,
@@ -237,9 +239,19 @@ export default function TeacherMessagesPage() {
   // Défilement automatique seulement si l'utilisateur est déjà en bas.
   const messageCount = activeConv?.messages.length ?? 0;
   useEffect(() => {
-    if (!shouldAutoScrollRef.current) return;
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+    const feed = feedRef.current;
+    if (!feed || !shouldAutoScrollRef.current) return;
+    // Scroll the feed itself, not the page: scrollIntoView can also move the
+    // whole window, which is the jump people felt on phones.
+    feed.scrollTo({ top: feed.scrollHeight, behavior: instantScrollRef.current ? "auto" : "smooth" });
+    instantScrollRef.current = false;
   }, [messageCount]);
+
+  const handleFeedScroll = () => {
+    const feed = feedRef.current;
+    if (!feed) return;
+    shouldAutoScrollRef.current = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
+  };
 
   /**
    * Envoi optimiste : le message s'affiche immédiatement, le champ est vidé
@@ -550,7 +562,11 @@ export default function TeacherMessagesPage() {
                 </div>
 
                 {/* Messages Feed */}
-                <div className="flex-1 overflow-y-auto overscroll-contain py-4 space-y-4 max-h-[440px] pr-2">
+                <div
+                  ref={feedRef}
+                  onScroll={handleFeedScroll}
+                  className="chat-feed flex-1 overflow-y-auto overscroll-contain py-4 space-y-4 max-h-[440px] pr-2"
+                >
                   {activeConv.messages.map((m) => (
                     <MessageBubble
                       key={m.id}
@@ -562,7 +578,6 @@ export default function TeacherMessagesPage() {
                       onRejectOffer={() => {}}
                     />
                   ))}
-                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input Form */}

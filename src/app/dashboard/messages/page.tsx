@@ -114,8 +114,9 @@ export default function MessagesPage() {
   const [offerPending, setOfferPending] = useState(false);
   const [offerError, setOfferError] = useState("");
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
+  const instantScrollRef = useRef(true);
+  const feedRef = useRef<HTMLDivElement>(null);
 
   const getAuthHeaders = useCallback((): Record<string, string> => {
     const userId = typeof window !== "undefined" ? localStorage.getItem("profyspace_user_id") || "" : "";
@@ -134,6 +135,7 @@ export default function MessagesPage() {
       setActiveConvId(summary.id);
       setMobileShowThread(true);
       shouldAutoScrollRef.current = true;
+      instantScrollRef.current = true;
 
       // Affichage immédiat de l'en-tête (nom, rôle) sans attendre le réseau :
       // le clic donne une impression d'instantanéité.
@@ -310,9 +312,19 @@ export default function MessagesPage() {
   // sinon on lui arrachait sa position de lecture toutes les 2 secondes.
   const messageCount = activeConv?.messages.length ?? 0;
   useEffect(() => {
-    if (!shouldAutoScrollRef.current) return;
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+    const feed = feedRef.current;
+    if (!feed || !shouldAutoScrollRef.current) return;
+    // Scroll the feed itself, not the page: scrollIntoView can also move the
+    // whole window, which is the jump people felt on phones.
+    feed.scrollTo({ top: feed.scrollHeight, behavior: instantScrollRef.current ? "auto" : "smooth" });
+    instantScrollRef.current = false;
   }, [messageCount]);
+
+  const handleFeedScroll = () => {
+    const feed = feedRef.current;
+    if (!feed) return;
+    shouldAutoScrollRef.current = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
+  };
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -653,7 +665,11 @@ export default function MessagesPage() {
               </div>
 
               {/* Messages Feed */}
-              <div className="flex-1 overflow-y-auto overscroll-contain py-4 space-y-4 max-h-[420px] pr-2">
+              <div
+                ref={feedRef}
+                onScroll={handleFeedScroll}
+                className="chat-feed flex-1 overflow-y-auto overscroll-contain py-4 space-y-4 max-h-[420px] pr-2"
+              >
                 {activeConv.messages.map((m) => (
                   <MessageBubble
                     key={m.id}
@@ -665,7 +681,6 @@ export default function MessagesPage() {
                     onRejectOffer={handleRejectOffer}
                   />
                 ))}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Attached file preview */}

@@ -62,6 +62,23 @@ body {
   background: rgba(13, 141, 120, 0.5);
 }
 
+/* Message feed: a scrollbar you can actually see, and momentum scrolling on iOS */
+.chat-feed {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(13, 141, 120, 0.55) transparent;
+}
+.chat-feed::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-feed::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-feed::-webkit-scrollbar-thumb {
+  background: rgba(13, 141, 120, 0.55);
+  border-radius: 9999px;
+}
+
 /* Glassmorphism & UI Utilities */
 .glass-panel {
   background: rgba(17, 35, 63, 0.75);
