@@ -132,6 +132,21 @@ model TeacherProfile {
   verificationDocuments TeacherVerificationDocument[]
   homework              Homework[]
   portfolioItems        TeacherPortfolioItem[]
+  manualBadges          TeacherManualBadge[]
+}
+
+/// A badge an admin granted by hand, on top of the automatic rules in
+/// lib/server/achievements.ts. Revoking deletes the row.
+model TeacherManualBadge {
+  id               String         @id @default(cuid())
+  teacherProfileId String
+  slug             String
+  reason           String?
+  grantedById      String
+  createdAt        DateTime       @default(now())
+  teacher          TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherProfileId, slug])
 }
 
 model TeacherVerificationDocument {

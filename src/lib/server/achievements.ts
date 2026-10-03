@@ -49,7 +49,7 @@ export async function getStudentAchievements(studentUserId: string): Promise<Ach
 }
 
 export async function getTeacherAchievements(teacherProfileId: string, teacherUserCreatedAt: Date): Promise<Achievement[]> {
-  const [completedBookings, reviewStats] = await Promise.all([
+  const [completedBookings, reviewStats, manualGrants] = await Promise.all([
     prisma.booking.findMany({
       where: { teacherId: teacherProfileId, status: "COMPLETED" },
       select: { studentId: true },
@@ -59,7 +59,12 @@ export async function getTeacherAchievements(teacherProfileId: string, teacherUs
       _avg: { rating: true },
       _count: { rating: true },
     }),
+    prisma.teacherManualBadge.findMany({
+      where: { teacherProfileId },
+      select: { slug: true },
+    }),
   ]);
+  const manualSlugs = new Set(manualGrants.map((g) => g.slug));
 
   const completedBookingCount = completedBookings.length;
   const distinctStudentCount = new Set(completedBookings.map((b) => b.studentId)).size;
@@ -72,25 +77,25 @@ export async function getTeacherAchievements(teacherProfileId: string, teacherUs
       slug: "premier-cours-donne",
       title: "Premier cours donné",
       description: "Compléter votre première séance en tant que professeur.",
-      earned: completedBookingCount >= 1,
+      earned: completedBookingCount >= 1 || manualSlugs.has("premier-cours-donne"),
     },
     {
       slug: "professeur-populaire",
       title: "Professeur populaire",
       description: "Enseigner à 10 élèves différents.",
-      earned: distinctStudentCount >= 10,
+      earned: distinctStudentCount >= 10 || manualSlugs.has("professeur-populaire"),
     },
     {
       slug: "excellence-pedagogique",
       title: "Excellence pédagogique",
       description: "Maintenir une note moyenne de 4.8+ sur au moins 5 avis.",
-      earned: avgRating >= 4.8 && reviewCount >= 5,
+      earned: (avgRating >= 4.8 && reviewCount >= 5) || manualSlugs.has("excellence-pedagogique"),
     },
     {
       slug: "veteran-profyspace",
       title: "Vétéran ProfySpace",
       description: "Faire partie de ProfySpace depuis 6 mois ou plus.",
-      earned: accountAgeMonths >= 6,
+      earned: accountAgeMonths >= 6 || manualSlugs.has("veteran-profyspace"),
     },
   ];
 }
