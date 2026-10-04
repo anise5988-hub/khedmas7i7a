@@ -80,7 +80,10 @@ export async function POST(request: Request) {
         type: "SUPPORT_TICKET_CREATED",
         title: "Nouveau ticket de support",
         message: `${senderName} a ouvert un ticket : "${subject}"`,
-        link: `/admin/support/${ticket.id}`,
+        // The support page is a single client-rendered list (no /admin/support/[id]
+        // route exists — linking there used to 404 the "Accéder à mon espace"
+        // email button outright).
+        link: "/admin/support",
         dedupeKey: `support_ticket_new:${ticket.id}`,
       }),
     ),
