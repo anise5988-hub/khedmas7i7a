@@ -27,13 +27,35 @@ export default function AdminBookingsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  useEffect(() => {
-    fetch("/api/admin/bookings")
+  const [actionMessage, setActionMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+
+  function loadBookings() {
+    return fetch("/api/admin/bookings")
       .then((res) => (res.ok ? res.json() : { bookings: [] }))
       .then((data) => setBookings(data.bookings || []))
       .catch(() => setFetchError("Impossible de charger les réservations."))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    void loadBookings();
   }, []);
+
+  async function refundBooking(b: BookingItem) {
+    const ok = window.confirm(
+      `Rembourser ${b.amountTnd} DT à ${b.studentName} ?\n\nLe montant sera recrédité à son portefeuille immédiatement` +
+        (b.status !== "PENDING" ? ", et retiré du gain du professeur." : "."),
+    );
+    if (!ok) return;
+    setRefundingId(b.id);
+    setActionMessage(null);
+    const res = await fetch(`/api/admin/bookings/${b.id}/refund`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    setRefundingId(null);
+    setActionMessage({ text: res.ok ? "Réservation remboursée." : data.error || "Remboursement impossible.", ok: res.ok });
+    if (res.ok) await loadBookings();
+  }
 
   const filtered = bookings.filter((b) => {
     const matchesSearch =
@@ -75,6 +97,16 @@ export default function AdminBookingsPage() {
             </select>
           </div>
         </div>
+
+        {actionMessage && (
+          <div
+            className={`mt-6 rounded-2xl border p-4 text-sm ${
+              actionMessage.ok ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300" : "border-rose-400/30 bg-rose-500/10 text-rose-300"
+            }`}
+          >
+            {actionMessage.text}
+          </div>
+        )}
 
         {fetchError && !loading && (
           <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">
@@ -133,19 +165,39 @@ export default function AdminBookingsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-4 text-xs">
-                      <span className={b.paymentStatus === "PAID" ? "text-emerald-300 font-bold" : "text-amber-300"}>
-                        {b.paymentStatus === "PAID" ? "✓ Payé" : "En attente"}
+                      <span
+                        className={
+                          b.paymentStatus === "PAID"
+                            ? "font-bold text-emerald-300"
+                            : b.paymentStatus === "REFUNDED"
+                            ? "font-bold text-slate-400"
+                            : "text-amber-300"
+                        }
+                      >
+                        {b.paymentStatus === "PAID" ? "✓ Payé" : b.paymentStatus === "REFUNDED" ? "Remboursé" : "En attente"}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <a
-                        href={`/classroom/${b.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-xl bg-[#72d6bf] px-3 py-1.5 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad]"
-                      >
-                        Classe ↗
-                      </a>
+                      <div className="flex justify-end gap-2">
+                        {b.paymentStatus === "PAID" && (
+                          <button
+                            type="button"
+                            onClick={() => void refundBooking(b)}
+                            disabled={refundingId === b.id}
+                            className="rounded-xl bg-rose-500/20 px-3 py-1.5 text-xs font-bold text-rose-200 transition hover:bg-rose-500/30 disabled:opacity-50"
+                          >
+                            {refundingId === b.id ? "..." : "Rembourser"}
+                          </button>
+                        )}
+                        <a
+                          href={`/classroom/${b.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-xl bg-[#72d6bf] px-3 py-1.5 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad]"
+                        >
+                          Classe ↗
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 ))}

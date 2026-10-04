@@ -53,6 +53,7 @@ const navGroups: NavGroup[] = [
       { label: "Élèves", href: "/admin/students", icon: IconUser },
       { label: "Professeurs", href: "/admin/teachers", icon: IconTeacher },
       { label: "Vérifications", href: "/admin/teacher-verifications", icon: IconShield },
+      { label: "Badges professeurs", href: "/admin/teacher-badges", icon: IconStar },
     ],
   },
   {
