@@ -337,6 +337,12 @@ export const DailyRoom = forwardRef<
   // mount-once call handlers can re-assert it after a screen share changes
   // the capture pipeline underneath.
   const desiredAudioRef = useRef(initialAudioOn);
+  // Authoritative "am I currently sharing my screen" flag, kept in a ref so
+  // the toggle below never depends on Daily reporting the screen track as
+  // "playable" (it can stay "sending" for seconds after the share starts,
+  // which used to make the toggle try to START a second share instead of
+  // stopping the first one — the professor could then never turn it off).
+  const screenSharingRef = useRef(false);
   // leave()/destroy() are async but the effect cleanup below can't await
   // them, so a fast remount (React StrictMode's dev double-invoke, or any
   // future rapid unmount/remount) could call createCallObject() again while
@@ -359,8 +365,11 @@ export const DailyRoom = forwardRef<
 
   const syncScreenShareState = useCallback(() => {
     if (!mountedRef.current) return;
-    const state = callRef.current?.participants()?.local?.tracks.screenVideo?.state;
-    const sharing = state === "playable";
+    const state = callRef.current?.participants()?.local?.tracks.screenVideo?.state as string | undefined;
+    // "sending" counts as sharing too: the track is live but Daily has not
+    // confirmed it as "playable" yet (re-negotiation in flight).
+    const sharing = state === "playable" || state === "sending" || state === "interrupted";
+    if (state !== undefined) screenSharingRef.current = sharing;
     setIsScreenSharing(sharing);
     onScreenShareChange?.(sharing);
   }, [onScreenShareChange]);
@@ -389,14 +398,32 @@ export const DailyRoom = forwardRef<
         const call = callRef.current;
         if (!call || !canScreenShare) return;
         setScreenShareError(null);
-        if (isScreenSharing) {
-          call.stopScreenShare();
+        // Check the ref (kept in sync from the track state and the share
+        // events) instead of only the React snapshot: this is what makes the
+        // "Stop sharing" click reliable even while the track is still
+        // re-negotiating.
+        if (isScreenSharing || screenSharingRef.current) {
+          screenSharingRef.current = false;
+          setIsScreenSharing(false);
+          onScreenShareChange?.(false);
+          try {
+            call.stopScreenShare();
+          } catch (e) {
+            console.warn("stopScreenShare failed", e);
+          }
           return;
         }
         // Screen capture without audio: asking the browser for tab/system audio
         // alongside the screen makes Chrome reconfigure the capture pipeline,
         // which was cutting the teacher's microphone mid-share.
-        call.startScreenShare({ displayMediaOptions: { audio: false, systemAudio: "exclude" } });
+        screenSharingRef.current = true;
+        try {
+          call.startScreenShare({ displayMediaOptions: { audio: false, systemAudio: "exclude" } });
+        } catch (e) {
+          screenSharingRef.current = false;
+          setIsScreenSharing(false);
+          throw e;
+        }
       },
       setAudioDevice: async (deviceId) => {
         const call = callRef.current;
@@ -566,18 +593,27 @@ export const DailyRoom = forwardRef<
           if (!mounted || !callRef.current) return;
           callRef.current.setLocalAudio(desiredAudioRef.current);
         };
-        call.on("local-screen-share-started", () => {
-          syncScreenShareState();
+        // The renegotiation triggered by starting/stopping a share can settle
+        // late (send pipeline rebuild, track re-acquisition), flipping the mic
+        // off AFTER the immediate call. Retry across the whole settle window
+        // so the mic always comes back the way the user left it.
+        const reassertMicWithRetries = () => {
           reassertMic();
-          window.setTimeout(reassertMic, 1000);
+          [250, 1000, 2500].forEach((delay) => window.setTimeout(reassertMic, delay));
+        };
+        call.on("local-screen-share-started", () => {
+          screenSharingRef.current = true;
+          syncScreenShareState();
+          reassertMicWithRetries();
         });
         call.on("local-screen-share-stopped", () => {
+          screenSharingRef.current = false;
           syncScreenShareState();
-          reassertMic();
-          window.setTimeout(reassertMic, 1000);
+          reassertMicWithRetries();
         });
         call.on("local-screen-share-canceled", () => {
           if (!mounted) return;
+          screenSharingRef.current = false;
           syncScreenShareState();
           setScreenShareError(null);
         });
@@ -586,6 +622,7 @@ export const DailyRoom = forwardRef<
           if (!mounted) return;
           if (e?.type === "screen-share-error") {
             console.error("Screen share nonfatal error", e);
+            screenSharingRef.current = false;
             syncScreenShareState();
             setScreenShareError("Le partage d'écran a échoué. Autorisez la capture d'écran dans votre navigateur, puis réessayez.");
           }
