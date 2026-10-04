@@ -233,7 +233,12 @@ function VideoTile({
         </div>
       )}
 
-      {!tile.local && !hasScreen && renderedAudioTrack != null && <audio ref={audioRef} autoPlay />}
+      {/* IMPORTANT: no `!hasScreen` here. Hiding the audio element when the
+          tile displays a screen share used to unmount it the moment the
+          professor shared his screen — his mic was never muted, but nobody
+          heard anything until he stopped sharing. Keep it mounted whenever a
+          remote audio track exists. */}
+      {!tile.local && renderedAudioTrack != null && <audio ref={audioRef} autoPlay />}
 
       {!tile.local && audioBlocked && (
         <button
@@ -591,7 +596,22 @@ export const DailyRoom = forwardRef<
         // chose, immediately and again once the renegotiation has settled.
         const reassertMic = () => {
           if (!mounted || !callRef.current) return;
-          callRef.current.setLocalAudio(desiredAudioRef.current);
+          const call = callRef.current;
+          const desired = desiredAudioRef.current;
+          const local = call.participants()?.local;
+          const audioState = local?.tracks.audio?.state;
+          const micDropped = desired && (Boolean(local?.tracks.audio?.off) || audioState === "interrupted");
+          if (micDropped) {
+            // A track Daily internally considers "on" but that is dead after
+            // the renegotiation needs a real off→on cycle — calling
+            // setLocalAudio(true) alone is a no-op and would never recover it.
+            call.setLocalAudio(false);
+            call.setLocalAudio(true);
+            setLocalAudioOn(true);
+            onLocalAudioChangeRef.current?.(true);
+          } else {
+            call.setLocalAudio(desired);
+          }
         };
         // The renegotiation triggered by starting/stopping a share can settle
         // late (send pipeline rebuild, track re-acquisition), flipping the mic
