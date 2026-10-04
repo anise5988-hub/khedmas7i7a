@@ -41,6 +41,7 @@ type ApprovedTeacher = {
   city: string;
   verificationStatus?: string;
   hasFirstLessonBadge?: boolean;
+  badges?: { slug: string; title: string }[];
 };
 
 type RealReview = {
@@ -609,6 +610,18 @@ export function HomePageClient() {
                           )}
                         </div>
                         <p className="text-xs text-slate-300 truncate mt-0.5">{teacher.subject}</p>
+                        {teacher.badges && teacher.badges.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {teacher.badges.slice(0, 3).map((badge) => (
+                              <span
+                                key={badge.slug}
+                                className="rounded-full border border-amber-300/30 bg-amber-400/15 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-amber-200"
+                              >
+                                ★ {badge.title}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <span className="shrink-0 flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-bold text-amber-300">
                         <IconStar className="h-3 w-3 fill-amber-300" />

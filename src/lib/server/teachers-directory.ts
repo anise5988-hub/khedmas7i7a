@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/server/prisma";
 import { fallbackStore } from "@/lib/server/fallback-store";
+import { evaluateTeacherBadges } from "@/lib/server/achievements";
 
 export type DirectoryTeacher = {
   id: string;
@@ -25,7 +26,47 @@ export type DirectoryTeacher = {
   availabilities: { id: string; dayOfWeek: number; startTime: string; endTime: string }[];
   verificationStatus?: string;
   hasFirstLessonBadge: boolean;
+  badges: { slug: string; title: string }[];
 };
+
+type BadgeInputs = {
+  completedPairs: Map<string, Set<string>>;
+  manualByTeacher: Map<string, Set<string>>;
+};
+
+async function loadBadgeInputs(teacherIds: string[]): Promise<BadgeInputs> {
+  const empty: BadgeInputs = { completedPairs: new Map(), manualByTeacher: new Map() };
+  if (teacherIds.length === 0) return empty;
+  try {
+    const [completed, manual] = await Promise.all([
+      prisma.booking.groupBy({
+        by: ["teacherId", "studentId"],
+        where: { teacherId: { in: teacherIds }, status: "COMPLETED" },
+      }),
+      prisma.teacherManualBadge.findMany({
+        where: { teacherProfileId: { in: teacherIds } },
+        select: { teacherProfileId: true, slug: true },
+      }),
+    ]);
+    const completedPairs = new Map<string, Set<string>>();
+    for (const row of completed) {
+      const set = completedPairs.get(row.teacherId) ?? new Set<string>();
+      set.add(row.studentId);
+      completedPairs.set(row.teacherId, set);
+    }
+    const manualByTeacher = new Map<string, Set<string>>();
+    for (const row of manual) {
+      const set = manualByTeacher.get(row.teacherProfileId) ?? new Set<string>();
+      set.add(row.slug);
+      manualByTeacher.set(row.teacherProfileId, set);
+    }
+    return { completedPairs, manualByTeacher };
+  } catch (error) {
+    // Badges are decoration: losing them must never take the whole directory down.
+    console.warn("Teacher badge inputs failed; listing without badges", error);
+    return empty;
+  }
+}
 
 /**
  * Every approved-teacher listing on the site (homepage highlights, the
@@ -40,7 +81,7 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
         verificationStatus: "APPROVED",
       },
       include: {
-        user: { select: { firstName: true, lastName: true, email: true } },
+        user: { select: { firstName: true, lastName: true, email: true, createdAt: true } },
         subjects: { select: { subject: true } },
         levels: { select: { levelSlug: true } },
         reviews: { select: { rating: true } },
@@ -56,7 +97,20 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
       // a real track record beats profile-creation order. Everyone else
       // keeps the existing newest-first ordering as a stable tiebreaker.
       const sorted = [...profiles].sort((a, b) => Number(b.bookings.length > 0) - Number(a.bookings.length > 0));
+      const badgeInputs = await loadBadgeInputs(sorted.map((p) => p.id));
       return sorted.map((profile) => {
+        const students = badgeInputs.completedPairs.get(profile.id) ?? new Set<string>();
+        const badges = evaluateTeacherBadges({
+          completedBookingCount: profile.bookings.length,
+          distinctStudentCount: students.size,
+          avgRating: profile.reviews.length > 0 ? profile.reviews.reduce((acc, r) => acc + r.rating, 0) / profile.reviews.length : 0,
+          reviewCount: profile.reviews.length,
+          accountAgeMonths: (Date.now() - profile.user.createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30),
+          manualSlugs: badgeInputs.manualByTeacher.get(profile.id) ?? new Set<string>(),
+        })
+          .filter((b) => b.earned)
+          .map((b) => ({ slug: b.slug, title: b.title }));
+
         const initials = `${profile.user?.firstName?.[0] ?? "P"}${profile.user?.lastName?.[0] ?? "R"}`.toUpperCase();
         const name = `${profile.user?.firstName || "Enseignant"} ${profile.user?.lastName || "Profy"}`.trim();
         const avgRating =
@@ -92,6 +146,7 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
           availabilities: profile.availabilities,
           verificationStatus: profile.verificationStatus,
           hasFirstLessonBadge: profile.bookings.length > 0,
+          badges,
         };
       });
     }
@@ -132,6 +187,7 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
         availabilities: t.availabilities,
         verificationStatus: t.verificationStatus,
         hasFirstLessonBadge: false,
+        badges: [],
       };
     });
 }

@@ -48,6 +48,51 @@ export async function getStudentAchievements(studentUserId: string): Promise<Ach
   ];
 }
 
+export type TeacherBadgeStats = {
+  completedBookingCount: number;
+  distinctStudentCount: number;
+  avgRating: number;
+  reviewCount: number;
+  accountAgeMonths: number;
+  manualSlugs: Set<string>;
+};
+
+const TEACHER_BADGE_DEFS = [
+  {
+    slug: "premier-cours-donne",
+    title: "Premier cours donné",
+    description: "Compléter votre première séance en tant que professeur.",
+    isEarned: (s: TeacherBadgeStats) => s.completedBookingCount >= 1,
+  },
+  {
+    slug: "professeur-populaire",
+    title: "Professeur populaire",
+    description: "Enseigner à 10 élèves différents.",
+    isEarned: (s: TeacherBadgeStats) => s.distinctStudentCount >= 10,
+  },
+  {
+    slug: "excellence-pedagogique",
+    title: "Excellence pédagogique",
+    description: "Maintenir une note moyenne de 4.8+ sur au moins 5 avis.",
+    isEarned: (s: TeacherBadgeStats) => s.avgRating >= 4.8 && s.reviewCount >= 5,
+  },
+  {
+    slug: "veteran-profyspace",
+    title: "Vétéran ProfySpace",
+    description: "Faire partie de ProfySpace depuis 6 mois ou plus.",
+    isEarned: (s: TeacherBadgeStats) => s.accountAgeMonths >= 6,
+  },
+] as const;
+
+export function evaluateTeacherBadges(stats: TeacherBadgeStats): Achievement[] {
+  return TEACHER_BADGE_DEFS.map((def) => ({
+    slug: def.slug,
+    title: def.title,
+    description: def.description,
+    earned: def.isEarned(stats) || stats.manualSlugs.has(def.slug),
+  }));
+}
+
 export async function getTeacherAchievements(teacherProfileId: string, teacherUserCreatedAt: Date): Promise<Achievement[]> {
   const [completedBookings, reviewStats, manualGrants] = await Promise.all([
     prisma.booking.findMany({
@@ -64,38 +109,13 @@ export async function getTeacherAchievements(teacherProfileId: string, teacherUs
       select: { slug: true },
     }),
   ]);
-  const manualSlugs = new Set(manualGrants.map((g) => g.slug));
 
-  const completedBookingCount = completedBookings.length;
-  const distinctStudentCount = new Set(completedBookings.map((b) => b.studentId)).size;
-  const avgRating = reviewStats._avg.rating ?? 0;
-  const reviewCount = reviewStats._count.rating;
-  const accountAgeMonths = (Date.now() - teacherUserCreatedAt.getTime()) / (1000 * 60 * 60 * 24 * 30);
-
-  return [
-    {
-      slug: "premier-cours-donne",
-      title: "Premier cours donné",
-      description: "Compléter votre première séance en tant que professeur.",
-      earned: completedBookingCount >= 1 || manualSlugs.has("premier-cours-donne"),
-    },
-    {
-      slug: "professeur-populaire",
-      title: "Professeur populaire",
-      description: "Enseigner à 10 élèves différents.",
-      earned: distinctStudentCount >= 10 || manualSlugs.has("professeur-populaire"),
-    },
-    {
-      slug: "excellence-pedagogique",
-      title: "Excellence pédagogique",
-      description: "Maintenir une note moyenne de 4.8+ sur au moins 5 avis.",
-      earned: (avgRating >= 4.8 && reviewCount >= 5) || manualSlugs.has("excellence-pedagogique"),
-    },
-    {
-      slug: "veteran-profyspace",
-      title: "Vétéran ProfySpace",
-      description: "Faire partie de ProfySpace depuis 6 mois ou plus.",
-      earned: accountAgeMonths >= 6 || manualSlugs.has("veteran-profyspace"),
-    },
-  ];
+  return evaluateTeacherBadges({
+    completedBookingCount: completedBookings.length,
+    distinctStudentCount: new Set(completedBookings.map((b) => b.studentId)).size,
+    avgRating: reviewStats._avg.rating ?? 0,
+    reviewCount: reviewStats._count.rating,
+    accountAgeMonths: (Date.now() - teacherUserCreatedAt.getTime()) / (1000 * 60 * 60 * 24 * 30),
+    manualSlugs: new Set(manualGrants.map((g) => g.slug)),
+  });
 }
