@@ -74,6 +74,7 @@ export async function POST(request: Request) {
         method: paymentMethod.name,
         amountMillimes: parsed.data.amountMillimes,
         reference: parsed.data.reference,
+        proofUrl: parsed.data.proofUrl || null,
         status: "PENDING",
         couponCode,
       },

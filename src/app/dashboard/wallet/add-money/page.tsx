@@ -2,9 +2,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { CopyButton } from "@/components/copy-button";
-import { IconCreditCard, IconShield, IconCheck } from "@/components/icons";
+import { IconCreditCard, IconShield, IconCheck, IconPaperclip } from "@/components/icons";
 
 type DepositMethod = {
   id: string;
@@ -28,6 +28,9 @@ export default function AddMoneyPage() {
   const [couponCode, setCouponCode] = useState("");
   const [couponChecking, setCouponChecking] = useState(false);
   const [couponResult, setCouponResult] = useState<{ valid: boolean; text: string; discountTnd?: number } | null>(null);
+  const [proof, setProof] = useState<{ url: string; name: string } | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const proofInputRef = useRef<HTMLInputElement>(null);
 
   const activeMethodConfig = depositMethods.find((m) => m.id === method) || depositMethods[0];
 
@@ -73,6 +76,28 @@ export default function AddMoneyPage() {
     }
   }
 
+  async function handleProofSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingProof(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", file.type.startsWith("image/") ? "image" : "pdf");
+      const res = await fetch("/api/uploads/video", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setProof({ url: data.url, name: file.name });
+      } else {
+        setMessage({ type: "error", text: data.error || "Impossible d'envoyer l'image de vérification." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Erreur lors de l'envoi de l'image." });
+    } finally {
+      setUploadingProof(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -86,6 +111,7 @@ export default function AddMoneyPage() {
           amountMillimes: Math.round(Number(amount) * 1000),
           method,
           reference: reference.trim(),
+          proofUrl: proof?.url || undefined,
           couponCode: couponResult?.valid ? couponCode.trim() : undefined,
         }),
       });
@@ -97,6 +123,8 @@ export default function AddMoneyPage() {
           text: "Demande de recharge enregistrée ! Notre équipe financière validera votre transaction sous 15 minutes.",
         });
         setReference("");
+        setProof(null);
+        if (proofInputRef.current) proofInputRef.current.value = "";
       } else {
         setMessage({ type: "error", text: data.error || "Une erreur est survenue." });
       }
@@ -272,6 +300,47 @@ export default function AddMoneyPage() {
             />
             <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
               Collez la référence reçue par SMS ou affichée sur votre reçu de transfert pour validation immédiate.
+            </p>
+          </div>
+
+          {/* Proof upload (image of the transfer receipt) */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">
+              Image de vérification (recommandé)
+            </label>
+            <input
+              type="file"
+              ref={proofInputRef}
+              onChange={handleProofSelect}
+              accept="image/*,application/pdf"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => proofInputRef.current?.click()}
+              disabled={uploadingProof}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl border border-slate-200 p-3.5 text-sm font-bold text-[#0d8d78] transition hover:border-[#0d8d78] hover:bg-[#f0faf7] disabled:opacity-50 dark:border-white/15 dark:text-[#72d6bf] dark:hover:border-[#72d6bf] dark:hover:bg-[#72d6bf]/10"
+            >
+              <IconPaperclip className="h-4 w-4 shrink-0" />
+              {uploadingProof ? "Envoi de l'image..." : proof ? `Reçu joint : ${proof.name}` : "Joindre une image ou PDF du reçu de transfert"}
+            </button>
+            {proof && (
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-xs dark:bg-white/[.05] dark:border-white/10">
+                <span className="font-semibold truncate">{proof.name}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProof(null);
+                    if (proofInputRef.current) proofInputRef.current.value = "";
+                  }}
+                  className="font-bold text-rose-500 hover:text-rose-700 px-1"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+              Une photo du reçu accélère la validation par l'équipe financière.
             </p>
           </div>
 

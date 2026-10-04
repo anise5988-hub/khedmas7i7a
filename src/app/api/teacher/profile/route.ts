@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
+import { notifyUser } from "@/lib/server/notification-service";
 import { subjects, educationLevels } from "@/lib/domain/catalog";
 
 export async function GET(request: Request) {
@@ -165,6 +166,28 @@ export async function POST(request: Request) {
           ]
         : []),
     ]);
+
+    // Every submission that lands in review must reach the admins — before,
+    // nothing was sent here, so a new application sat unnoticed until an
+    // admin happened to browse /admin/teacher-verifications.
+    if (nextStatus === "UNDER_REVIEW") {
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+      const teacherName = `${user.firstName} ${user.lastName}`;
+      await Promise.all(
+        admins.map((admin) =>
+          notifyUser({
+            userId: admin.id,
+            type: "PROFESSOR_VERIFIED",
+            title: "Nouvelle candidature professeur",
+            message: `${teacherName} a soumis une candidature à vérifier.`,
+            link: "/admin/teacher-verifications",
+            emailSubject: "Nouvelle candidature professeur à vérifier sur Profy",
+            emailMessage: `${teacherName} vient de soumettre sa candidature professeur. Vérifiez-la depuis l'administration.`,
+            dedupeKey: `teacher_application:${teacher.id}:${Date.now()}`,
+          }),
+        ),
+      );
+    }
 
     return NextResponse.json({
       status: nextStatus,
