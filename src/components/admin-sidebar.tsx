@@ -60,7 +60,8 @@ const navGroups: NavGroup[] = [
     label: "Activité",
     items: [
       { label: "Réservations", href: "/admin/bookings", icon: IconCalendar },
-      { label: "Classes en direct", href: "/admin/classes", icon: IconVideo },
+      { label: "Classes & enregistrements", href: "/admin/classrooms", icon: IconVideo },
+      { label: "Catalogue de cours", href: "/admin/classes", icon: IconBookOpen },
       { label: "Avis", href: "/admin/reviews", icon: IconStar },
     ],
   },
