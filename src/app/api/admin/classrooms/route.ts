@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
+import { promoteRecordingIfReady } from "@/lib/server/classroom-session";
 
 /**
  * GET /api/admin/classrooms — session metadata for the admin console.
@@ -39,9 +40,28 @@ export async function GET(request: Request) {
     take: limit,
   });
 
+  // Same promotion pass as the student/teacher booking lists: a recording
+  // that finished encoding, or an AVAILABLE one whose signed URL expired,
+  // gets refreshed here so the admin console's play button actually works
+  // without someone having to reopen the classroom first.
+  const promotions = new Map<string, { recordingStatus: string; recordingUrl: string | null }>();
+  await Promise.all(
+    sessions.map(async (s) => {
+      const promoted = await promoteRecordingIfReady({
+        bookingId: s.bookingId,
+        recordingStatus: s.recordingStatus,
+        recordingId: s.recordingId,
+        roomName: s.roomName,
+        actualEnd: s.actualEnd,
+      });
+      if (promoted) promotions.set(s.bookingId, promoted);
+    }),
+  );
+
   return NextResponse.json({
     sessions: sessions.map((s) => {
       const total = s.attendances.reduce((sum, a) => sum + (a.durationSeconds ?? 0), 0);
+      const promoted = promotions.get(s.bookingId);
       return {
         sessionId: s.id,
         bookingId: s.bookingId,
@@ -61,8 +81,8 @@ export async function GET(request: Request) {
         subject: s.booking.teacher.subjects[0]?.subject ?? "Cours particulier",
         paymentStatus: s.booking.payment?.status ?? s.booking.status,
         bookingStatus: s.booking.status,
-        recordingStatus: s.recordingStatus,
-        recordingUrl: s.recordingUrl,
+        recordingStatus: promoted?.recordingStatus ?? s.recordingStatus,
+        recordingUrl: promoted?.recordingUrl ?? s.recordingUrl,
         locked: s.locked,
         waitingRoomEnabled: s.waitingRoomEnabled,
         // Attendance aggregates — useful for quality tracking, still no lesson content.
