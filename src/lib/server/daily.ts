@@ -136,17 +136,31 @@ export async function fetchDailyRecordingAssets(
 
 /**
  * Mints a fresh, short-lived download URL for an already-finished recording.
- * Daily's link expires (a signed S3 URL, good for a few hours) — callers
- * must not cache this beyond the current request, and should call this
- * again on the next visit rather than trust a URL stored from before.
+ * Daily's link is a signed S3 URL valid for a few hours, so a freshly minted
+ * one can safely be reused for a bounded window — an in-memory cache makes
+ * every replay open within that window (and across users) instant instead
+ * of paying two sequential Daily API round-trips (~2-6 s) per click.
  */
+const ACCESS_LINK_CACHE_TTL_MS = 25 * 60_000;
+const accessLinkCache = new Map<string, { url: string; expiresAt: number }>();
+
 export async function getDailyRecordingAccessLink(recordingId: string): Promise<string | null> {
+  const cached = accessLinkCache.get(recordingId);
+  if (cached && Date.now() < cached.expiresAt) return cached.url;
+
   const res = await fetch(`${DAILY_API_BASE}/recordings/${encodeURIComponent(recordingId)}/access-link`, {
     headers: { Authorization: `Bearer ${apiKey()}` },
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    // A stale entry must not survive a mint failure — drop it so the next
+    // call actually retries instead of serving the dead URL again.
+    accessLinkCache.delete(recordingId);
+    return null;
+  }
   const data = await res.json().catch(() => null);
-  return data?.download_link ?? null;
+  const url: string | null = data?.download_link ?? null;
+  if (url) accessLinkCache.set(recordingId, { url, expiresAt: Date.now() + ACCESS_LINK_CACHE_TTL_MS });
+  return url;
 }
 
 /**
