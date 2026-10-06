@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { after } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import {
   createDailyRoom,
@@ -165,28 +166,64 @@ export async function recordJoin(
   // ever flip it, atomically, regardless of read timing.
   const otherField = role === "TEACHER" ? "studentJoinedAt" : role === "STUDENT" ? "teacherJoinedAt" : null;
   if (otherField && isDailyConfigured()) {
-    const claimed = await prisma.classroomSession.updateMany({
-      where: { bookingId, recordingStatus: "NOT_AVAILABLE", [otherField]: { not: null } },
-      data: { recordingStatus: "RECORDING" },
-    });
-    if (claimed.count === 1) {
-      try {
-        const started = await startDailyRecording(session.roomName);
-        if (started.meetingId) {
-          await prisma.classroomSession.update({ where: { bookingId }, data: { recordingId: started.meetingId } });
+    const claimRecording = () =>
+      prisma.classroomSession.updateMany({
+        where: {
+          bookingId,
+          // FAILED is retryable too: a transient Daily error (e.g. the room's
+          // call wasn't fully up yet when start was called) must not poison
+          // the session permanently.
+          recordingStatus: { in: ["NOT_AVAILABLE", "FAILED"] },
+          [otherField]: { not: null },
+        },
+        data: { recordingStatus: "RECORDING" },
+      });
+
+    // Daily can reject an immediate start with "no meeting running" — its
+    // call may still be settling while the second participant joins. Retry
+    // a few times with short backoff instead of giving up (which used to
+    // leave the whole lesson unrecorded unless someone happened to
+    // reconnect).
+    const startWithRetries = async () => {
+      const delays = [0, 2000, 5000];
+      let lastError: unknown;
+      for (const delay of delays) {
+        if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+        // Re-claim on every attempt so a released claim from a prior
+        // attempt's failure can be taken again; if another path (host
+        // button) already started recording, the claim fails and we stop.
+        const claimed = await claimRecording();
+        if (claimed.count !== 1) return;
+        try {
+          const started = await startDailyRecording(session.roomName);
+          if (started.meetingId) {
+            await prisma.classroomSession.update({ where: { bookingId }, data: { recordingId: started.meetingId } });
+          }
+          await logEvent(session.id, null, null, "RECORDING_STARTED", "Enregistrement démarré automatiquement");
+          return;
+        } catch (error) {
+          lastError = error;
+          // Release the claim so the next attempt (or a reconnect) can try.
+          await prisma.classroomSession.updateMany({
+            where: { bookingId, recordingStatus: "RECORDING" },
+            data: { recordingStatus: "NOT_AVAILABLE" },
+          });
         }
-        await logEvent(session.id, null, null, "RECORDING_STARTED", "Enregistrement démarré automatiquement");
-      } catch (error) {
-        console.error("Auto-start recording failed", error);
-        // Release the claim so a future reconnect can retry, rather than
-        // leaving the session stuck showing "RECORDING" when Daily never
-        // actually started one.
-        await prisma.classroomSession.updateMany({
-          where: { bookingId, recordingStatus: "RECORDING" },
-          data: { recordingStatus: "NOT_AVAILABLE" },
-        });
       }
-    }
+      console.error("Auto-start recording failed after retries", lastError);
+      // Leave it FAILED-visible rather than stuck on RECORDING when Daily
+      // never actually started one.
+      await prisma.classroomSession.updateMany({
+        where: { bookingId, recordingStatus: "NOT_AVAILABLE" },
+        data: { recordingStatus: "FAILED" },
+      });
+    };
+
+    // after() keeps the serverless function alive for the retry window
+    // (up to ~7s) instead of letting Vercel freeze it the moment the join
+    // response is returned — otherwise a first Daily failure meant no
+    // recording at all for the whole lesson.
+    after(() => startWithRetries());
   }
 
   if (isReconnect) {
