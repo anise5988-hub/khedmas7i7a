@@ -20,6 +20,27 @@ export function RecordingPlayerModal({ url, onClose }: { url: string; onClose: (
   const [buffering, setBuffering] = useState(true);
   const [error, setError] = useState(false);
 
+  // The caller may first open with the (possibly stale) listed URL and swap
+  // in a freshly-signed one moments later. Re-mounting the <video> on that
+  // swap would reset playback to zero; instead we hot-swap src and resume
+  // from the viewer's current position — only if playback has actually
+  // started (a metadata-less cold open has nothing to resume).
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || video.src === url) return;
+    const resumeAt = video.currentTime;
+    const hadStarted = resumeAt > 0 || !video.paused;
+    video.src = url;
+    if (hadStarted) {
+      const resume = () => {
+        video.currentTime = resumeAt;
+        video.play().catch(() => {});
+        video.removeEventListener("loadedmetadata", resume);
+      };
+      video.addEventListener("loadedmetadata", resume);
+    }
+  }, [url]);
+
   // Escape closes the dialog — the overlay click already does, but a video
   // in fullscreen playback is exactly when users reach for the keyboard.
   useEffect(() => {
@@ -53,7 +74,6 @@ export function RecordingPlayerModal({ url, onClose }: { url: string; onClose: (
         <div className="relative">
           <video
             ref={videoRef}
-            key={url}
             src={url}
             controls
             autoPlay

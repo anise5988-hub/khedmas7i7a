@@ -149,6 +149,11 @@ export async function getDailyRecordingAccessLink(recordingId: string): Promise<
   if (cached && Date.now() < cached.expiresAt) return cached.url;
 
   const res = await fetch(`${DAILY_API_BASE}/recordings/${encodeURIComponent(recordingId)}/access-link`, {
+    // GET, not POST: Daily's docs ("Get Recording Link") only expose this
+    // route for GET — POSTing it 404s ("api endpoint does not exist"), which
+    // silently failed every replay link mint and left the admin console and
+    // replays pages with no playable URL.
+    method: "GET",
     headers: { Authorization: `Bearer ${apiKey()}` },
   });
   if (!res.ok) {

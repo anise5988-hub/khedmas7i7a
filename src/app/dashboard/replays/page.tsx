@@ -97,16 +97,22 @@ export default function ReplaysPage() {
   async function openReplay(bookingId: string) {
     setPlayError("");
     setLoadingPlayerId(bookingId);
+    // Same instant-open strategy as the admin console: paint with the list's
+    // URL first, refresh the signed link in the background. Signed links live
+    // for hours, so the listed one is almost always still valid — the modal
+    // opens immediately and the fresh link swaps in seamlessly if needed.
+    const listedUrl = pastBookings.find((b) => b.id === bookingId)?.recordingUrl;
+    if (listedUrl) setPlayerUrl(listedUrl);
     try {
       const res = await fetch(`/api/classroom/${bookingId}/recording`, { headers: getAuthHeaders() });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.recordingUrl) {
         setPlayerUrl(data.recordingUrl);
-      } else {
+      } else if (!listedUrl) {
         setPlayError("Impossible de charger l'enregistrement pour le moment. Réessayez dans un instant.");
       }
     } catch {
-      setPlayError("Erreur de connexion au serveur.");
+      if (!listedUrl) setPlayError("Erreur de connexion au serveur.");
     } finally {
       setLoadingPlayerId(null);
     }

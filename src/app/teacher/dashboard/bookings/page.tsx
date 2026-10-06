@@ -100,16 +100,22 @@ export default function TeacherBookingsPage() {
   async function openReplay(bookingId: string) {
     setActionError("");
     setLoadingPlayerId(bookingId);
+    // Same instant-open strategy as the student replays page and the admin
+    // console: paint with the list's URL first, refresh the signed link in
+    // the background — the modal opens immediately instead of waiting for
+    // the Daily round-trip.
+    const listedUrl = bookings.find((b) => b.id === bookingId)?.recordingUrl;
+    if (listedUrl) setPlayerUrl(listedUrl);
     try {
       const res = await fetch(`/api/classroom/${bookingId}/recording`);
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.recordingUrl) {
         setPlayerUrl(data.recordingUrl);
-      } else {
+      } else if (!listedUrl) {
         setActionError("Impossible de charger l'enregistrement pour le moment. Réessayez dans un instant.");
       }
     } catch {
-      setActionError("Erreur de connexion au serveur.");
+      if (!listedUrl) setActionError("Erreur de connexion au serveur.");
     } finally {
       setLoadingPlayerId(null);
     }

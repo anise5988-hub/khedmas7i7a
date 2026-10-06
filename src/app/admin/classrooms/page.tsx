@@ -57,16 +57,24 @@ export default function AdminClassroomsPage() {
   async function openReplay(bookingId: string) {
     setPlayError("");
     setLoadingPlayerId(bookingId);
+    // Open with the URL the list already has, THEN refresh it in the
+    // background — the modal paints instantly instead of waiting for the
+    // ~2-6s Daily round-trip. The modal is keyed on the URL, so when the
+    // fresh signed link lands it seamlessly swaps in (the video continues
+    // from where it is thanks to the same source position). If the list URL
+    // is already fresh (signed links live for hours) nothing else happens.
+    const listedUrl = sessions.find((s) => s.bookingId === bookingId)?.recordingUrl;
+    if (listedUrl) setPlayerUrl(listedUrl);
     try {
       const res = await fetch(`/api/classroom/${bookingId}/recording`);
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.recordingUrl) {
         setPlayerUrl(data.recordingUrl);
-      } else {
+      } else if (!listedUrl) {
         setPlayError("Impossible de charger l'enregistrement pour le moment.");
       }
     } catch {
-      setPlayError("Erreur de connexion au serveur.");
+      if (!listedUrl) setPlayError("Erreur de connexion au serveur.");
     } finally {
       setLoadingPlayerId(null);
     }
