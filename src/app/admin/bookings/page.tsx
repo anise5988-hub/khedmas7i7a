@@ -1,8 +1,7 @@
-﻿
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { formatTunisiaDate, formatTunisiaTime } from "@/lib/timezone";
 
 type BookingItem = {
   id: string;
@@ -20,6 +19,15 @@ type BookingItem = {
   createdAt: string;
 };
 
+type EditingModal = {
+  booking: BookingItem;
+  newDate: string;
+  newTime: string;
+  newDuration: number;
+  submitting: boolean;
+  error: string;
+};
+
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +37,7 @@ export default function AdminBookingsPage() {
 
   const [actionMessage, setActionMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [editingModal, setEditingModal] = useState<EditingModal | null>(null);
 
   function loadBookings() {
     return fetch("/api/admin/bookings")
@@ -45,7 +54,7 @@ export default function AdminBookingsPage() {
   async function refundBooking(b: BookingItem) {
     const ok = window.confirm(
       `Rembourser ${b.amountTnd} DT à ${b.studentName} ?\n\nLe montant sera recrédité à son portefeuille immédiatement` +
-        (b.status !== "PENDING" ? ", et retiré du gain du professeur." : "."),
+        (b.status !== "PENDING" ? ", et retiré du gain du professeur." : ".")
     );
     if (!ok) return;
     setRefundingId(b.id);
@@ -55,6 +64,72 @@ export default function AdminBookingsPage() {
     setRefundingId(null);
     setActionMessage({ text: res.ok ? "Réservation remboursée." : data.error || "Remboursement impossible.", ok: res.ok });
     if (res.ok) await loadBookings();
+  }
+
+  function openEditModal(b: BookingItem) {
+    const date = new Date(b.startsAt);
+    // Format date as YYYY-MM-DD for input
+    const dateStr = date.toISOString().split("T")[0];
+    // Format time as HH:MM
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+    const timeStr = `${hours}:${minutes}`;
+
+    setEditingModal({
+      booking: b,
+      newDate: dateStr,
+      newTime: timeStr,
+      newDuration: b.durationMinutes,
+      submitting: false,
+      error: "",
+    });
+  }
+
+  async function submitEditModal() {
+    if (!editingModal) return;
+
+    // Validate inputs
+    if (!editingModal.newDate || !editingModal.newTime || editingModal.newDuration <= 0) {
+      setEditingModal((prev) => ({ ...prev!, error: "Veuillez remplir tous les champs correctement." }));
+      return;
+    }
+
+    setEditingModal((prev) => ({ ...prev!, submitting: true, error: "" }));
+
+    try {
+      // Combine date and time into ISO string
+      const [hours, minutes] = editingModal.newTime.split(":");
+      const newStartsAt = new Date(`${editingModal.newDate}T${hours}:${minutes}:00Z`).toISOString();
+
+      const res = await fetch(`/api/admin/bookings/${editingModal.booking.id}/reschedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startsAt: newStartsAt,
+          durationMinutes: editingModal.newDuration,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        setActionMessage({ text: "Réservation reschedulée avec succès.", ok: true });
+        setEditingModal(null);
+        await loadBookings();
+      } else {
+        setEditingModal((prev) => ({
+          ...prev!,
+          error: data.error || "Erreur lors de la modification.",
+          submitting: false,
+        }));
+      }
+    } catch (err) {
+      setEditingModal((prev) => ({
+        ...prev!,
+        error: "Erreur de connexion au serveur.",
+        submitting: false,
+      }));
+    }
   }
 
   const filtered = bookings.filter((b) => {
@@ -124,7 +199,7 @@ export default function AdminBookingsPage() {
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="border-b border-white/10 text-xs font-bold uppercase tracking-wider text-slate-400">
                 <tr>
-                  <th className="px-4 py-3">Élève</th>
+                  <th className="px-4 py-3">Elève</th>
                   <th className="px-4 py-3">Professeur & Matière</th>
                   <th className="px-4 py-3">Date & Durée</th>
                   <th className="px-4 py-3">Montant</th>
@@ -145,7 +220,9 @@ export default function AdminBookingsPage() {
                       <div className="text-xs text-[#72d6bf]">{b.subject}</div>
                     </td>
                     <td className="px-4 py-4 text-xs">
-                      <div>{new Date(b.startsAt).toLocaleDateString("fr-TN")} à {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}</div>
+                      <div>
+                        {formatTunisiaDate(b.startsAt)} à {formatTunisiaTime(b.startsAt)}
+                      </div>
                       <div className="text-slate-400">{b.durationMinutes} minutes</div>
                     </td>
                     <td className="px-4 py-4 font-bold text-white">{b.amountTnd} DT</td>
@@ -179,6 +256,13 @@ export default function AdminBookingsPage() {
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(b)}
+                          className="rounded-xl bg-blue-500/20 px-3 py-1.5 text-xs font-bold text-blue-200 transition hover:bg-blue-500/30"
+                        >
+                          ✎ Modifier
+                        </button>
                         {b.paymentStatus === "PAID" && (
                           <button
                             type="button"
@@ -206,6 +290,107 @@ export default function AdminBookingsPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-[#101b2d] p-6 sm:p-8 shadow-2xl space-y-4 border border-white/10">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h3 className="text-lg font-bold text-white">Modifier la réservation</h3>
+                <p className="text-xs text-slate-400 mt-1">{editingModal.booking.studentName} - {editingModal.booking.subject}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingModal(null)}
+                className="text-slate-400 hover:text-white font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {editingModal.error && (
+              <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300">
+                {editingModal.error}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Date (Tunisie)
+                </label>
+                <input
+                  type="date"
+                  value={editingModal.newDate}
+                  onChange={(e) =>
+                    setEditingModal((prev) => ({
+                      ...prev!,
+                      newDate: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm text-white outline-none focus:border-[#72d6bf]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Heure de début (UTC)
+                </label>
+                <input
+                  type="time"
+                  value={editingModal.newTime}
+                  onChange={(e) =>
+                    setEditingModal((prev) => ({
+                      ...prev!,
+                      newTime: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm text-white outline-none focus:border-[#72d6bf]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Durée (minutes)
+                </label>
+                <input
+                  type="number"
+                  min="15"
+                  step="15"
+                  value={editingModal.newDuration}
+                  onChange={(e) =>
+                    setEditingModal((prev) => ({
+                      ...prev!,
+                      newDuration: parseInt(e.target.value, 10),
+                    }))
+                  }
+                  className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm text-white outline-none focus:border-[#72d6bf]"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingModal(null)}
+                disabled={editingModal.submitting}
+                className="rounded-xl border border-white/20 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/5 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => submitEditModal()}
+                disabled={editingModal.submitting}
+                className="rounded-xl bg-[#72d6bf] px-5 py-2.5 text-xs font-bold text-[#101b2d] transition hover:bg-[#5ec4ad] disabled:opacity-50"
+              >
+                {editingModal.submitting ? "Enregistrement..." : "Enregistrer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

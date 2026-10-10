@@ -6,6 +6,7 @@ import Image from "next/image";
 import { SiteNavbar } from "@/components/site-navbar";
 import { IconCalendar, IconStar } from "@/components/icons";
 import { Course } from "@/lib/server/courses-store";
+import { formatTunisiaDate, formatTunisiaTime } from "@/lib/timezone";
 
 type Booking = {
   id: string;
@@ -169,7 +170,7 @@ export default function StudentClassesPage() {
             </button>
             <Link
               href="/dashboard/replays"
-              className="rounded-xl border border-[#0d8d78] bg-white px-4 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#e5f7f2] dark:bg-white/10 dark:border-[#72d6bf]/40 dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/10"
+              className="rounded-xl border border-[#0d8d78] bg-white px-4 py-2 text-xs font-bold text-[#0d8d78] transition hover:bg-[#e5f7f2] dark:bg-white/10 dark:border-[#72d6bf]/40 dark:text-[#72d6bf]"
             >
                🎬 Mes Replays
             </Link>
@@ -230,7 +231,7 @@ export default function StudentClassesPage() {
               {filteredBookings.map((b) => (
                 <div
                   key={b.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl dark:hover:border-white/20"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 dark:border-white/10 dark:bg-white/[.05] dark:shadow-xl"
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d9f1e9] text-lg font-bold text-[#0d8d78] dark:bg-[#72d6bf]/20 dark:text-[#72d6bf]">
@@ -240,8 +241,7 @@ export default function StudentClassesPage() {
                       <h3 className="font-bold text-base">{b.teacherName}</h3>
                       <p className="text-xs font-bold text-[#0d8d78] dark:text-[#72d6bf]">{b.subject}</p>
                       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                         {new Date(b.startsAt).toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} à{" "}
-                        {new Date(b.startsAt).toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })}
+                        {formatTunisiaDate(b.startsAt)} à {formatTunisiaTime(b.startsAt)}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                         Durée : {b.durationMinutes} min · Tarif : {b.amountTnd} DT
@@ -276,7 +276,7 @@ export default function StudentClassesPage() {
                       ) : (
                         <button
                           onClick={() => openReviewModal(b)}
-                          className="rounded-xl border border-[#0d8d78] px-4 py-2.5 text-xs font-bold text-[#0d8d78] transition hover:bg-[#e5f7f2] dark:border-[#72d6bf] dark:text-[#72d6bf] dark:hover:bg-[#72d6bf]/10"
+                          className="rounded-xl border border-[#0d8d78] px-4 py-2.5 text-xs font-bold text-[#0d8d78] transition hover:bg-[#e5f7f2] dark:border-[#72d6bf] dark:text-[#72d6bf] dark:hover:bg-white/5"
                         >
                           ⭐ Laisser un avis
                         </button>
@@ -411,7 +411,7 @@ export default function StudentClassesPage() {
                     type="button"
                     onClick={() => reviewPhotoInputRef.current?.click()}
                     disabled={reviewPhotoUploading}
-                    className="rounded-xl border border-dashed border-slate-300 px-4 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-[#0d8d78] hover:text-[#0d8d78] disabled:opacity-50 dark:border-white/20 dark:text-slate-400"
+                    className="rounded-xl border border-dashed border-slate-300 px-4 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-[#0d8d78] hover:text-[#0d8d78] disabled:opacity-50"
                   >
                     {reviewPhotoUploading ? "Envoi en cours..." : "+ Ajouter une photo"}
                   </button>
@@ -441,3 +441,4 @@ export default function StudentClassesPage() {
     </main>
   );
 }
+
