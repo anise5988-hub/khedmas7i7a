@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
+import { SessionCommunication } from "@/components/session-communication";
 import { IconCalendar, IconClock, IconVideo } from "@/components/icons";
 
 type Booking = {
@@ -19,14 +20,45 @@ export default function TeacherCalendarPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"UPCOMING" | "PAST" | "ALL">("UPCOMING");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ id: string; type: "success" | "error"; text: string } | null>(null);
 
-  useEffect(() => {
+  function refresh() {
     fetch("/api/bookings")
       .then((res) => (res.ok ? res.json() : { bookings: [] }))
       .then((data) => setBookings(data.bookings || []))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    refresh();
   }, []);
+
+  async function respond(bookingId: string, action: "accept" | "decline") {
+    setBusyId(bookingId);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/${action}`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setFeedback({ id: bookingId, type: "error", text: data.error || "Échec de l'opération." });
+        return;
+      }
+      setFeedback({
+        id: bookingId,
+        type: "success",
+        text: action === "accept"
+          ? "Demande confirmée — l'élève a été notifié et les honoraires ont été crédités."
+          : "Demande refusée — le paiement a été remboursé au portefeuille de l'élève.",
+      });
+      refresh();
+    } catch {
+      setFeedback({ id: bookingId, type: "error", text: "Erreur de connexion." });
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   const now = new Date();
   const upcoming = bookings.filter((b) => new Date(b.startsAt) >= now);
@@ -168,20 +200,64 @@ export default function TeacherCalendarPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 self-end sm:self-center">
-                    <div className="text-right">
-                      <span className="text-xs text-slate-400 dark:text-slate-500">Honoraires :</span>
-                      <p className="text-base font-bold text-[#0d8d78] dark:text-[#72d6bf]">{b.amountTnd} DT</p>
+                  <div className="flex flex-col items-end gap-2 self-end sm:self-center">
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <span className="text-xs text-slate-400 dark:text-slate-500">Honoraires :</span>
+                        <p className="text-base font-bold text-[#0d8d78] dark:text-[#72d6bf]">{b.amountTnd} DT</p>
+                      </div>
+
+                      {!isPast && (
+                        <Link
+                          href={`/classroom/${b.id}`}
+                          className="flex items-center gap-2 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#0b7866]"
+                        >
+                          <IconVideo className="h-4 w-4" />
+                          <span>Rejoindre la classe →</span>
+                        </Link>
+                      )}
                     </div>
 
-                    {!isPast && (
-                      <Link
-                        href={`/classroom/${b.id}`}
-                        className="flex items-center gap-2 rounded-2xl bg-[#0d8d78] px-5 py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#0b7866]"
-                      >
-                        <IconVideo className="h-4 w-4" />
-                        <span>Rejoindre la classe →</span>
-                      </Link>
+                    {/* Confirmer / Refuser — teacher-only endpoints */}
+                    {b.status === "PENDING" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => respond(b.id, "accept")}
+                          disabled={busyId === b.id}
+                          className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {busyId === b.id ? "…" : "✅ Confirmer la demande"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => respond(b.id, "decline")}
+                          disabled={busyId === b.id}
+                          className="rounded-xl border border-rose-300 bg-white px-4 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50 dark:border-rose-500/40 dark:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10"
+                        >
+                          Refuser
+                        </button>
+                      </div>
+                    )}
+                    {feedback?.id === b.id && (
+                      <span className={`text-[11px] font-bold ${feedback.type === "success" ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600 dark:text-rose-300"}`}>
+                        {feedback.text}
+                      </span>
+                    )}
+                    {/* Modifier l'horaire — same component the student side uses */}
+                    {!isPast && b.status !== "CANCELLED" && (
+                      <div className="w-full">
+                        <SessionCommunication
+                          booking={{
+                            id: b.id,
+                            subject: b.subject || "Cours particulier",
+                            startsAt: b.startsAt,
+                            durationMinutes: b.durationMinutes,
+                            status: b.status,
+                          }}
+                          onUpdated={() => refresh()}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
