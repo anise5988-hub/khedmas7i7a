@@ -17,7 +17,9 @@ vi.mock("@/lib/server/prisma", () => ({
         wallet: { updateMany: walletUpdateMany, findUnique: walletFindUnique },
         withdrawalRequest: { create: withdrawalRequestCreate },
         walletTransaction: { create: walletTransactionCreate },
+        user: { findMany: vi.fn().mockResolvedValue([]) },
       }),
+    user: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 

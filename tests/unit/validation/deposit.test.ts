@@ -107,16 +107,28 @@ describe("depositSchema", () => {
   });
 
   describe("Negative Cases - Method & Reference Validation", () => {
-    it("should reject unsupported deposit methods", () => {
-      const invalidMethods = ["PAYPAL", "BITCOIN", "CREDIT_CARD", "d17"];
-      invalidMethods.forEach((method) => {
+    it("accepts any non-empty method string (methods are admin-managed, checked against the DB in the route)", () => {
+      // The schema is format-only on purpose: see src/lib/validation/deposit.ts.
+      // Whether a method id is real/enabled is validated against the
+      // PaymentMethod table inside /api/wallet/deposits, not here.
+      const arbitraryMethods = ["PAYPAL", "BITCOIN", "CREDIT_CARD", "d17"];
+      arbitraryMethods.forEach((method) => {
         const input = {
           amountMillimes: 10_000,
           method,
           reference: "REF-123",
         };
-        expect(depositSchema.safeParse(input).success).toBe(false);
+        expect(depositSchema.safeParse(input).success).toBe(true);
       });
+    });
+
+    it("should reject an empty method", () => {
+      const input = {
+        amountMillimes: 10_000,
+        method: "   ",
+        reference: "REF-123",
+      };
+      expect(depositSchema.safeParse(input).success).toBe(false);
     });
 
     it("should reject reference shorter than 3 characters", () => {
