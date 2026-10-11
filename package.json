@@ -21,8 +21,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@rolldown/binding-wasm32-wasi": "^0.15.1",
-    "@rolldown/binding-win32-x64-msvc": "^1.2.5",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
