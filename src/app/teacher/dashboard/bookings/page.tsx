@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
+import { TeacherBookingActions } from "@/components/teacher-booking-actions";
 import { IconCalendar } from "@/components/icons";
 import { formatTunisiaDate, formatTunisiaMonthShort, formatTunisiaTime } from "@/lib/timezone";
 
@@ -65,12 +66,16 @@ export default function StudentCalendarPage() {
     return headers;
   }
 
-  useEffect(() => {
+  function loadBookings() {
     fetch("/api/bookings", { headers: getAuthHeaders() })
       .then((res) => (res.ok ? res.json() : { bookings: [] }))
       .then((data) => setBookings(data.bookings || []))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadBookings();
   }, []);
 
   return (
@@ -121,6 +126,16 @@ export default function StudentCalendarPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {b.status === "PENDING" && (
+                    <TeacherBookingActions bookingId={b.id} onChanged={loadBookings} />
+                  )}
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                      b.status === "PENDING" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {b.status}
+                  </span>
                   <a
                     href={generateGoogleCalendarUrl(b)}
                     target="_blank"

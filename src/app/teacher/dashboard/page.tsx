@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "@/components/site-navbar";
 import { AchievementBadges } from "@/components/achievement-badges";
+import { TeacherBookingActions } from "@/components/teacher-booking-actions";
 import { formatTndFromMillimes } from "@/lib/finance/withdrawal";
 import {
   IconCalendar,
@@ -545,6 +546,22 @@ export default function TeacherDashboardPage() {
                               Rejoindre →
                             </a>
                           </div>
+                          {/* Confirmer / Refuser les demandes en attente */}
+                          {b.status === "PENDING" && (
+                            <div className="mt-1">
+                              <TeacherBookingActions
+                                bookingId={b.id}
+                                onChanged={() => {
+                                  fetch("/api/teacher/profile", { headers: getAuthHeaders() })
+                                    .then((res) => (res.ok ? res.json() : null))
+                                    .then((teacherJson) => {
+                                      if (teacherJson?.teacher) setData(teacherJson.teacher);
+                                    })
+                                    .catch(() => {});
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
