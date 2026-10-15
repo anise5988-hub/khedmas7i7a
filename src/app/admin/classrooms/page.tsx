@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { IconVideo, IconClock } from "@/components/icons";
 import { RecordingPlayerModal } from "@/components/recording-player-modal";
-import { useRouter } from "next/navigation";
 
 type LiveSessionRow = {
   sessionId: string;
@@ -52,10 +51,7 @@ export default function AdminClassroomsPage() {
   const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
   const [finalizingId, setFinalizingId] = useState<string | null>(null);
   const [finalizeMessage, setFinalizeMessage] = useState<{ id: string; text: string; ok: boolean } | null>(null);
-  const router = useRouter();
   const [playError, setPlayError] = useState("");
-  const [finalizingId, setFinalizingId] = useState<string | null>(null);
-  const [finalizeMsg, setFinalizeMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // The signed Daily URL in the list is short-lived â€” always mint a fresh
   // one through the recording endpoint right before playing, same as the
@@ -153,9 +149,9 @@ export default function AdminClassroomsPage() {
           <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">{fetchError}</div>
         )}
 
-        {finalizeMsg && (
-          <div className={`mt-4 rounded-2xl border p-3 text-sm ${finalizeMsg.type === "success" ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300" : "border-rose-400/30 bg-rose-500/10 text-rose-300"}`}>
-            {finalizeMsg.text}
+        {finalizeMessage && (
+          <div className={`mt-4 rounded-2xl border p-3 text-sm ${finalizeMessage.ok ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300" : "border-rose-400/30 bg-rose-500/10 text-rose-300"}`}>
+            {finalizeMessage.text}
           </div>
         )}
         <div className="mt-8 overflow-x-auto rounded-3xl border border-white/10 bg-white/[.04] p-2 shadow-xl">
