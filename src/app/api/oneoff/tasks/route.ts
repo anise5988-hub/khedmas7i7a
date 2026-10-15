@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 403 });
   }
 
-  const out: Record<string, unknown> = {};
+  const out: { lastBooking?: unknown; renamed: unknown[] } = { renamed: [] };
 
   // 1. Confirm the most recently created booking.
   const last = await prisma.booking.findFirst({
