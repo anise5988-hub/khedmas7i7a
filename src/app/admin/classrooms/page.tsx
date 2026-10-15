@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+﻿/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -50,15 +50,17 @@ export default function AdminClassroomsPage() {
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
   const [playError, setPlayError] = useState("");
+  const [finalizingId, setFinalizingId] = useState<string | null>(null);
+  const [finalizeMsg, setFinalizeMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // The signed Daily URL in the list is short-lived — always mint a fresh
+  // The signed Daily URL in the list is short-lived â€” always mint a fresh
   // one through the recording endpoint right before playing, same as the
   // student/teacher replays pages do.
   async function openReplay(bookingId: string) {
     setPlayError("");
     setLoadingPlayerId(bookingId);
     // Open with the URL the list already has, THEN refresh it in the
-    // background — the modal paints instantly instead of waiting for the
+    // background â€” the modal paints instantly instead of waiting for the
     // ~2-6s Daily round-trip. The modal is keyed on the URL, so when the
     // fresh signed link lands it seamlessly swaps in (the video continues
     // from where it is thanks to the same source position). If the list URL
@@ -86,7 +88,7 @@ export default function AdminClassroomsPage() {
     fetch(`/api/admin/classrooms?limit=100&status=${statusFilter}`)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("unauthorized"))))
       .then((data) => setSessions(data.sessions || []))
-      .catch(() => setFetchError("Impossible de charger les sessions. Vérifiez que vous êtes connecté en tant qu'administrateur."))
+      .catch(() => setFetchError("Impossible de charger les sessions. VÃ©rifiez que vous Ãªtes connectÃ© en tant qu'administrateur."))
       .finally(() => setLoading(false));
   }
 
@@ -103,7 +105,7 @@ export default function AdminClassroomsPage() {
             <p className="text-xs font-bold uppercase tracking-[.18em] text-[#72d6bf]">Classes virtuelles</p>
             <h1 className="mt-1 text-3xl font-bold">Sessions de classe ({sessions.length})</h1>
             <p className="mt-1 text-sm text-slate-400">
-              Métadonnées opérationnelles uniquement — le contenu des leçons reste privé entre l&apos;enseignant et l&apos;élève.
+              MÃ©tadonnÃ©es opÃ©rationnelles uniquement â€” le contenu des leÃ§ons reste privÃ© entre l&apos;enseignant et l&apos;Ã©lÃ¨ve.
             </p>
           </div>
           <div className="flex gap-2">
@@ -113,7 +115,7 @@ export default function AdminClassroomsPage() {
                 onClick={() => setStatusFilter(s)}
                 className={`rounded-xl px-3 py-2 text-xs font-bold transition ${statusFilter === s ? "bg-[#0d8d78] text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
               >
-                {s === "ALL" ? "Toutes" : s === "IN_PROGRESS" ? "En cours" : s === "COMPLETED" ? "Terminées" : "Annulées"}
+                {s === "ALL" ? "Toutes" : s === "IN_PROGRESS" ? "En cours" : s === "COMPLETED" ? "TerminÃ©es" : "AnnulÃ©es"}
               </button>
             ))}
           </div>
@@ -123,6 +125,11 @@ export default function AdminClassroomsPage() {
           <div className="mt-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-300">{fetchError}</div>
         )}
 
+        {finalizeMsg && (
+          <div className={`mt-4 rounded-2xl border p-3 text-sm ${finalizeMsg.type === "success" ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300" : "border-rose-400/30 bg-rose-500/10 text-rose-300"}`}>
+            {finalizeMsg.text}
+          </div>
+        )}
         <div className="mt-8 overflow-x-auto rounded-3xl border border-white/10 bg-white/[.04] p-2 shadow-xl">
           {loading ? (
             <div className="py-20 text-center text-slate-400">
@@ -134,19 +141,19 @@ export default function AdminClassroomsPage() {
               <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
                 <IconVideo className="h-6 w-6" />
               </div>
-              <p className="text-base font-bold text-white">Aucune session trouvée</p>
-              <p className="mt-1 text-xs text-slate-400">Les sessions apparaîtront dès la première connexion à une classe.</p>
+              <p className="text-base font-bold text-white">Aucune session trouvÃ©e</p>
+              <p className="mt-1 text-xs text-slate-400">Les sessions apparaÃ®tront dÃ¨s la premiÃ¨re connexion Ã  une classe.</p>
             </div>
           ) : (
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="border-b border-white/10 text-xs font-bold uppercase tracking-wider text-slate-400">
                 <tr>
                   <th className="px-4 py-3.5">Cours</th>
-                  <th className="px-4 py-3.5">Enseignant / Élève</th>
-                  <th className="px-4 py-3.5">Créneau</th>
+                  <th className="px-4 py-3.5">Enseignant / Ã‰lÃ¨ve</th>
+                  <th className="px-4 py-3.5">CrÃ©neau</th>
                   <th className="px-4 py-3.5">Statut</th>
                   <th className="px-4 py-3.5">Paiement</th>
-                  <th className="px-4 py-3.5">Présence</th>
+                  <th className="px-4 py-3.5">PrÃ©sence</th>
                   <th className="px-4 py-3.5">Technique</th>
                 </tr>
               </thead>
@@ -155,7 +162,7 @@ export default function AdminClassroomsPage() {
                   <tr key={s.sessionId} className="transition hover:bg-white/[.03]">
                     <td className="px-4 py-4">
                       <p className="max-w-xs truncate font-bold text-white">{s.subject}</p>
-                      <p className="text-[10px] text-slate-500">Réservation {s.bookingId.slice(0, 10)}…</p>
+                      <p className="text-[10px] text-slate-500">RÃ©servation {s.bookingId.slice(0, 10)}â€¦</p>
                     </td>
                     <td className="px-4 py-4 text-xs">
                       <p className="font-semibold text-[#72d6bf]">{s.teacherName}</p>
@@ -166,13 +173,13 @@ export default function AdminClassroomsPage() {
                         <IconClock className="h-3 w-3 text-slate-500" />
                         {new Date(s.scheduledStart).toLocaleString("fr-TN", { dateStyle: "short", timeStyle: "short" })}
                       </p>
-                      <p className="text-[10px] text-slate-500">{Math.round((new Date(s.scheduledEnd).getTime() - new Date(s.scheduledStart).getTime()) / 60000)} min prévues</p>
+                      <p className="text-[10px] text-slate-500">{Math.round((new Date(s.scheduledEnd).getTime() - new Date(s.scheduledStart).getTime()) / 60000)} min prÃ©vues</p>
                     </td>
                     <td className="px-4 py-4">
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${STATUS_STYLES[s.phase] ?? "bg-white/10 text-slate-300"}`}>
                         {s.phase}
                       </span>
-                      {s.locked && <span className="ml-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-slate-300">🔒</span>}
+                      {s.locked && <span className="ml-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-slate-300">ðŸ”’</span>}
                     </td>
                     <td className="px-4 py-4 text-xs">
                       <span className={`rounded-lg px-2 py-0.5 text-[11px] font-semibold ${s.paymentStatus === "PAID" ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}>
@@ -180,11 +187,11 @@ export default function AdminClassroomsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-4 text-[10px]">
-                      <p>Prof : {s.teacherAttendance.length > 0 ? `${fmtDuration(s.teacherAttendance.reduce((a, r) => a + (r.durationSeconds ?? 0), 0))}${s.teacherAttendance[0].reconnectCount > 0 ? ` · ${s.teacherAttendance[0].reconnectCount} reco` : ""}` : "—"}</p>
-                      <p>Élève : {s.studentAttendance.length > 0 ? `${fmtDuration(s.studentAttendance.reduce((a, r) => a + (r.durationSeconds ?? 0), 0))}${s.studentAttendance[0].reconnectCount > 0 ? ` · ${s.studentAttendance[0].reconnectCount} reco` : ""}` : "—"}</p>
+                      <p>Prof : {s.teacherAttendance.length > 0 ? `${fmtDuration(s.teacherAttendance.reduce((a, r) => a + (r.durationSeconds ?? 0), 0))}${s.teacherAttendance[0].reconnectCount > 0 ? ` Â· ${s.teacherAttendance[0].reconnectCount} reco` : ""}` : "â€”"}</p>
+                      <p>Ã‰lÃ¨ve : {s.studentAttendance.length > 0 ? `${fmtDuration(s.studentAttendance.reduce((a, r) => a + (r.durationSeconds ?? 0), 0))}${s.studentAttendance[0].reconnectCount > 0 ? ` Â· ${s.studentAttendance[0].reconnectCount} reco` : ""}` : "â€”"}</p>
                     </td>
                     <td className="px-4 py-4 text-[10px]">
-                      <p>Vidéo : {s.recordingStatus === "NOT_AVAILABLE" ? "—" : s.recordingStatus}</p>
+                      <p>VidÃ©o : {s.recordingStatus === "NOT_AVAILABLE" ? "â€”" : s.recordingStatus}</p>
                       <p>Salle d&apos;attente : {s.waitingRoomEnabled ? "oui" : "non"}</p>
                       {s.recordingUrl && (
                         <button
@@ -209,3 +216,5 @@ export default function AdminClassroomsPage() {
     </main>
   );
 }
+
+
