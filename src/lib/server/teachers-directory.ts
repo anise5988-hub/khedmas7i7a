@@ -87,16 +87,23 @@ export async function getApprovedTeachers(): Promise<DirectoryTeacher[]> {
         reviews: { select: { rating: true } },
         availabilities: true,
         bookings: { where: { status: "COMPLETED" }, select: { id: true }, take: 1 },
+        manualBadges: { select: { slug: true } },
       },
       orderBy: { id: "desc" },
     });
 
     if (profiles && profiles.length > 0) {
-      // Teachers who have actually completed a lesson (the same signal the
-      // "Premier cours donné" achievement badge uses) are shown first —
-      // a real track record beats profile-creation order. Everyone else
-      // keeps the existing newest-first ordering as a stable tiebreaker.
-      const sorted = [...profiles].sort((a, b) => Number(b.bookings.length > 0) - Number(a.bookings.length > 0));
+      // Directory ranking: a real track record beats profile-creation order.
+      // Primary: most feedback (reviews) — proof other students vouch for the
+      // teacher. Secondary: most badges (manual + automatic), the platform's
+      // own quality signal. Newest-first id stays the final tiebreaker.
+      const sorted = [...profiles].sort((a, b) => {
+        const byReviews = b.reviews.length - a.reviews.length;
+        if (byReviews !== 0) return byReviews;
+        const byBadges = b.manualBadges.length - a.manualBadges.length;
+        if (byBadges !== 0) return byBadges;
+        return Number(b.bookings.length > 0) - Number(a.bookings.length > 0);
+      });
       const badgeInputs = await loadBadgeInputs(sorted.map((p) => p.id));
       return sorted.map((profile) => {
         const students = badgeInputs.completedPairs.get(profile.id) ?? new Set<string>();
