@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { IconVideo, IconClock } from "@/components/icons";
 import { RecordingPlayerModal } from "@/components/recording-player-modal";
+import { useRouter } from "next/navigation";
 
 type LiveSessionRow = {
   sessionId: string;
@@ -49,6 +50,9 @@ export default function AdminClassroomsPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
+  const [finalizingId, setFinalizingId] = useState<string | null>(null);
+  const [finalizeMessage, setFinalizeMessage] = useState<{ id: string; text: string; ok: boolean } | null>(null);
+  const router = useRouter();
   const [playError, setPlayError] = useState("");
   const [finalizingId, setFinalizingId] = useState<string | null>(null);
   const [finalizeMsg, setFinalizeMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -79,6 +83,30 @@ export default function AdminClassroomsPage() {
       if (!listedUrl) setPlayError("Erreur de connexion au serveur.");
     } finally {
       setLoadingPlayerId(null);
+    }
+  }
+
+  // Admin-only one-call fix for a stuck session: ends it for everyone and
+  // stops/saves the Daily recording (waiting up to ~90s for encoding).
+  async function finalizeSession(bookingId: string) {
+    if (!confirm("Terminer cette session et sauvegarder l'enregistrement ? Cela peut prendre jusqu'à 90 secondes.")) return;
+    setFinalizingId(bookingId);
+    setFinalizeMessage(null);
+    try {
+      const res = await fetch(`/api/admin/classrooms/${bookingId}/finalize`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setFinalizeMessage({ id: bookingId, ok: true, text: `Terminé — enregistrement : ${data.recordingStatus ?? "AVAILABLE"}` });
+        load();
+      } else if (res.status === 202) {
+        setFinalizeMessage({ id: bookingId, ok: false, text: "Daily n'a pas fini l'encodage en 90s — réessayez dans quelques minutes." });
+      } else {
+        setFinalizeMessage({ id: bookingId, ok: false, text: data.error || `Erreur ${res.status}` });
+      }
+    } catch {
+      setFinalizeMessage({ id: bookingId, ok: false, text: "Erreur de connexion au serveur." });
+    } finally {
+      setFinalizingId(null);
     }
   }
 
@@ -203,6 +231,19 @@ export default function AdminClassroomsPage() {
                           <IconVideo className="h-3 w-3" />
                           {loadingPlayerId === s.bookingId ? "Chargement..." : "Voir l'enregistrement"}
                         </button>
+                      )}
+                      {s.bookingStatus !== "COMPLETED" && (
+                        <button
+                          type="button"
+                          onClick={() => finalizeSession(s.bookingId)}
+                          disabled={finalizingId === s.bookingId}
+                          className="mt-1 flex items-center gap-1 rounded-lg bg-amber-500 px-2 py-1 text-[10px] font-bold text-white transition hover:bg-amber-600 disabled:opacity-50"
+                        >
+                          {finalizingId === s.bookingId ? "Finalisation... (jusqu'à 90s)" : "Terminer + sauver l'enregistrement"}
+                        </button>
+                      )}
+                      {finalizeMessage?.id === s.bookingId && (
+                        <p className={`mt-1 ${finalizeMessage.ok ? "text-emerald-300" : "text-rose-300"}`}>{finalizeMessage.text}</p>
                       )}
                     </td>
                   </tr>
